@@ -65,13 +65,22 @@ All providers are defined in `lib/state/app_state.dart`:
 
 ## Project Storage
 
-Projects are stored as JSON files in a folder structure:
+Projects use a file-based storage system where content is separated from metadata:
+
 ```
 {project_path}/
 ├── project.json      # Project metadata (id, name, timestamps)
-├── chapters.json     # Array of all chapters
+├── chapters.json     # Chapter metadata only (id, title, order, timestamps)
+├── chapters/         # Chapter content directory
+│   ├── chapter_{id}.txt   # Individual chapter content files
+│   └── ...
 └── knowledge.json    # Array of knowledge base items
 ```
+
+**Key design decisions**:
+- Chapter content is stored in separate `.txt` files to avoid large JSON files
+- `chapters.json` contains only metadata (title, order, timestamps), not content
+- Each chapter file is named `chapter_{id}.txt` in the `chapters/` subdirectory
 
 **Default location**: `~/Documents/PlotEngine/{project_id}/`
 
@@ -82,9 +91,14 @@ Projects are stored as JSON files in a folder structure:
 ### Chapter
 - `id`: Unique identifier (timestamp-based)
 - `title`: Chapter title
-- `content`: Plain text content from super_editor
+- `content`: Plain text content from super_editor (stored in separate file)
 - `order`: Sort order (integer)
 - `createdAt`, `updatedAt`: Timestamps
+
+**Serialization methods**:
+- `toMetadataJson()`: Saves metadata only (for chapters.json)
+- `fromMetadataJson(json, content)`: Loads metadata and content separately
+- `toJson()/fromJson()`: Full serialization (backward compatibility)
 
 ### KnowledgeItem
 - `id`: Unique identifier

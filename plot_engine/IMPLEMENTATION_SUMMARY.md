@@ -39,9 +39,10 @@
 
 ### 5. **Storage Architecture**
 - ✅ File-based project storage
-- ✅ JSON serialization for all models
+- ✅ JSON serialization for metadata
 - ✅ Organized project directories
-- ✅ Separate files for chapters and knowledge base
+- ✅ Separate files for chapter content (scalable for large projects)
+- ✅ Metadata-only JSON files for quick loading
 
 **Storage Path**: `~/Documents/PlotEngine/{project_id}/`
 
@@ -110,7 +111,10 @@ lib/
 ~/Documents/PlotEngine/
 └── {project_id}/
     ├── project.json      # Project metadata
-    ├── chapters.json     # All chapters
+    ├── chapters.json     # Chapter metadata only
+    ├── chapters/         # Chapter content directory
+    │   ├── chapter_{id}.txt
+    │   └── ...
     └── knowledge.json    # Knowledge base items
 ```
 
@@ -127,18 +131,22 @@ lib/
 }
 ```
 
-**chapters.json**
+**chapters.json** (metadata only)
 ```json
 [
   {
     "id": "1234567891",
     "title": "Chapter 1: The Beginning",
-    "content": "Once upon a time...",
     "order": 0,
     "createdAt": "2025-01-01T00:00:00.000Z",
     "updatedAt": "2025-01-01T12:00:00.000Z"
   }
 ]
+```
+
+**chapters/chapter_1234567891.txt** (content)
+```
+Once upon a time...
 ```
 
 ## Next Steps (AI Integration)

@@ -4,10 +4,12 @@ import '../models/chapter.dart';
 import '../models/knowledge_item.dart';
 import '../state/app_state.dart';
 import 'storage_service.dart';
+import 'recent_projects_service.dart';
 
 class ProjectService {
   final Ref ref;
   final StorageService _storage = StorageService();
+  final RecentProjectsService _recentProjects = RecentProjectsService();
 
   ProjectService(this.ref);
 
@@ -18,6 +20,10 @@ class ProjectService {
     ref.read(chaptersProvider.notifier).clearChapters();
     ref.read(knowledgeBaseProvider.notifier).clearItems();
     ref.read(currentChapterProvider.notifier).setCurrentChapter(null);
+
+    // Track as recent project
+    await _recentProjects.addRecentProject(project.path);
+
     return project;
   }
 
@@ -40,7 +46,33 @@ class ProjectService {
       ref.read(currentChapterProvider.notifier).setCurrentChapter(chapters.first);
     }
 
+    // Track as recent project
+    await _recentProjects.addRecentProject(projectPath);
+
     return true;
+  }
+
+  // Get recent projects
+  Future<List<Project>> getRecentProjects() async {
+    final recentPaths = await _recentProjects.getRecentProjects();
+    final projects = <Project>[];
+
+    for (final path in recentPaths) {
+      final project = await _storage.loadProject(path);
+      if (project != null) {
+        projects.add(project);
+      } else {
+        // Remove invalid project from recents
+        await _recentProjects.removeRecentProject(path);
+      }
+    }
+
+    return projects;
+  }
+
+  // Get last opened project path
+  Future<String?> getLastProjectPath() async {
+    return await _recentProjects.getLastProjectPath();
   }
 
   // Save current project

@@ -10,6 +10,7 @@ class StorageService {
   static const String _projectFileName = 'project.json';
   static const String _chaptersFileName = 'chapters.json';
   static const String _knowledgeFileName = 'knowledge.json';
+  static const String _chaptersDir = 'chapters';
 
   // Get the base directory for all projects
   Future<Directory> _getBaseDirectory() async {
@@ -98,11 +99,35 @@ class StorageService {
     return projects;
   }
 
+  // Get chapters directory
+  Future<Directory> _getChaptersDirectory(String projectPath) async {
+    final chaptersDir = Directory('$projectPath/$_chaptersDir');
+    if (!await chaptersDir.exists()) {
+      await chaptersDir.create(recursive: true);
+    }
+    return chaptersDir;
+  }
+
+  // Get chapter content file path
+  String _getChapterContentPath(String projectPath, String chapterId) {
+    return '$projectPath/$_chaptersDir/chapter_$chapterId.txt';
+  }
+
   // Save chapters
   Future<void> saveChapters(String projectPath, List<Chapter> chapters) async {
+    // Ensure chapters directory exists
+    await _getChaptersDirectory(projectPath);
+
+    // Save metadata to chapters.json
     final chaptersFile = File('$projectPath/$_chaptersFileName');
-    final chaptersJson = chapters.map((c) => c.toJson()).toList();
+    final chaptersJson = chapters.map((c) => c.toMetadataJson()).toList();
     await chaptersFile.writeAsString(jsonEncode(chaptersJson));
+
+    // Save each chapter's content to separate file
+    for (final chapter in chapters) {
+      final contentFile = File(_getChapterContentPath(projectPath, chapter.id));
+      await contentFile.writeAsString(chapter.content);
+    }
   }
 
   // Load chapters
@@ -112,9 +137,27 @@ class StorageService {
       if (!await chaptersFile.exists()) {
         return [];
       }
-      final content = await chaptersFile.readAsString();
-      final List<dynamic> chaptersJson = jsonDecode(content);
-      return chaptersJson.map((json) => Chapter.fromJson(json)).toList();
+
+      // Load metadata
+      final metadataContent = await chaptersFile.readAsString();
+      final List<dynamic> chaptersJson = jsonDecode(metadataContent);
+
+      // Load each chapter with its content
+      final chapters = <Chapter>[];
+      for (final json in chaptersJson) {
+        final chapterId = json['id'] as String;
+        final contentFile = File(_getChapterContentPath(projectPath, chapterId));
+
+        // Load content from file, or empty string if file doesn't exist
+        String content = '';
+        if (await contentFile.exists()) {
+          content = await contentFile.readAsString();
+        }
+
+        chapters.add(Chapter.fromMetadataJson(json, content));
+      }
+
+      return chapters;
     } catch (e) {
       print('Error loading chapters: $e');
       return [];

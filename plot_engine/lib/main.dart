@@ -4,6 +4,7 @@ import 'ui/editor/editor_panel.dart';
 import 'ui/sidebar_comments/sidebar_comments.dart';
 import 'ui/knowledge_panel/knowledge_panel.dart';
 import 'ui/toolbar/app_toolbar.dart';
+import 'services/project_service.dart';
 
 void main() {
   runApp(
@@ -41,8 +42,37 @@ class PlotEngineApp extends StatelessWidget {
   }
 }
 
-class PlotEngineHome extends StatelessWidget {
+class PlotEngineHome extends ConsumerStatefulWidget {
   const PlotEngineHome({super.key});
+
+  @override
+  ConsumerState<PlotEngineHome> createState() => _PlotEngineHomeState();
+}
+
+class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
+  @override
+  void initState() {
+    super.initState();
+    // Auto-open last project on app start
+    _loadLastProject();
+  }
+
+  Future<void> _loadLastProject() async {
+    final projectService = ref.read(projectServiceProvider);
+    final lastProjectPath = await projectService.getLastProjectPath();
+
+    if (lastProjectPath != null) {
+      final success = await projectService.openProject(lastProjectPath);
+      if (!success && mounted) {
+        // Project couldn't be opened (maybe deleted or moved)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open last project. It may have been moved or deleted.'),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -149,7 +149,7 @@ class AppToolbar extends ConsumerWidget {
 
   Future<void> _handleOpenProject(BuildContext context, ProjectService service, WidgetRef ref) async {
     try {
-      final projects = await service.listProjects();
+      final projects = await service.getRecentProjects();
       if (!context.mounted) return;
 
       final selectedPath = await showDialog<String>(
