@@ -3,6 +3,7 @@ import '../models/project.dart';
 import '../models/chapter.dart';
 import '../models/knowledge_item.dart';
 import '../state/app_state.dart';
+import '../core/utils/logger.dart';
 import 'storage_service.dart';
 import 'recent_projects_service.dart';
 
@@ -15,41 +16,54 @@ class ProjectService {
 
   // Create a new project
   Future<Project> createProject(String name, {String? customPath}) async {
-    final project = await _storage.createProject(name, customPath: customPath);
-    ref.read(projectProvider.notifier).setProject(project);
-    ref.read(chaptersProvider.notifier).clearChapters();
-    ref.read(knowledgeBaseProvider.notifier).clearItems();
-    ref.read(currentChapterProvider.notifier).setCurrentChapter(null);
+    return await ErrorHandler.handleAsync(
+      () async {
+        final project = await _storage.createProject(name, customPath: customPath);
+        ref.read(projectProvider.notifier).setProject(project);
+        ref.read(chaptersProvider.notifier).clearChapters();
+        ref.read(knowledgeBaseProvider.notifier).clearItems();
+        ref.read(currentChapterProvider.notifier).setCurrentChapter(null);
 
-    // Track as recent project
-    await _recentProjects.addRecentProject(project.path);
+        // Track as recent project
+        await _recentProjects.addRecentProject(project.path);
 
-    return project;
+        AppLogger.info('Created project', name);
+        return project;
+      },
+      'Create project',
+    ) ?? (throw Exception('Failed to create project'));
   }
 
   // Open an existing project
   Future<bool> openProject(String projectPath) async {
-    final project = await _storage.loadProject(projectPath);
-    if (project == null) {
-      return false;
-    }
+    return await ErrorHandler.handleAsync(
+      () async {
+        final project = await _storage.loadProject(projectPath);
+        if (project == null) {
+          AppLogger.warn('Project not found', projectPath);
+          return false;
+        }
 
-    final chapters = await _storage.loadChapters(projectPath);
-    final knowledgeItems = await _storage.loadKnowledgeBase(projectPath);
+        final chapters = await _storage.loadChapters(projectPath);
+        final knowledgeItems = await _storage.loadKnowledgeBase(projectPath);
 
-    ref.read(projectProvider.notifier).setProject(project);
-    ref.read(chaptersProvider.notifier).setChapters(chapters);
-    ref.read(knowledgeBaseProvider.notifier).setItems(knowledgeItems);
+        ref.read(projectProvider.notifier).setProject(project);
+        ref.read(chaptersProvider.notifier).setChapters(chapters);
+        ref.read(knowledgeBaseProvider.notifier).setItems(knowledgeItems);
 
-    // Set first chapter as current if available
-    if (chapters.isNotEmpty) {
-      ref.read(currentChapterProvider.notifier).setCurrentChapter(chapters.first);
-    }
+        // Set first chapter as current if available
+        if (chapters.isNotEmpty) {
+          ref.read(currentChapterProvider.notifier).setCurrentChapter(chapters.first);
+        }
 
-    // Track as recent project
-    await _recentProjects.addRecentProject(projectPath);
+        // Track as recent project
+        await _recentProjects.addRecentProject(projectPath);
 
-    return true;
+        AppLogger.load('Opened project', itemCount: chapters.length, path: projectPath);
+        return true;
+      },
+      'Open project',
+    ) ?? false;
   }
 
   // Get recent projects
@@ -121,6 +135,7 @@ class ProjectService {
     ref.read(currentChapterProvider.notifier).setCurrentChapter(chapter);
     await saveProject();
 
+    AppLogger.info('Created chapter', title);
     return chapter;
   }
 

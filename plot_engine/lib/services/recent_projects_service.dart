@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:macos_secure_bookmarks/macos_secure_bookmarks.dart';
 import 'dart:convert';
 import 'dart:io';
+import '../core/utils/logger.dart';
 
 // Store both path and bookmark data for each project
 class ProjectBookmark {
@@ -41,7 +42,7 @@ class RecentProjectsService {
       final bookmark = await _secureBookmarks.bookmark(File(projectPath));
       return bookmark;
     } catch (e) {
-      print('Error creating bookmark: $e');
+      AppLogger.error('Error creating bookmark', e);
       return null;
     }
   }
@@ -63,7 +64,7 @@ class RecentProjectsService {
       }
       return null;
     } catch (e) {
-      print('Error resolving bookmark: $e');
+      AppLogger.error('Error resolving bookmark', e);
       return null;
     }
   }
@@ -72,6 +73,8 @@ class RecentProjectsService {
   Future<List<String>> getRecentProjects() async {
     final prefs = await SharedPreferences.getInstance();
     final recentJson = prefs.getString(_recentProjectsKey);
+
+    AppLogger.debug('Loading recent projects', recentJson != null ? 'Found data' : 'No data');
 
     if (recentJson == null) {
       return [];
@@ -82,18 +85,30 @@ class RecentProjectsService {
       final bookmarks =
           decoded.map((json) => ProjectBookmark.fromJson(json)).toList();
 
+      AppLogger.debug('Found bookmarks', bookmarks.length);
+
       // Try to resolve each bookmark and return valid paths
       final validPaths = <String>[];
       for (final bookmark in bookmarks) {
+        AppLogger.debug('Trying to resolve bookmark', bookmark.path);
         final resolvedPath = await _resolveBookmark(bookmark.bookmarkData);
         if (resolvedPath != null) {
+          AppLogger.debug('Resolved bookmark successfully', resolvedPath);
           validPaths.add(resolvedPath);
+        } else {
+          AppLogger.warn('Failed to resolve bookmark', bookmark.path);
+          // Fallback: try using the stored path directly
+          if (await Directory(bookmark.path).exists()) {
+            AppLogger.info('Using fallback path', bookmark.path);
+            validPaths.add(bookmark.path);
+          }
         }
       }
 
+      AppLogger.info('Loaded recent projects', validPaths.length);
       return validPaths;
     } catch (e) {
-      print('Error loading recent projects: $e');
+      AppLogger.error('Error loading recent projects', e);
       return [];
     }
   }
@@ -105,7 +120,7 @@ class RecentProjectsService {
     // Create bookmark for this path
     final bookmarkData = await _createBookmark(projectPath);
     if (bookmarkData == null) {
-      print('Warning: Could not create bookmark for $projectPath');
+      AppLogger.warn('Could not create bookmark for project', projectPath);
       // On non-macOS or if bookmark creation fails, store path anyway
       return;
     }
@@ -125,7 +140,7 @@ class RecentProjectsService {
         bookmarks =
             decoded.map((json) => ProjectBookmark.fromJson(json)).toList();
       } catch (e) {
-        print('Error loading recent projects: $e');
+        AppLogger.error('Error loading recent projects', e);
       }
     }
 
@@ -153,15 +168,31 @@ class RecentProjectsService {
     final prefs = await SharedPreferences.getInstance();
     final lastJson = prefs.getString(_lastProjectKey);
 
+    AppLogger.debug('Loading last project', lastJson != null ? 'Found data' : 'No data');
+
     if (lastJson == null) {
       return null;
     }
 
     try {
       final bookmark = ProjectBookmark.fromJson(jsonDecode(lastJson));
-      return await _resolveBookmark(bookmark.bookmarkData);
+      AppLogger.debug('Trying to resolve last project bookmark', bookmark.path);
+
+      final resolvedPath = await _resolveBookmark(bookmark.bookmarkData);
+      if (resolvedPath != null) {
+        AppLogger.info('Resolved last project bookmark', resolvedPath);
+        return resolvedPath;
+      } else {
+        AppLogger.warn('Failed to resolve last project bookmark', bookmark.path);
+        // Fallback: try using the stored path directly
+        if (await Directory(bookmark.path).exists()) {
+          AppLogger.info('Using fallback path for last project', bookmark.path);
+          return bookmark.path;
+        }
+      }
+      return null;
     } catch (e) {
-      print('Error getting last project: $e');
+      AppLogger.error('Error getting last project', e);
       return null;
     }
   }
@@ -201,7 +232,7 @@ class RecentProjectsService {
         }
       }
     } catch (e) {
-      print('Error removing recent project: $e');
+      AppLogger.error('Error removing recent project', e);
     }
   }
 }

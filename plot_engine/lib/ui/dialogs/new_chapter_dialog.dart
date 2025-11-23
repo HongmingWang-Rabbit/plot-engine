@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/utils/validators.dart';
+import '../../core/widgets/dialog_actions.dart' as core;
 
 class NewChapterDialog extends StatefulWidget {
   const NewChapterDialog({super.key});
@@ -30,23 +32,14 @@ class _NewChapterDialogState extends State<NewChapterDialog> {
             labelText: 'Chapter Title',
             hintText: 'Chapter 1: The Beginning',
           ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Please enter a chapter title';
-            }
-            return null;
-          },
+          validator: Validators.required,
           onFieldSubmitted: (_) => _submit(),
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('Create'),
+        core.DialogActions(
+          onConfirm: _submit,
+          confirmLabel: 'Create',
         ),
       ],
     );

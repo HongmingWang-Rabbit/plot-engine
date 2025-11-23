@@ -8,6 +8,9 @@ import '../../models/chapter.dart';
 import '../../state/app_state.dart';
 import '../../state/tab_state.dart';
 import '../../services/project_service.dart';
+import '../../core/utils/icon_mapper.dart';
+import '../../core/widgets/chapter_card.dart';
+import '../../core/widgets/knowledge_card.dart';
 import '../dialogs/knowledge_item_dialog.dart';
 
 class KnowledgePanel extends ConsumerStatefulWidget {
@@ -19,31 +22,6 @@ class KnowledgePanel extends ConsumerStatefulWidget {
 
 class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
   String _selectedTabId = 'chapters';
-
-  IconData _getIconData(String iconName) {
-    switch (iconName) {
-      case 'menu_book':
-        return Icons.menu_book;
-      case 'person':
-        return Icons.person;
-      case 'place':
-        return Icons.place;
-      case 'category':
-        return Icons.category;
-      case 'event':
-        return Icons.event;
-      case 'inventory':
-        return Icons.inventory_2;
-      case 'timeline':
-        return Icons.timeline;
-      case 'groups':
-        return Icons.groups;
-      case 'auto_awesome':
-        return Icons.auto_awesome;
-      default:
-        return Icons.label;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +172,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return Icon(
-                _getIconData(tab.icon),
+                IconMapper.fromString(tab.icon),
                 size: 24,
                 color: isSelected
                     ? Theme.of(context).colorScheme.onPrimaryContainer
@@ -207,7 +185,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     }
 
     return Icon(
-      _getIconData(tab.icon),
+      IconMapper.fromString(tab.icon),
       size: 24,
       color: isSelected
           ? Theme.of(context).colorScheme.onPrimaryContainer
@@ -229,14 +207,14 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
             height: 20,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
-              return Icon(_getIconData(tab.icon), size: 20);
+              return Icon(IconMapper.fromString(tab.icon), size: 20);
             },
           ),
         );
       }
     }
 
-    return Icon(_getIconData(tab.icon), size: 20);
+    return Icon(IconMapper.fromString(tab.icon), size: 20);
   }
 
   Widget _buildChaptersList() {
@@ -258,7 +236,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
       itemBuilder: (context, index) {
         final chapter = chapters[index];
         final isSelected = currentChapter?.id == chapter.id;
-        return _ChapterCard(
+        return ChapterCard(
           chapter: chapter,
           isSelected: isSelected,
           onTap: () {
@@ -278,7 +256,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     final tabItems = items.where((item) => item.type == tab.id).toList();
 
     if (project == null) {
-      return _buildEmptyState('Open a project to manage ${tab.name.toLowerCase()}', _getIconData(tab.icon));
+      return _buildEmptyState('Open a project to manage ${tab.name.toLowerCase()}', IconMapper.fromString(tab.icon));
     }
 
     if (tabItems.isEmpty) {
@@ -287,7 +265,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              _getIconData(tab.icon),
+              IconMapper.fromString(tab.icon),
               size: 48,
               color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
@@ -313,7 +291,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
       padding: const EdgeInsets.all(8),
       itemCount: tabItems.length,
       itemBuilder: (context, index) {
-        return _KnowledgeCard(
+        return KnowledgeCard(
           item: tabItems[index],
           onEdit: () => _handleEditItem(tabItems[index], tab),
           onDelete: () => _handleDeleteItem(tabItems[index]),
@@ -598,118 +576,6 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
   }
 }
 
-class _ChapterCard extends StatelessWidget {
-  final Chapter chapter;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ChapterCard({
-    required this.chapter,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      color: isSelected
-          ? Theme.of(context).colorScheme.primaryContainer
-          : null,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                chapter.title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.onPrimaryContainer
-                          : null,
-                    ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${chapter.content.length} characters',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.7)
-                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _KnowledgeCard extends StatelessWidget {
-  final KnowledgeItem item;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _KnowledgeCard({
-    required this.item,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    item.name,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit, size: 16),
-                  onPressed: onEdit,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  tooltip: 'Edit',
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.delete, size: 16),
-                  onPressed: onDelete,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  tooltip: 'Delete',
-                ),
-              ],
-            ),
-            if (item.description.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                item.description,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _TabDialog extends StatefulWidget {
   final KnowledgeTab? tab;
   final String projectPath;
@@ -797,28 +663,6 @@ class _TabDialogState extends State<_TabDialog> {
     });
   }
 
-  IconData _getIconData(String iconName) {
-    switch (iconName) {
-      case 'person':
-        return Icons.person;
-      case 'place':
-        return Icons.place;
-      case 'category':
-        return Icons.category;
-      case 'event':
-        return Icons.event;
-      case 'groups':
-        return Icons.groups;
-      case 'timeline':
-        return Icons.timeline;
-      case 'inventory':
-        return Icons.inventory_2;
-      case 'auto_awesome':
-        return Icons.auto_awesome;
-      default:
-        return Icons.label;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -932,7 +776,7 @@ class _TabDialogState extends State<_TabDialog> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            _getIconData(iconData['name']!),
+                            IconMapper.fromString(iconData['name']!),
                             size: 24,
                             color: isSelected
                                 ? Theme.of(context).colorScheme.onPrimaryContainer

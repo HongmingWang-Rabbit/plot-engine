@@ -71,7 +71,9 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
   void initState() {
     super.initState();
     // Auto-open last project on app start
-    _loadLastProject();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadLastProject();
+    });
   }
 
   Future<void> _loadLastProject() async {

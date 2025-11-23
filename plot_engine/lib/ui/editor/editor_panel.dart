@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:super_editor/super_editor.dart';
-import '../../state/app_state.dart';
 import '../../state/tab_state.dart';
 import '../../services/save_service.dart';
+import '../../core/services/chapter_coordinator.dart';
 import 'editor_tab_bar.dart';
 import 'dart:async';
 
@@ -95,19 +95,8 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
           ref.read(tabStateProvider.notifier).makeTabPermanent(activeTab.chapter.id);
         }
 
-        // Update chapter in global state
-        ref.read(currentChapterProvider.notifier).updateContent(content);
-
-        // Update the chapter in the chapters list
-        final updatedChapter = activeTab.chapter.copyWith(
-          content: content,
-          updatedAt: DateTime.now(),
-        );
-        ref.read(chaptersProvider.notifier).updateChapter(updatedChapter);
-
-        // Update tab with new chapter and mark as modified
-        ref.read(tabStateProvider.notifier).updateTabChapter(updatedChapter);
-        ref.read(tabStateProvider.notifier).markTabModified(activeTab.chapter.id, true);
+        // Use chapter coordinator to update chapter across all providers
+        ref.read(chapterCoordinatorProvider).updateContent(activeTab.chapter.id, content);
       }
     }
   }

@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/tab_state.dart';
 import '../state/status_state.dart';
+import '../core/utils/logger.dart';
+import '../core/services/chapter_coordinator.dart';
 import 'project_service.dart';
 
 /// Centralized save service for consistent save behavior across the app
@@ -21,40 +23,47 @@ class SaveService {
 
     ref.read(statusProvider.notifier).showLoading('Saving...');
 
-    try {
-      // The chapter content is already up-to-date from auto-save
-      // Just need to save to disk and clear the modified flag
-      await ref.read(projectServiceProvider).updateChapter(activeTab.chapter);
+    await ErrorHandler.handleAsyncWithCallback(
+      () async {
+        // The chapter content is already up-to-date from auto-save
+        // Just need to save to disk and clear the modified flag
+        await ref.read(projectServiceProvider).updateChapter(activeTab.chapter);
 
-      // Clear modified flag after successful save
-      ref.read(tabStateProvider.notifier).markTabModified(activeTab.chapter.id, false);
+        // Clear modified flag using coordinator
+        ref.read(chapterCoordinatorProvider).clearModified(activeTab.chapter.id);
 
-      ref.read(statusProvider.notifier).showSuccess('Saved successfully');
-    } catch (e) {
-      ref.read(statusProvider.notifier).showError('Error saving: $e');
-    }
+        AppLogger.save('Saved chapter', itemCount: 1);
+        ref.read(statusProvider.notifier).showSuccess('Saved successfully');
+      },
+      'Save current tab',
+      onError: (error) {
+        ref.read(statusProvider.notifier).showError('Error saving: $error');
+      },
+    );
   }
 
   /// Save the entire project (all modified tabs)
   Future<void> saveProject() async {
     ref.read(statusProvider.notifier).showLoading('Saving project...');
 
-    try {
-      // Save all chapters to disk
-      await ref.read(projectServiceProvider).saveProject();
+    await ErrorHandler.handleAsyncWithCallback(
+      () async {
+        // Save all chapters to disk
+        await ref.read(projectServiceProvider).saveProject();
 
-      // Clear modified flags for all tabs
-      final tabState = ref.read(tabStateProvider);
-      for (final tab in tabState.tabs) {
-        if (tab.isModified) {
-          ref.read(tabStateProvider.notifier).markTabModified(tab.chapter.id, false);
-        }
-      }
+        // Clear all modified flags using coordinator
+        final tabState = ref.read(tabStateProvider);
+        int modifiedCount = tabState.tabs.where((tab) => tab.isModified).length;
+        ref.read(chapterCoordinatorProvider).clearAllModified();
 
-      ref.read(statusProvider.notifier).showSuccess('Project saved successfully');
-    } catch (e) {
-      ref.read(statusProvider.notifier).showError('Error saving project: $e');
-    }
+        AppLogger.save('Saved project', itemCount: modifiedCount);
+        ref.read(statusProvider.notifier).showSuccess('Project saved successfully');
+      },
+      'Save project',
+      onError: (error) {
+        ref.read(statusProvider.notifier).showError('Error saving project: $error');
+      },
+    );
   }
 }
 

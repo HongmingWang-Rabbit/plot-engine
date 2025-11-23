@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/knowledge_item.dart';
+import '../../core/utils/validators.dart';
+import '../../core/widgets/dialog_actions.dart' as core;
 
 class KnowledgeItemDialog extends StatefulWidget {
   final String type;
@@ -58,12 +60,7 @@ class _KnowledgeItemDialogState extends State<KnowledgeItemDialog> {
                   labelText: 'Name',
                   hintText: 'Enter name',
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
+                validator: Validators.required,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -73,25 +70,16 @@ class _KnowledgeItemDialogState extends State<KnowledgeItemDialog> {
                   hintText: 'Enter description',
                 ),
                 maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
+                validator: Validators.required,
               ),
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          child: Text(widget.item == null ? 'Add' : 'Save'),
+        core.DialogActions(
+          onConfirm: _submit,
+          confirmLabel: widget.item == null ? 'Add' : 'Save',
         ),
       ],
     );

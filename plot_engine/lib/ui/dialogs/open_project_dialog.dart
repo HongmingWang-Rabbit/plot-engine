@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'dart:io';
 import '../../models/project.dart';
 import '../../services/folder_picker_service.dart';
+import '../../core/widgets/empty_state.dart';
+import '../../core/extensions/context_extensions.dart';
 
 class OpenProjectDialog extends StatelessWidget {
   final List<Project> projects;
@@ -13,14 +13,9 @@ class OpenProjectDialog extends StatelessWidget {
   });
 
   Future<String?> _browseForProject(BuildContext context) async {
-    // Use custom picker on macOS for "New Folder" button support
-    if (Platform.isMacOS) {
-      return await FolderPickerService.pickDirectory();
-    } else {
-      return await FilePicker.platform.getDirectoryPath(
-        dialogTitle: 'Select Project Folder',
-      );
-    }
+    return await FolderPickerService.pickDirectory(
+      dialogTitle: 'Select Project Folder',
+    );
   }
 
   @override
@@ -55,13 +50,10 @@ class OpenProjectDialog extends StatelessWidget {
             // Recent projects list
             Expanded(
               child: projects.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No recent projects',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                            ),
-                      ),
+                  ? EmptyState(
+                      icon: Icons.folder_open,
+                      message: 'No recent projects',
+                      subtitle: 'Use the Browse button above to open a project',
                     )
                   : ListView.builder(
                       itemCount: projects.length,

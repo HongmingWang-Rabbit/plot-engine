@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'dart:io';
 import '../../services/folder_picker_service.dart';
+import '../../core/utils/validators.dart';
+import '../../core/widgets/dialog_actions.dart' as core;
 
 class NewProjectDialog extends StatefulWidget {
   const NewProjectDialog({super.key});
@@ -22,15 +22,9 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
   }
 
   Future<void> _selectLocation() async {
-    // Use custom picker on macOS for "New Folder" button support
-    String? selectedDirectory;
-    if (Platform.isMacOS) {
-      selectedDirectory = await FolderPickerService.pickDirectory();
-    } else {
-      selectedDirectory = await FilePicker.platform.getDirectoryPath(
-        dialogTitle: 'Select Project Location',
-      );
-    }
+    final selectedDirectory = await FolderPickerService.pickDirectory(
+      dialogTitle: 'Select Project Location',
+    );
 
     if (selectedDirectory != null) {
       setState(() {
@@ -66,12 +60,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                   labelText: 'Project Name',
                   hintText: 'My Novel',
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a project name';
-                  }
-                  return null;
-                },
+                validator: Validators.required,
                 onFieldSubmitted: (_) => _submit(),
               ),
               const SizedBox(height: 24),
@@ -122,13 +111,9 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('Create'),
+        core.DialogActions(
+          onConfirm: _submit,
+          confirmLabel: 'Create',
         ),
       ],
     );
