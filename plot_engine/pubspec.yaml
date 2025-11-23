@@ -35,6 +35,21 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # Rich text editor
+  super_editor: ^0.3.0-dev.40
+
+  # State management
+  flutter_riverpod: ^2.6.1
+
+  # Networking
+  web_socket_channel: ^3.0.1
+  http: ^1.2.2
+
+  # Local storage
+  shared_preferences: ^2.3.3
+  sqflite: ^2.4.1
+  path_provider: ^2.1.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
