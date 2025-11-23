@@ -115,6 +115,9 @@ class StorageService {
 
   // Save chapters
   Future<void> saveChapters(String projectPath, List<Chapter> chapters) async {
+    print('📝 Saving chapters to: $projectPath');
+    print('📝 Number of chapters: ${chapters.length}');
+
     // Ensure chapters directory exists
     await _getChaptersDirectory(projectPath);
 
@@ -122,12 +125,16 @@ class StorageService {
     final chaptersFile = File('$projectPath/$_chaptersFileName');
     final chaptersJson = chapters.map((c) => c.toMetadataJson()).toList();
     await chaptersFile.writeAsString(jsonEncode(chaptersJson));
+    print('📝 Saved chapters metadata to: ${chaptersFile.path}');
 
     // Save each chapter's content to separate file
     for (final chapter in chapters) {
       final contentFile = File(_getChapterContentPath(projectPath, chapter.id));
       await contentFile.writeAsString(chapter.content);
+      print('📝 Saved chapter ${chapter.id} (${chapter.content.length} chars) to: ${contentFile.path}');
     }
+
+    print('✅ All chapters saved successfully');
   }
 
   // Load chapters

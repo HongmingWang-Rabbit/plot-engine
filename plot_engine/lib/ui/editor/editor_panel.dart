@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:super_editor/super_editor.dart';
 import '../../state/app_state.dart';
+import '../../state/status_state.dart';
 import '../../services/project_service.dart';
 import 'dart:async';
 
@@ -42,9 +44,9 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
       composer: _composer,
     );
 
-    // Set up auto-save timer
+    // Set up auto-save timer (1 second for responsive saving)
     _autoSaveTimer?.cancel();
-    _autoSaveTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _autoSaveTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       _autoSave();
     });
   }
@@ -89,7 +91,17 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     if (currentChapter != null) {
       final content = _getDocumentContent();
       if (content != currentChapter.content) {
+        print('💾 Auto-saving chapter ${currentChapter.id}: ${content.length} chars');
+
+        // Update current chapter state
         ref.read(currentChapterProvider.notifier).updateContent(content);
+
+        // IMPORTANT: Also update the chapter in the chapters list!
+        final updatedChapter = currentChapter.copyWith(
+          content: content,
+          updatedAt: DateTime.now(),
+        );
+        ref.read(chaptersProvider.notifier).updateChapter(updatedChapter);
       }
     }
   }
@@ -220,6 +232,24 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                           ),
                         ],
                       ),
+                      selectionStyle: SelectionStyles(
+                        selectionColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                      ),
+                      documentOverlayBuilders: [
+                        const SuperEditorIosToolbarFocalPointDocumentLayerBuilder(),
+                        const SuperEditorIosHandlesDocumentLayerBuilder(),
+                        const SuperEditorAndroidToolbarFocalPointDocumentLayerBuilder(),
+                        const SuperEditorAndroidHandlesDocumentLayerBuilder(),
+                        DefaultCaretOverlayBuilder(
+                          caretStyle: CaretStyle(
+                            width: 2,
+                            color: Theme.of(context).brightness == Brightness.light
+                                ? const Color(0xFFFF6B00) // Bright orange for light mode
+                                : const Color(0xFF00D4FF), // Bright cyan for dark mode
+                          ),
+                        ),
+                      ],
+                      keyboardActions: defaultKeyboardActions,
                     ),
                   ),
           ),
@@ -232,6 +262,9 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     final currentChapter = ref.read(currentChapterProvider);
     if (currentChapter == null) return;
 
+    // Show saving status
+    ref.read(statusProvider.notifier).showLoading('Saving chapter...');
+
     // Update content first
     final content = _getDocumentContent();
     ref.read(currentChapterProvider.notifier).updateContent(content);
@@ -241,18 +274,11 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
         ref.read(currentChapterProvider)!,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Chapter saved successfully'),
-            duration: Duration(seconds: 1),
-          ),
-        );
+        ref.read(statusProvider.notifier).showSuccess('Chapter saved successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving chapter: $e')),
-        );
+        ref.read(statusProvider.notifier).showError('Error saving chapter: $e');
       }
     }
   }

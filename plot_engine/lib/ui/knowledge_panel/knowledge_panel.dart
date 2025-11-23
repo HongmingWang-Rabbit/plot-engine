@@ -109,22 +109,28 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                     children: [
                       _buildHeaderIcon(selectedTab, project),
                       const SizedBox(width: 8),
-                      Text(
-                        selectedTab.name,
-                        style: Theme.of(context).textTheme.titleSmall,
+                      Expanded(
+                        child: Text(
+                          selectedTab.name,
+                          style: Theme.of(context).textTheme.titleSmall,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      const Spacer(),
                       if (selectedTab.isDeletable)
                         IconButton(
                           icon: const Icon(Icons.edit, size: 18),
                           onPressed: () => _handleEditTab(selectedTab),
                           tooltip: 'Edit tab',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
                       if (project != null && selectedTab.id != 'chapters')
                         IconButton(
                           icon: const Icon(Icons.add, size: 20),
                           onPressed: () => _handleAddItem(selectedTab),
                           tooltip: 'Add item',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
                     ],
                   ),

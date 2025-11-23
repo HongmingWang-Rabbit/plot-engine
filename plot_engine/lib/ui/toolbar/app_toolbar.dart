@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/app_state.dart';
+import '../../state/status_state.dart';
 import '../../services/project_service.dart';
 import '../dialogs/new_project_dialog.dart';
 import '../dialogs/new_chapter_dialog.dart';
 import '../dialogs/open_project_dialog.dart';
+import '../dialogs/settings_dialog.dart';
 
 class AppToolbar extends ConsumerWidget {
   const AppToolbar({super.key});
@@ -15,6 +17,7 @@ class AppToolbar extends ConsumerWidget {
     final currentChapter = ref.watch(currentChapterProvider);
     final chapters = ref.watch(chaptersProvider);
     final projectService = ref.read(projectServiceProvider);
+    final statusNotifier = ref.read(statusProvider.notifier);
 
     return Container(
       height: 50,
@@ -56,7 +59,7 @@ class AppToolbar extends ConsumerWidget {
             icon: Icons.save,
             label: 'Save',
             onPressed: project != null
-                ? () => _handleSave(context, projectService)
+                ? () => _handleSave(context, projectService, statusNotifier)
                 : null,
           ),
           const SizedBox(width: 8),
@@ -114,7 +117,14 @@ class AppToolbar extends ConsumerWidget {
                     ),
               ),
             ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
+          // Settings Button
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => _handleSettings(context),
+            tooltip: 'Settings',
+          ),
+          const SizedBox(width: 8),
         ],
       ),
     );
@@ -181,19 +191,23 @@ class AppToolbar extends ConsumerWidget {
     }
   }
 
-  Future<void> _handleSave(BuildContext context, ProjectService service) async {
+  Future<void> _handleSave(
+    BuildContext context,
+    ProjectService service,
+    StatusNotifier statusNotifier,
+  ) async {
+    statusNotifier.showLoading('Saving project...');
+
     try {
+      // Save the entire project (auto-save keeps chapter content up-to-date)
       await service.saveProject();
+
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Project saved successfully')),
-        );
+        statusNotifier.showSuccess('Project saved successfully');
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving project: $e')),
-        );
+        statusNotifier.showError('Error saving project: $e');
       }
     }
   }
@@ -220,6 +234,13 @@ class AppToolbar extends ConsumerWidget {
         }
       }
     }
+  }
+
+  void _handleSettings(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const SettingsDialog(),
+    );
   }
 }
 
