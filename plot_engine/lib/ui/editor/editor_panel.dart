@@ -5,6 +5,7 @@ import 'package:super_editor/super_editor.dart';
 import '../../state/app_state.dart';
 import '../../state/status_state.dart';
 import '../../services/project_service.dart';
+import '../../models/chapter.dart';
 import 'dart:async';
 
 class EditorPanel extends ConsumerStatefulWidget {
@@ -54,10 +55,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
   List<DocumentNode> _parseContentToNodes(String content) {
     if (content.isEmpty) {
       return [
-        ParagraphNode(
-          id: Editor.createNodeId(),
-          text: AttributedText(''),
-        ),
+        ParagraphNode(id: Editor.createNodeId(), text: AttributedText('')),
       ];
     }
 
@@ -91,7 +89,9 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     if (currentChapter != null) {
       final content = _getDocumentContent();
       if (content != currentChapter.content) {
-        print('💾 Auto-saving chapter ${currentChapter.id}: ${content.length} chars');
+        print(
+          '💾 Auto-saving chapter ${currentChapter.id}: ${content.length} chars',
+        );
 
         // Update current chapter state
         ref.read(currentChapterProvider.notifier).updateContent(content);
@@ -141,20 +141,26 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainer,
               border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                ),
+                bottom: BorderSide(color: Theme.of(context).dividerColor),
               ),
             ),
             child: Row(
               children: [
-                Expanded(
-                  child: Text(
-                    currentChapter?.title ?? 'No chapter selected',
-                    style: Theme.of(context).textTheme.titleMedium,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                Text(
+                  currentChapter?.title ?? 'No chapter selected',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  overflow: TextOverflow.ellipsis,
                 ),
+                if (currentChapter != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.edit, size: 18),
+                    onPressed: () => _editChapterTitle(currentChapter),
+                    tooltip: 'Edit chapter title',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
                 const Spacer(),
                 if (currentChapter != null) ...[
                   IconButton(
@@ -192,20 +198,28 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                         Icon(
                           Icons.edit_document,
                           size: 64,
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.3),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'No chapter selected',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Create a new project and chapter to start writing',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.4),
                               ),
                         ),
                       ],
@@ -218,22 +232,21 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                       stylesheet: defaultStylesheet.copyWith(
                         documentPadding: EdgeInsets.zero,
                         addRulesAfter: [
-                          StyleRule(
-                            BlockSelector.all,
-                            (doc, docNode) {
-                              return {
-                                Styles.textStyle: TextStyle(
-                                  fontSize: 16,
-                                  height: 1.6,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              };
-                            },
-                          ),
+                          StyleRule(BlockSelector.all, (doc, docNode) {
+                            return {
+                              Styles.textStyle: TextStyle(
+                                fontSize: 16,
+                                height: 1.6,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            };
+                          }),
                         ],
                       ),
                       selectionStyle: SelectionStyles(
-                        selectionColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                        selectionColor: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.3),
                       ),
                       documentOverlayBuilders: [
                         const SuperEditorIosToolbarFocalPointDocumentLayerBuilder(),
@@ -243,9 +256,14 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                         DefaultCaretOverlayBuilder(
                           caretStyle: CaretStyle(
                             width: 2,
-                            color: Theme.of(context).brightness == Brightness.light
-                                ? const Color(0xFFFF6B00) // Bright orange for light mode
-                                : const Color(0xFF00D4FF), // Bright cyan for dark mode
+                            color:
+                                Theme.of(context).brightness == Brightness.light
+                                ? const Color(
+                                    0xFFFF6B00,
+                                  ) // Bright orange for light mode
+                                : const Color(
+                                    0xFF00D4FF,
+                                  ), // Bright cyan for dark mode
                           ),
                         ),
                       ],
@@ -256,6 +274,74 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
         ],
       ),
     );
+  }
+
+  Future<void> _editChapterTitle(Chapter chapter) async {
+    final controller = TextEditingController(text: chapter.title);
+
+    final newTitle = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Chapter Title'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Chapter Title',
+            border: OutlineInputBorder(),
+          ),
+          onSubmitted: (value) {
+            if (value.isNotEmpty) {
+              Navigator.of(context).pop(value);
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                Navigator.of(context).pop(controller.text);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+
+    if (newTitle != null && newTitle.isNotEmpty && newTitle != chapter.title) {
+      // Update current chapter state
+      ref.read(currentChapterProvider.notifier).updateTitle(newTitle);
+
+      // Update the chapter in the chapters list
+      final updatedChapter = chapter.copyWith(
+        title: newTitle,
+        updatedAt: DateTime.now(),
+      );
+      ref.read(chaptersProvider.notifier).updateChapter(updatedChapter);
+
+      // Save to disk
+      try {
+        await ref.read(projectServiceProvider).updateChapter(updatedChapter);
+        if (mounted) {
+          ref
+              .read(statusProvider.notifier)
+              .showSuccess('Chapter title updated');
+        }
+      } catch (e) {
+        if (mounted) {
+          ref
+              .read(statusProvider.notifier)
+              .showError('Error updating title: $e');
+        }
+      }
+    }
   }
 
   Future<void> _saveChapter() async {
@@ -270,11 +356,13 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     ref.read(currentChapterProvider.notifier).updateContent(content);
 
     try {
-      await ref.read(projectServiceProvider).updateChapter(
-        ref.read(currentChapterProvider)!,
-      );
+      await ref
+          .read(projectServiceProvider)
+          .updateChapter(ref.read(currentChapterProvider)!);
       if (mounted) {
-        ref.read(statusProvider.notifier).showSuccess('Chapter saved successfully');
+        ref
+            .read(statusProvider.notifier)
+            .showSuccess('Chapter saved successfully');
       }
     } catch (e) {
       if (mounted) {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/app_state.dart';
-import '../../state/status_state.dart';
 import '../../services/project_service.dart';
 import '../dialogs/new_project_dialog.dart';
 import '../dialogs/new_chapter_dialog.dart';
@@ -17,16 +16,13 @@ class AppToolbar extends ConsumerWidget {
     final currentChapter = ref.watch(currentChapterProvider);
     final chapters = ref.watch(chaptersProvider);
     final projectService = ref.read(projectServiceProvider);
-    final statusNotifier = ref.read(statusProvider.notifier);
 
     return Container(
       height: 50,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
         border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).dividerColor,
-          ),
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
         ),
       ),
       child: Row(
@@ -35,9 +31,9 @@ class AppToolbar extends ConsumerWidget {
           // App Title
           Text(
             'PlotEngine',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(width: 32),
           // New Project Button
@@ -54,15 +50,6 @@ class AppToolbar extends ConsumerWidget {
             onPressed: () => _handleOpenProject(context, projectService, ref),
           ),
           const SizedBox(width: 8),
-          // Save Button
-          _ToolbarButton(
-            icon: Icons.save,
-            label: 'Save',
-            onPressed: project != null
-                ? () => _handleSave(context, projectService, statusNotifier)
-                : null,
-          ),
-          const SizedBox(width: 8),
           // New Chapter Button
           _ToolbarButton(
             icon: Icons.add,
@@ -76,11 +63,12 @@ class AppToolbar extends ConsumerWidget {
           if (project != null && chapters.isNotEmpty)
             PopupMenuButton(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor,
-                  ),
+                  border: Border.all(color: Theme.of(context).dividerColor),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
@@ -113,8 +101,10 @@ class AppToolbar extends ConsumerWidget {
               child: Text(
                 project.name,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
               ),
             ),
           const SizedBox(width: 8),
@@ -130,7 +120,10 @@ class AppToolbar extends ConsumerWidget {
     );
   }
 
-  Future<void> _handleNewProject(BuildContext context, ProjectService service) async {
+  Future<void> _handleNewProject(
+    BuildContext context,
+    ProjectService service,
+  ) async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => const NewProjectDialog(),
@@ -149,15 +142,19 @@ class AppToolbar extends ConsumerWidget {
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error creating project: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error creating project: $e')));
         }
       }
     }
   }
 
-  Future<void> _handleOpenProject(BuildContext context, ProjectService service, WidgetRef ref) async {
+  Future<void> _handleOpenProject(
+    BuildContext context,
+    ProjectService service,
+    WidgetRef ref,
+  ) async {
     try {
       final projects = await service.getRecentProjects();
       if (!context.mounted) return;
@@ -173,7 +170,9 @@ class AppToolbar extends ConsumerWidget {
           if (success) {
             final project = ref.read(projectProvider);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Project "${project?.name ?? 'Project'}" opened')),
+              SnackBar(
+                content: Text('Project "${project?.name ?? 'Project'}" opened'),
+              ),
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -184,35 +183,17 @@ class AppToolbar extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
 
-  Future<void> _handleSave(
+  Future<void> _handleNewChapter(
     BuildContext context,
     ProjectService service,
-    StatusNotifier statusNotifier,
   ) async {
-    statusNotifier.showLoading('Saving project...');
-
-    try {
-      // Save the entire project (auto-save keeps chapter content up-to-date)
-      await service.saveProject();
-
-      if (context.mounted) {
-        statusNotifier.showSuccess('Project saved successfully');
-      }
-    } catch (e) {
-      if (context.mounted) {
-        statusNotifier.showError('Error saving project: $e');
-      }
-    }
-  }
-
-  Future<void> _handleNewChapter(BuildContext context, ProjectService service) async {
     final title = await showDialog<String>(
       context: context,
       builder: (context) => const NewChapterDialog(),
@@ -222,25 +203,22 @@ class AppToolbar extends ConsumerWidget {
       try {
         await service.createChapter(title);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Chapter "$title" created')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Chapter "$title" created')));
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error creating chapter: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error creating chapter: $e')));
         }
       }
     }
   }
 
   void _handleSettings(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const SettingsDialog(),
-    );
+    showDialog(context: context, builder: (context) => const SettingsDialog());
   }
 }
 
