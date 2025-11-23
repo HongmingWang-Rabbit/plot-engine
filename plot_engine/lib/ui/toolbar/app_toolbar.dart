@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/app_state.dart';
+import '../../state/tab_state.dart';
 import '../../services/project_service.dart';
 import '../dialogs/new_project_dialog.dart';
 import '../dialogs/new_chapter_dialog.dart';
@@ -92,6 +93,9 @@ class AppToolbar extends ConsumerWidget {
                 );
               }).toList(),
               onSelected: (chapter) {
+                // Open chapter in preview mode
+                ref.read(tabStateProvider.notifier).openPreview(chapter);
+                // Also update current chapter for backward compatibility
                 projectService.setCurrentChapter(chapter);
               },
             ),

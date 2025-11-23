@@ -7,8 +7,8 @@ import 'ui/knowledge_panel/knowledge_panel.dart';
 import 'ui/toolbar/app_toolbar.dart';
 import 'ui/footer/app_footer.dart';
 import 'services/project_service.dart';
+import 'services/save_service.dart';
 import 'state/settings_state.dart';
-import 'state/status_state.dart';
 import 'state/app_state.dart';
 
 void main() {
@@ -159,19 +159,11 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
   }
 
   Future<void> _handleSave(BuildContext context) async {
-    final projectService = ref.read(projectServiceProvider);
     final project = ref.read(projectProvider);
-
     if (project == null) return;
 
-    ref.read(statusProvider.notifier).showLoading('Saving project...');
-
-    try {
-      await projectService.saveProject();
-      ref.read(statusProvider.notifier).showSuccess('Project saved successfully');
-    } catch (e) {
-      ref.read(statusProvider.notifier).showError('Error saving project: $e');
-    }
+    // Use centralized save service
+    await ref.read(saveServiceProvider).saveCurrentTab();
   }
 }
 

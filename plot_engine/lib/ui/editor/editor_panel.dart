@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:super_editor/super_editor.dart';
 import '../../state/app_state.dart';
-import '../../state/status_state.dart';
-import '../../services/project_service.dart';
-import '../../models/chapter.dart';
+import '../../state/tab_state.dart';
+import '../../services/save_service.dart';
+import 'editor_tab_bar.dart';
 import 'dart:async';
 
 class EditorPanel extends ConsumerStatefulWidget {
@@ -85,25 +84,37 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
   }
 
   void _autoSave() {
-    final currentChapter = ref.read(currentChapterProvider);
-    if (currentChapter != null) {
-      final content = _getDocumentContent();
-      if (content != currentChapter.content) {
-        print(
-          '💾 Auto-saving chapter ${currentChapter.id}: ${content.length} chars',
-        );
+    final tabState = ref.read(tabStateProvider);
+    final activeTab = tabState.activeTab;
 
-        // Update current chapter state
+    if (activeTab != null) {
+      final content = _getDocumentContent();
+      if (content != activeTab.chapter.content) {
+        // Convert preview tab to permanent when user starts typing
+        if (activeTab.isPreview) {
+          ref.read(tabStateProvider.notifier).makeTabPermanent(activeTab.chapter.id);
+        }
+
+        // Update chapter in global state
         ref.read(currentChapterProvider.notifier).updateContent(content);
 
-        // IMPORTANT: Also update the chapter in the chapters list!
-        final updatedChapter = currentChapter.copyWith(
+        // Update the chapter in the chapters list
+        final updatedChapter = activeTab.chapter.copyWith(
           content: content,
           updatedAt: DateTime.now(),
         );
         ref.read(chaptersProvider.notifier).updateChapter(updatedChapter);
+
+        // Update tab with new chapter and mark as modified
+        ref.read(tabStateProvider.notifier).updateTabChapter(updatedChapter);
+        ref.read(tabStateProvider.notifier).markTabModified(activeTab.chapter.id, true);
       }
     }
+  }
+
+  Future<void> _saveCurrentTab() async {
+    // Use centralized save service
+    await ref.read(saveServiceProvider).saveCurrentTab();
   }
 
   @override
@@ -115,16 +126,17 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final currentChapter = ref.watch(currentChapterProvider);
+    final tabState = ref.watch(tabStateProvider);
+    final activeTab = tabState.activeTab;
 
-    // Update editor when chapter changes
-    if (currentChapter?.id != _currentChapterId) {
-      _currentChapterId = currentChapter?.id;
+    // Update editor when active tab changes
+    if (activeTab?.chapter.id != _currentChapterId) {
+      _currentChapterId = activeTab?.chapter.id;
       if (_currentChapterId != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           setState(() {
             _composer.dispose();
-            _initializeEditor(content: currentChapter?.content ?? '');
+            _initializeEditor(content: activeTab?.chapter.content ?? '');
           });
         });
       }
@@ -134,6 +146,8 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
       color: Theme.of(context).colorScheme.surface,
       child: Column(
         children: [
+          // Tab Bar
+          const EditorTabBar(),
           // Editor Toolbar
           Container(
             height: 48,
@@ -146,23 +160,8 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
             ),
             child: Row(
               children: [
-                Text(
-                  currentChapter?.title ?? 'No chapter selected',
-                  style: Theme.of(context).textTheme.titleMedium,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (currentChapter != null) ...[
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.edit, size: 18),
-                    onPressed: () => _editChapterTitle(currentChapter),
-                    tooltip: 'Edit chapter title',
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
                 const Spacer(),
-                if (currentChapter != null) ...[
+                if (activeTab != null) ...[
                   IconButton(
                     icon: const Icon(Icons.format_bold, size: 20),
                     onPressed: () {},
@@ -180,7 +179,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                   ),
                   const SizedBox(width: 8),
                   TextButton.icon(
-                    onPressed: () => _saveChapter(),
+                    onPressed: () => _saveCurrentTab(),
                     icon: const Icon(Icons.save, size: 18),
                     label: const Text('Save'),
                   ),
@@ -190,7 +189,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
           ),
           // Editor Content
           Expanded(
-            child: currentChapter == null
+            child: activeTab == null
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -276,98 +275,4 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     );
   }
 
-  Future<void> _editChapterTitle(Chapter chapter) async {
-    final controller = TextEditingController(text: chapter.title);
-
-    final newTitle = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Chapter Title'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Chapter Title',
-            border: OutlineInputBorder(),
-          ),
-          onSubmitted: (value) {
-            if (value.isNotEmpty) {
-              Navigator.of(context).pop(value);
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (controller.text.isNotEmpty) {
-                Navigator.of(context).pop(controller.text);
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-
-    controller.dispose();
-
-    if (newTitle != null && newTitle.isNotEmpty && newTitle != chapter.title) {
-      // Update current chapter state
-      ref.read(currentChapterProvider.notifier).updateTitle(newTitle);
-
-      // Update the chapter in the chapters list
-      final updatedChapter = chapter.copyWith(
-        title: newTitle,
-        updatedAt: DateTime.now(),
-      );
-      ref.read(chaptersProvider.notifier).updateChapter(updatedChapter);
-
-      // Save to disk
-      try {
-        await ref.read(projectServiceProvider).updateChapter(updatedChapter);
-        if (mounted) {
-          ref
-              .read(statusProvider.notifier)
-              .showSuccess('Chapter title updated');
-        }
-      } catch (e) {
-        if (mounted) {
-          ref
-              .read(statusProvider.notifier)
-              .showError('Error updating title: $e');
-        }
-      }
-    }
-  }
-
-  Future<void> _saveChapter() async {
-    final currentChapter = ref.read(currentChapterProvider);
-    if (currentChapter == null) return;
-
-    // Show saving status
-    ref.read(statusProvider.notifier).showLoading('Saving chapter...');
-
-    // Update content first
-    final content = _getDocumentContent();
-    ref.read(currentChapterProvider.notifier).updateContent(content);
-
-    try {
-      await ref
-          .read(projectServiceProvider)
-          .updateChapter(ref.read(currentChapterProvider)!);
-      if (mounted) {
-        ref
-            .read(statusProvider.notifier)
-            .showSuccess('Chapter saved successfully');
-      }
-    } catch (e) {
-      if (mounted) {
-        ref.read(statusProvider.notifier).showError('Error saving chapter: $e');
-      }
-    }
-  }
 }

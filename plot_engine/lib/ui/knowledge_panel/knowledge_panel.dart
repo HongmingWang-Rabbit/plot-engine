@@ -6,6 +6,7 @@ import '../../models/knowledge_item.dart';
 import '../../models/knowledge_tab.dart';
 import '../../models/chapter.dart';
 import '../../state/app_state.dart';
+import '../../state/tab_state.dart';
 import '../../services/project_service.dart';
 import '../dialogs/knowledge_item_dialog.dart';
 
@@ -261,6 +262,9 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
           chapter: chapter,
           isSelected: isSelected,
           onTap: () {
+            // Open chapter in preview mode
+            ref.read(tabStateProvider.notifier).openPreview(chapter);
+            // Also update current chapter for backward compatibility
             ref.read(projectServiceProvider).setCurrentChapter(chapter);
           },
         );
