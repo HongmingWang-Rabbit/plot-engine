@@ -1,88 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/knowledge_item.dart';
+import '../../state/app_state.dart';
+import '../../services/project_service.dart';
+import '../dialogs/knowledge_item_dialog.dart';
 
-class KnowledgePanel extends StatefulWidget {
+class KnowledgePanel extends ConsumerStatefulWidget {
   const KnowledgePanel({super.key});
 
   @override
-  State<KnowledgePanel> createState() => _KnowledgePanelState();
+  ConsumerState<KnowledgePanel> createState() => _KnowledgePanelState();
 }
 
-class _KnowledgePanelState extends State<KnowledgePanel> {
-  String _selectedTab = 'characters';
-
-  // Mock data
-  final List<KnowledgeItem> _mockCharacters = [
-    KnowledgeItem(
-      id: '1',
-      name: 'Sarah Connor',
-      type: 'character',
-      description: 'Protagonist. Strong-willed detective with a troubled past.',
-      appearances: ['ch1', 'ch2'],
-    ),
-    KnowledgeItem(
-      id: '2',
-      name: 'James Miller',
-      type: 'character',
-      description: 'Mysterious stranger who knows too much.',
-      appearances: ['ch1'],
-    ),
-  ];
-
-  final List<KnowledgeItem> _mockLocations = [
-    KnowledgeItem(
-      id: '3',
-      name: 'Riverside Cafe',
-      type: 'location',
-      description: 'A cozy cafe by the river where key meetings happen.',
-      appearances: ['ch1', 'ch2'],
-    ),
-    KnowledgeItem(
-      id: '4',
-      name: 'Old Library',
-      type: 'location',
-      description: 'Abandoned library holding ancient secrets.',
-      appearances: ['ch2'],
-    ),
-  ];
-
-  final List<KnowledgeItem> _mockObjects = [
-    KnowledgeItem(
-      id: '5',
-      name: 'Golden Locket',
-      type: 'object',
-      description: 'Mysterious locket with unknown origins.',
-      appearances: ['ch1'],
-    ),
-  ];
-
-  final List<KnowledgeItem> _mockEvents = [
-    KnowledgeItem(
-      id: '6',
-      name: 'The Festival',
-      type: 'event',
-      description: 'Annual town festival where the incident occurred.',
-      appearances: ['ch1'],
-    ),
-  ];
+class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
+  String _selectedTab = 'character';
 
   List<KnowledgeItem> _getItemsForTab() {
-    switch (_selectedTab) {
-      case 'characters':
-        return _mockCharacters;
-      case 'locations':
-        return _mockLocations;
-      case 'objects':
-        return _mockObjects;
-      case 'events':
-        return _mockEvents;
-      default:
-        return [];
-    }
+    final items = ref.watch(knowledgeBaseProvider);
+    return items.where((item) => item.type == _selectedTab).toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final project = ref.watch(projectProvider);
+    final items = _getItemsForTab();
+
     return Container(
       color: Theme.of(context).colorScheme.surface,
       child: Column(
@@ -107,6 +49,13 @@ class _KnowledgePanelState extends State<KnowledgePanel> {
                   'Knowledge Base',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
+                const Spacer(),
+                if (project != null)
+                  IconButton(
+                    icon: const Icon(Icons.add, size: 20),
+                    onPressed: () => _handleAddItem(),
+                    tooltip: 'Add item',
+                  ),
               ],
             ),
           ),
@@ -121,22 +70,61 @@ class _KnowledgePanelState extends State<KnowledgePanel> {
             ),
             child: Row(
               children: [
-                _buildTab('characters', Icons.person),
-                _buildTab('locations', Icons.place),
-                _buildTab('objects', Icons.category),
-                _buildTab('events', Icons.event),
+                _buildTab('character', Icons.person),
+                _buildTab('location', Icons.place),
+                _buildTab('object', Icons.category),
+                _buildTab('event', Icons.event),
               ],
             ),
           ),
           // Content
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(8),
-              itemCount: _getItemsForTab().length,
-              itemBuilder: (context, index) {
-                return _KnowledgeCard(item: _getItemsForTab()[index]);
-              },
-            ),
+            child: project == null
+                ? Center(
+                    child: Text(
+                      'Open a project to manage knowledge base',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                    ),
+                  )
+                : items.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _getIconForType(_selectedTab),
+                              size: 48,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No ${_selectedTab}s yet',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              onPressed: _handleAddItem,
+                              icon: const Icon(Icons.add),
+                              label: Text('Add ${_selectedTab}'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(8),
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          return _KnowledgeCard(
+                            item: items[index],
+                            onEdit: () => _handleEditItem(items[index]),
+                            onDelete: () => _handleDeleteItem(items[index]),
+                          );
+                        },
+                      ),
           ),
         ],
       ),
@@ -165,18 +153,130 @@ class _KnowledgePanelState extends State<KnowledgePanel> {
             size: 18,
             color: isSelected
                 ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ),
       ),
     );
   }
+
+  IconData _getIconForType(String type) {
+    switch (type) {
+      case 'character':
+        return Icons.person;
+      case 'location':
+        return Icons.place;
+      case 'object':
+        return Icons.category;
+      case 'event':
+        return Icons.event;
+      default:
+        return Icons.info;
+    }
+  }
+
+  Future<void> _handleAddItem() async {
+    final item = await showDialog<KnowledgeItem>(
+      context: context,
+      builder: (context) => KnowledgeItemDialog(type: _selectedTab),
+    );
+
+    if (item != null && mounted) {
+      try {
+        await ref.read(projectServiceProvider).addKnowledgeItem(item);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${item.name} added successfully')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error adding item: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleEditItem(KnowledgeItem item) async {
+    final updatedItem = await showDialog<KnowledgeItem>(
+      context: context,
+      builder: (context) => KnowledgeItemDialog(
+        type: item.type,
+        item: item,
+      ),
+    );
+
+    if (updatedItem != null && mounted) {
+      try {
+        await ref.read(projectServiceProvider).updateKnowledgeItem(updatedItem);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${updatedItem.name} updated successfully')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error updating item: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleDeleteItem(KnowledgeItem item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Item'),
+        content: Text('Are you sure you want to delete "${item.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await ref.read(projectServiceProvider).deleteKnowledgeItem(item.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${item.name} deleted')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting item: $e')),
+          );
+        }
+      }
+    }
+  }
 }
 
 class _KnowledgeCard extends StatelessWidget {
   final KnowledgeItem item;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
-  const _KnowledgeCard({required this.item});
+  const _KnowledgeCard({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -187,11 +287,32 @@ class _KnowledgeCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              item.name,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    item.name,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 16),
+                  onPressed: onEdit,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'Edit',
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.delete, size: 16),
+                  onPressed: onDelete,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'Delete',
+                ),
+              ],
             ),
             const SizedBox(height: 6),
             Text(

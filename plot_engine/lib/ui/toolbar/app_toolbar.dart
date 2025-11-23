@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../state/app_state.dart';
+import '../../services/project_service.dart';
+import '../dialogs/new_project_dialog.dart';
+import '../dialogs/new_chapter_dialog.dart';
+import '../dialogs/open_project_dialog.dart';
 
-class AppToolbar extends StatelessWidget {
+class AppToolbar extends ConsumerWidget {
   const AppToolbar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final project = ref.watch(projectProvider);
+    final currentChapter = ref.watch(currentChapterProvider);
+    final chapters = ref.watch(chaptersProvider);
+    final projectService = ref.read(projectServiceProvider);
+
     return Container(
       height: 50,
       decoration: BoxDecoration(
@@ -26,64 +37,201 @@ class AppToolbar extends StatelessWidget {
                 ),
           ),
           const SizedBox(width: 32),
-          // File Menu
+          // New Project Button
+          _ToolbarButton(
+            icon: Icons.create_new_folder,
+            label: 'New Project',
+            onPressed: () => _handleNewProject(context, projectService),
+          ),
+          const SizedBox(width: 8),
+          // Open Project Button
           _ToolbarButton(
             icon: Icons.folder_open,
             label: 'Open Project',
-            onPressed: () {},
+            onPressed: () => _handleOpenProject(context, projectService, ref),
           ),
           const SizedBox(width: 8),
+          // Save Button
           _ToolbarButton(
             icon: Icons.save,
             label: 'Save',
-            onPressed: () {},
+            onPressed: project != null
+                ? () => _handleSave(context, projectService)
+                : null,
           ),
           const SizedBox(width: 8),
+          // New Chapter Button
           _ToolbarButton(
             icon: Icons.add,
             label: 'New Chapter',
-            onPressed: () {},
+            onPressed: project != null
+                ? () => _handleNewChapter(context, projectService)
+                : null,
           ),
           const Spacer(),
-          // Chapter Dropdown (placeholder)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).dividerColor,
-              ),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.book, size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  'Chapter 1',
-                  style: Theme.of(context).textTheme.bodyMedium,
+          // Chapter Dropdown
+          if (project != null && chapters.isNotEmpty)
+            PopupMenuButton(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                const SizedBox(width: 4),
-                const Icon(Icons.arrow_drop_down, size: 20),
-              ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.book, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      currentChapter?.title ?? 'Select Chapter',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.arrow_drop_down, size: 20),
+                  ],
+                ),
+              ),
+              itemBuilder: (context) => chapters.map((chapter) {
+                return PopupMenuItem(
+                  value: chapter,
+                  child: Text(chapter.title),
+                );
+              }).toList(),
+              onSelected: (chapter) {
+                projectService.setCurrentChapter(chapter);
+              },
             ),
-          ),
+          if (project != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                project.name,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+              ),
+            ),
           const SizedBox(width: 16),
         ],
       ),
     );
+  }
+
+  Future<void> _handleNewProject(BuildContext context, ProjectService service) async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const NewProjectDialog(),
+    );
+
+    if (result != null && context.mounted) {
+      final name = result['name'] as String;
+      final customPath = result['path'] as String?;
+
+      try {
+        await service.createProject(name, customPath: customPath);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Project "$name" created successfully')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error creating project: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleOpenProject(BuildContext context, ProjectService service, WidgetRef ref) async {
+    try {
+      final projects = await service.listProjects();
+      if (!context.mounted) return;
+
+      final selectedPath = await showDialog<String>(
+        context: context,
+        builder: (context) => OpenProjectDialog(projects: projects),
+      );
+
+      if (selectedPath != null && context.mounted) {
+        final success = await service.openProject(selectedPath);
+        if (context.mounted) {
+          if (success) {
+            final project = ref.read(projectProvider);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Project "${project?.name ?? 'Project'}" opened')),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Error opening project')),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleSave(BuildContext context, ProjectService service) async {
+    try {
+      await service.saveProject();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Project saved successfully')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving project: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleNewChapter(BuildContext context, ProjectService service) async {
+    final title = await showDialog<String>(
+      context: context,
+      builder: (context) => const NewChapterDialog(),
+    );
+
+    if (title != null && context.mounted) {
+      try {
+        await service.createChapter(title);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Chapter "$title" created')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error creating chapter: $e')),
+          );
+        }
+      }
+    }
   }
 }
 
 class _ToolbarButton extends StatelessWidget {
   final IconData icon;
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const _ToolbarButton({
     required this.icon,
     required this.label,
-    required this.onPressed,
+    this.onPressed,
   });
 
   @override

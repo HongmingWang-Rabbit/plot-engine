@@ -1,33 +1,29 @@
-class Chapter {
+class Project {
   final String id;
-  final String title;
-  final String content;
-  final int order;
+  final String name;
+  final String path;
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  Chapter({
+  Project({
     required this.id,
-    required this.title,
-    required this.content,
-    required this.order,
+    required this.name,
+    required this.path,
     required this.createdAt,
     required this.updatedAt,
   });
 
-  Chapter copyWith({
+  Project copyWith({
     String? id,
-    String? title,
-    String? content,
-    int? order,
+    String? name,
+    String? path,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
-    return Chapter(
+    return Project(
       id: id ?? this.id,
-      title: title ?? this.title,
-      content: content ?? this.content,
-      order: order ?? this.order,
+      name: name ?? this.name,
+      path: path ?? this.path,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -36,20 +32,18 @@ class Chapter {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'title': title,
-      'content': content,
-      'order': order,
+      'name': name,
+      'path': path,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
-  factory Chapter.fromJson(Map<String, dynamic> json) {
-    return Chapter(
+  factory Project.fromJson(Map<String, dynamic> json) {
+    return Project(
       id: json['id'] as String,
-      title: json['title'] as String,
-      content: json['content'] as String,
-      order: json['order'] as int,
+      name: json['name'] as String,
+      path: json['path'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
