@@ -25,7 +25,8 @@ class TemplateProjectService {
       Chapter(
         id: 'chapter_1_${now.millisecondsSinceEpoch}',
         title: 'Chapter 1: Getting Started',
-        content: '''Welcome to PlotEngine! This template project demonstrates the entity recognition features.
+        content:
+            '''Welcome to PlotEngine! This template project demonstrates the entity recognition features.
 
 Try hovering over the highlighted words below:
 
@@ -99,14 +100,16 @@ Happy writing!''',
         id: 'char_alice_${now.millisecondsSinceEpoch}',
         name: 'Alice',
         type: 'characters',
-        description: 'Alice is a brave young woman who embarks on a journey to save her village from an ancient curse. She is resourceful, kind-hearted, and determined. Despite her fears, she never backs down from a challenge.',
+        description:
+            'Alice is a brave young woman who embarks on a journey to save her village from an ancient curse. She is resourceful, kind-hearted, and determined. Despite her fears, she never backs down from a challenge.',
         appearances: [],
       ),
       KnowledgeItem(
         id: 'char_bob_${now.millisecondsSinceEpoch}',
         name: 'Bob',
         type: 'characters',
-        description: 'Bob is a wise old wizard who has lived for centuries. He guides Alice on her quest and teaches her about magic and the ancient ways. His knowledge of history and mystical arts is invaluable.',
+        description:
+            'Bob is a wise old wizard who has lived for centuries. He guides Alice on her quest and teaches her about magic and the ancient ways. His knowledge of history and mystical arts is invaluable.',
         appearances: [],
       ),
 
@@ -115,14 +118,16 @@ Happy writing!''',
         id: 'loc_shadowvale_${now.millisecondsSinceEpoch}',
         name: 'Shadowvale',
         type: 'locations',
-        description: 'Shadowvale is an ancient forest shrouded in mist and legend. The trees are ancient and twisted, and few dare to venture deep into its depths. It is said that the forest itself is alive and watches all who enter.',
+        description:
+            'Shadowvale is an ancient forest shrouded in mist and legend. The trees are ancient and twisted, and few dare to venture deep into its depths. It is said that the forest itself is alive and watches all who enter.',
         appearances: [],
       ),
       KnowledgeItem(
         id: 'loc_elderwatch_${now.millisecondsSinceEpoch}',
         name: 'Elderwatch',
         type: 'locations',
-        description: 'Elderwatch is an ancient city built by a long-forgotten civilization. Its towering spires and intricate architecture speak of a glorious past. Now it lies in ruins, guarded by ancient magic.',
+        description:
+            'Elderwatch is an ancient city built by a long-forgotten civilization. Its towering spires and intricate architecture speak of a glorious past. Now it lies in ruins, guarded by ancient magic.',
         appearances: [],
       ),
 
@@ -131,7 +136,8 @@ Happy writing!''',
         id: 'obj_crystal_${now.millisecondsSinceEpoch}',
         name: 'Crystal',
         type: 'objects',
-        description: 'The Crystal of Light is a legendary artifact said to have the power to break any curse. It glows with an inner radiance and is warm to the touch. Many have sought it, but few have found it.',
+        description:
+            'The Crystal of Light is a legendary artifact said to have the power to break any curse. It glows with an inner radiance and is warm to the touch. Many have sought it, but few have found it.',
         appearances: [],
       ),
 
@@ -140,7 +146,8 @@ Happy writing!''',
         id: 'event_battle_${now.millisecondsSinceEpoch}',
         name: 'Great Battle',
         type: 'events',
-        description: 'The Great Battle was a pivotal moment in history when the forces of light and darkness clashed. It shaped the fate of the realm and left scars that can still be seen today.',
+        description:
+            'The Great Battle was a pivotal moment in history when the forces of light and darkness clashed. It shaped the fate of the realm and left scars that can still be seen today.',
         appearances: [],
       ),
     ];
@@ -154,14 +161,16 @@ Happy writing!''',
         name: 'Alice',
         type: EntityType.character,
         summary: 'The protagonist of the story',
-        description: 'Alice is a brave young woman who embarks on a journey to save her village from an ancient curse. She is resourceful, kind-hearted, and determined.',
+        description:
+            'Alice is a brave young woman who embarks on a journey to save her village from an ancient curse. She is resourceful, kind-hearted, and determined.',
       ),
       EntityMetadata(
         id: '2',
         name: 'Bob',
         type: EntityType.character,
         summary: 'Alice\'s loyal companion',
-        description: 'Bob is a wise old wizard who guides Alice on her quest. His knowledge of history and mystical arts is invaluable.',
+        description:
+            'Bob is a wise old wizard who guides Alice on her quest. His knowledge of history and mystical arts is invaluable.',
       ),
 
       // Locations
@@ -170,14 +179,16 @@ Happy writing!''',
         name: 'Shadowvale',
         type: EntityType.location,
         summary: 'A dark and mysterious forest',
-        description: 'Shadowvale is an ancient forest shrouded in mist and legend, where few dare to venture.',
+        description:
+            'Shadowvale is an ancient forest shrouded in mist and legend, where few dare to venture.',
       ),
       EntityMetadata(
         id: '4',
         name: 'Elderwatch',
         type: EntityType.location,
         summary: 'An ancient ruined city',
-        description: 'Elderwatch is an ancient city built by a long-forgotten civilization, now lying in ruins.',
+        description:
+            'Elderwatch is an ancient city built by a long-forgotten civilization, now lying in ruins.',
       ),
 
       // Objects
@@ -186,7 +197,8 @@ Happy writing!''',
         name: 'Crystal',
         type: EntityType.object,
         summary: 'A magical artifact',
-        description: 'The Crystal of Light is said to have the power to break any curse.',
+        description:
+            'The Crystal of Light is said to have the power to break any curse.',
       ),
     ];
   }

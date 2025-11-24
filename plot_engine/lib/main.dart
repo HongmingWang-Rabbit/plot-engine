@@ -6,6 +6,7 @@ import 'ui/sidebar_comments/sidebar_comments.dart';
 import 'ui/knowledge_panel/knowledge_panel.dart';
 import 'ui/toolbar/app_toolbar.dart';
 import 'ui/footer/app_footer.dart';
+import 'ui/auth/login_screen.dart';
 import 'services/project_service.dart';
 import 'services/save_service.dart';
 import 'state/settings_state.dart';
@@ -25,6 +26,7 @@ class PlotEngineApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final authUser = ref.watch(authUserProvider);
 
     return MaterialApp(
       title: 'PlotEngine',
@@ -54,7 +56,7 @@ class PlotEngineApp extends ConsumerWidget {
         ),
       ),
       themeMode: themeMode,
-      home: const PlotEngineHome(),
+      home: authUser == null ? const LoginScreen() : const PlotEngineHome(),
     );
   }
 }

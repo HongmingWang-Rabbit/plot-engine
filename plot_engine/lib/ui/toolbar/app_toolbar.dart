@@ -18,6 +18,7 @@ class AppToolbar extends ConsumerWidget {
     final chapters = ref.watch(chaptersProvider);
     final projectService = ref.read(projectServiceProvider);
     final entityHighlightEnabled = ref.watch(entityHighlightProvider);
+    final authUser = ref.watch(authUserProvider);
 
     return Container(
       height: 50,
@@ -78,45 +79,6 @@ class AppToolbar extends ConsumerWidget {
             },
           ),
           const Spacer(),
-          // Chapter Dropdown
-          if (project != null && chapters.isNotEmpty)
-            PopupMenuButton(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Theme.of(context).dividerColor),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.book, size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      currentChapter?.title ?? 'Select Chapter',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.arrow_drop_down, size: 20),
-                  ],
-                ),
-              ),
-              itemBuilder: (context) => chapters.map((chapter) {
-                return PopupMenuItem(
-                  value: chapter,
-                  child: Text(chapter.title),
-                );
-              }).toList(),
-              onSelected: (chapter) {
-                // Open chapter in preview mode
-                ref.read(tabStateProvider.notifier).openPreview(chapter);
-                // Also update current chapter for backward compatibility
-                projectService.setCurrentChapter(chapter);
-              },
-            ),
           if (project != null)
             Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -128,6 +90,83 @@ class AppToolbar extends ConsumerWidget {
                   ).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
+            ),
+          const SizedBox(width: 8),
+          // User Profile Button
+          if (authUser != null)
+            PopupMenuButton<String>(
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundImage: authUser.photoUrl != null
+                      ? NetworkImage(authUser.photoUrl!)
+                      : null,
+                  child: authUser.photoUrl == null
+                      ? const Icon(Icons.person, size: 20)
+                      : null,
+                ),
+              ),
+              itemBuilder: (context) => [
+                PopupMenuItem<String>(
+                  enabled: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        authUser.displayName ?? 'User',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        authUser.email ?? '',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem<String>(
+                  value: 'signout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout, size: 18),
+                      SizedBox(width: 8),
+                      Text('Sign Out'),
+                    ],
+                  ),
+                ),
+              ],
+              onSelected: (value) async {
+                if (value == 'signout') {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Sign Out'),
+                      content: const Text('Are you sure you want to sign out?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text('Sign Out'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirmed == true && context.mounted) {
+                    await ref.read(authUserProvider.notifier).signOut();
+                  }
+                }
+              },
+              tooltip: authUser.displayName ?? 'User Profile',
             ),
           const SizedBox(width: 8),
           // Settings Button

@@ -3,8 +3,13 @@ import '../models/project.dart';
 import '../models/chapter.dart';
 import '../models/knowledge_item.dart';
 import '../models/entity_metadata.dart';
+import '../models/auth_user.dart';
 import '../services/entity_store.dart';
 import '../services/local_entity_recognizer.dart';
+import '../services/auth_service.dart';
+import '../services/google_auth_service.dart';
+import '../services/api_client.dart';
+import '../services/backend_project_service.dart';
 
 // Current project provider
 class ProjectNotifier extends StateNotifier<Project?> {
@@ -186,4 +191,63 @@ class HoveredEntityNotifier extends StateNotifier<String?> {
 
 final hoveredEntityProvider = StateNotifierProvider<HoveredEntityNotifier, String?>((ref) {
   return HoveredEntityNotifier();
+});
+
+// Auth service provider (Google Auth as default, can be swapped for other providers)
+final authServiceProvider = Provider<AuthService>((ref) {
+  return GoogleAuthService();
+});
+
+// Auth user provider
+class AuthUserNotifier extends StateNotifier<AuthUser?> {
+  final AuthService _authService;
+
+  AuthUserNotifier(this._authService) : super(_authService.currentUser) {
+    // Listen to auth state changes
+    _authService.authStateChanges.listen((user) {
+      state = user;
+    });
+  }
+
+  Future<AuthResult> signIn() async {
+    final result = await _authService.signIn();
+    if (result.success && result.user != null) {
+      state = result.user;
+    }
+    return result;
+  }
+
+  Future<bool> signOut() async {
+    final success = await _authService.signOut();
+    if (success) {
+      state = null;
+    }
+    return success;
+  }
+
+  Future<AuthResult> refreshToken() async {
+    final result = await _authService.refreshToken();
+    if (result.success && result.user != null) {
+      state = result.user;
+    }
+    return result;
+  }
+
+  bool get isSignedIn => state != null;
+}
+
+final authUserProvider = StateNotifierProvider<AuthUserNotifier, AuthUser?>((ref) {
+  final authService = ref.watch(authServiceProvider);
+  return AuthUserNotifier(authService);
+});
+
+// API client provider (singleton)
+final apiClientProvider = Provider<ApiClient>((ref) {
+  return ApiClient();
+});
+
+// Backend project service provider
+final backendProjectServiceProvider = Provider<BackendProjectService>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
+  return BackendProjectService(apiClient: apiClient);
 });
