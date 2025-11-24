@@ -29,9 +29,9 @@ class ChapterCoordinator {
       }
     }
 
-    // Update tab if open
+    // Update tab if open (only for chapter tabs)
     final tabState = ref.read(tabStateProvider);
-    if (tabState.tabs.any((t) => t.chapter.id == chapter.id)) {
+    if (tabState.tabs.any((t) => t.type == TabContentType.chapter && t.chapter?.id == chapter.id)) {
       ref.read(tabStateProvider.notifier).updateTabChapter(chapter);
 
       if (markModified) {
@@ -86,8 +86,8 @@ class ChapterCoordinator {
   void clearAllModified() {
     final tabState = ref.read(tabStateProvider);
     for (final tab in tabState.tabs) {
-      if (tab.isModified) {
-        ref.read(tabStateProvider.notifier).markTabModified(tab.chapter.id, false);
+      if (tab.isModified && tab.type == TabContentType.chapter && tab.chapter != null) {
+        ref.read(tabStateProvider.notifier).markTabModified(tab.chapter!.id, false);
       }
     }
   }

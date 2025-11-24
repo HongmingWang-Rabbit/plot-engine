@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
-import '../../models/knowledge_item.dart';
 import '../../models/knowledge_tab.dart';
-import '../../models/chapter.dart';
+import '../../models/entity_metadata.dart';
+import '../../models/entity_type.dart';
 import '../../state/app_state.dart';
 import '../../state/tab_state.dart';
 import '../../services/project_service.dart';
 import '../../core/utils/icon_mapper.dart';
 import '../../core/widgets/chapter_card.dart';
-import '../../core/widgets/knowledge_card.dart';
-import '../dialogs/knowledge_item_dialog.dart';
+import '../dialogs/entity_metadata_dialog.dart';
+import '../widgets/entity_card.dart';
 
 class KnowledgePanel extends ConsumerStatefulWidget {
   const KnowledgePanel({super.key});
@@ -252,8 +252,20 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
 
   Widget _buildKnowledgeList(KnowledgeTab tab) {
     final project = ref.watch(projectProvider);
-    final items = ref.watch(knowledgeBaseProvider);
-    final tabItems = items.where((item) => item.type == tab.id).toList();
+    final entityStore = ref.watch(entityStoreProvider);
+
+    // Map tab ID to EntityType
+    final entityType = _tabIdToEntityType(tab.id);
+
+    // Get items based on tab type
+    final List<EntityMetadata> tabItems;
+    if (entityType != null) {
+      // Standard tab (characters, locations, objects, events)
+      tabItems = entityStore.getByType(entityType);
+    } else {
+      // Custom tab - use tab.id as customType
+      tabItems = entityStore.getByCustomType(tab.id);
+    }
 
     if (project == null) {
       return _buildEmptyState('Open a project to manage ${tab.name.toLowerCase()}', IconMapper.fromString(tab.icon));
@@ -291,13 +303,34 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
       padding: const EdgeInsets.all(8),
       itemCount: tabItems.length,
       itemBuilder: (context, index) {
-        return KnowledgeCard(
-          item: tabItems[index],
-          onEdit: () => _handleEditItem(tabItems[index], tab),
-          onDelete: () => _handleDeleteItem(tabItems[index]),
+        final entity = tabItems[index];
+        return EntityCard(
+          entity: entity,
+          onEdit: () => _handleEditItem(entity, tab),
+          onDelete: () => _handleDeleteItem(entity),
+          onTap: () {
+            // Open entity in tab for full editing
+            ref.read(tabStateProvider.notifier).openEntityPreview(entity);
+          },
         );
       },
     );
+  }
+
+  /// Map tab ID to EntityType enum
+  EntityType? _tabIdToEntityType(String tabId) {
+    switch (tabId) {
+      case 'characters':
+        return EntityType.character;
+      case 'locations':
+        return EntityType.location;
+      case 'objects':
+        return EntityType.object;
+      case 'events':
+        return EntityType.event;
+      default:
+        return null; // Custom tab
+    }
   }
 
   Widget _buildEmptyState(String message, IconData icon) {
@@ -454,11 +487,21 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
       final project = ref.read(projectProvider);
       if (project == null) return;
 
-      // Delete all items in this tab
-      final items = ref.read(knowledgeBaseProvider);
-      final tabItems = items.where((item) => item.type == tab.id);
-      for (final item in tabItems) {
-        await ref.read(projectServiceProvider).deleteKnowledgeItem(item.id);
+      // Delete all entities in this tab
+      final entityType = _tabIdToEntityType(tab.id);
+      final entityStore = ref.read(entityStoreProvider);
+      final List<EntityMetadata> tabItems;
+
+      if (entityType != null) {
+        // Standard tab
+        tabItems = entityStore.getByType(entityType);
+      } else {
+        // Custom tab
+        tabItems = entityStore.getByCustomType(tab.id);
+      }
+
+      for (final entity in tabItems) {
+        entityStore.delete(entity.name);
       }
 
       // Remove tab
@@ -485,17 +528,35 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
   }
 
   Future<void> _handleAddItem(KnowledgeTab tab) async {
-    final item = await showDialog<KnowledgeItem>(
+    // Map tab ID to EntityType
+    final entityType = _tabIdToEntityType(tab.id);
+    final bool isCustomTab = entityType == null;
+
+    final entity = await showDialog<EntityMetadata>(
       context: context,
-      builder: (context) => KnowledgeItemDialog(type: tab.id),
+      builder: (context) => EntityMetadataDialog(
+        type: isCustomTab ? EntityType.custom : entityType!,
+      ),
     );
 
-    if (item != null && mounted) {
+    if (entity != null && mounted) {
       try {
-        await ref.read(projectServiceProvider).addKnowledgeItem(item);
+        final entityStore = ref.read(entityStoreProvider);
+        // If custom tab, set customType to tab.id
+        final entityToSave = isCustomTab
+            ? entity.copyWith(customType: tab.id)
+            : entity;
+        entityStore.save(entityToSave);
+
+        // Save to disk
+        await ref.read(projectServiceProvider).saveProject();
+
+        // Trigger rebuild to show new item immediately
+        setState(() {});
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${item.name} added successfully')),
+            SnackBar(content: Text('${entity.name} added successfully')),
           );
         }
       } catch (e) {
@@ -508,21 +569,41 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     }
   }
 
-  Future<void> _handleEditItem(KnowledgeItem item, KnowledgeTab tab) async {
-    final updatedItem = await showDialog<KnowledgeItem>(
+  Future<void> _handleEditItem(EntityMetadata entity, KnowledgeTab tab) async {
+    // Map tab ID to EntityType
+    final entityType = _tabIdToEntityType(tab.id);
+    final bool isCustomTab = entityType == null;
+
+    final updatedEntity = await showDialog<EntityMetadata>(
       context: context,
-      builder: (context) => KnowledgeItemDialog(
-        type: tab.id,
-        item: item,
+      builder: (context) => EntityMetadataDialog(
+        type: isCustomTab ? EntityType.custom : entityType!,
+        entity: entity,
       ),
     );
 
-    if (updatedItem != null && mounted) {
+    if (updatedEntity != null && mounted) {
       try {
-        await ref.read(projectServiceProvider).updateKnowledgeItem(updatedItem);
+        final entityStore = ref.read(entityStoreProvider);
+        // Delete old entity (if name changed) and save new one
+        if (entity.name.toLowerCase() != updatedEntity.name.toLowerCase()) {
+          entityStore.delete(entity.name);
+        }
+        // If custom tab, ensure customType is set
+        final entityToSave = isCustomTab
+            ? updatedEntity.copyWith(customType: tab.id)
+            : updatedEntity;
+        entityStore.save(entityToSave);
+
+        // Save to disk
+        await ref.read(projectServiceProvider).saveProject();
+
+        // Trigger rebuild to show updated item immediately
+        setState(() {});
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${updatedItem.name} updated successfully')),
+            SnackBar(content: Text('${updatedEntity.name} updated successfully')),
           );
         }
       } catch (e) {
@@ -535,12 +616,12 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     }
   }
 
-  Future<void> _handleDeleteItem(KnowledgeItem item) async {
+  Future<void> _handleDeleteItem(EntityMetadata entity) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Item'),
-        content: Text('Are you sure you want to delete "${item.name}"?'),
+        content: Text('Are you sure you want to delete "${entity.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -559,10 +640,18 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
 
     if (confirmed == true && mounted) {
       try {
-        await ref.read(projectServiceProvider).deleteKnowledgeItem(item.id);
+        final entityStore = ref.read(entityStoreProvider);
+        entityStore.delete(entity.name);
+
+        // Save to disk
+        await ref.read(projectServiceProvider).saveProject();
+
+        // Trigger rebuild to show list without deleted item immediately
+        setState(() {});
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${item.name} deleted')),
+            SnackBar(content: Text('${entity.name} deleted')),
           );
         }
       } catch (e) {

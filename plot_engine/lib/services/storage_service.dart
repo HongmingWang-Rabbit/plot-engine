@@ -4,13 +4,16 @@ import 'package:path_provider/path_provider.dart';
 import '../models/project.dart';
 import '../models/chapter.dart';
 import '../models/knowledge_item.dart';
+import '../models/entity_metadata.dart';
 
 class StorageService {
   static const String _projectsDir = 'PlotEngine';
   static const String _projectFileName = 'project.json';
   static const String _chaptersFileName = 'chapters.json';
   static const String _knowledgeFileName = 'knowledge.json';
+  static const String _entitiesFileName = 'entities.json';
   static const String _chaptersDir = 'chapters';
+  static const String _entitiesDir = 'entities';
 
   // Get the base directory for all projects
   Future<Directory> _getBaseDirectory() async {
@@ -190,6 +193,99 @@ class StorageService {
       return itemsJson.map((json) => KnowledgeItem.fromJson(json)).toList();
     } catch (e) {
       print('Error loading knowledge base: $e');
+      return [];
+    }
+  }
+
+  // Get entities directory
+  Future<Directory> _getEntitiesDirectory(String projectPath) async {
+    final entitiesDir = Directory('$projectPath/$_entitiesDir');
+    if (!await entitiesDir.exists()) {
+      await entitiesDir.create(recursive: true);
+    }
+    return entitiesDir;
+  }
+
+  // Get entity description file path
+  String _getEntityDescriptionPath(String projectPath, String entityId) {
+    return '$projectPath/$_entitiesDir/entity_$entityId.txt';
+  }
+
+  // Save entities
+  Future<void> saveEntities(String projectPath, List<EntityMetadata> entities) async {
+    print('📝 Saving entities to: $projectPath');
+    print('📝 Number of entities: ${entities.length}');
+
+    // Ensure entities directory exists
+    await _getEntitiesDirectory(projectPath);
+
+    // Save metadata to entities.json
+    final entitiesFile = File('$projectPath/$_entitiesFileName');
+    final entitiesJson = entities.map((e) => e.toMetadataJson()).toList();
+    await entitiesFile.writeAsString(jsonEncode(entitiesJson));
+    print('📝 Saved entities metadata to: ${entitiesFile.path}');
+
+    // Save each entity's description to separate file
+    for (final entity in entities) {
+      final descriptionFile = File(_getEntityDescriptionPath(projectPath, entity.id));
+      await descriptionFile.writeAsString(entity.description);
+      print('📝 Saved entity ${entity.id} (${entity.description.length} chars) to: ${descriptionFile.path}');
+    }
+
+    print('✅ All entities saved successfully');
+  }
+
+  // Load entities
+  Future<List<EntityMetadata>> loadEntities(String projectPath) async {
+    try {
+      final entitiesFile = File('$projectPath/$_entitiesFileName');
+      if (!await entitiesFile.exists()) {
+        // Try to load from old knowledge.json for backward compatibility
+        return await _loadLegacyKnowledgeAsEntities(projectPath);
+      }
+
+      // Load metadata
+      final metadataContent = await entitiesFile.readAsString();
+      final List<dynamic> entitiesJson = jsonDecode(metadataContent);
+
+      // Load each entity with its description
+      final entities = <EntityMetadata>[];
+      for (final json in entitiesJson) {
+        final entityId = json['id'] as String;
+        final descriptionFile = File(_getEntityDescriptionPath(projectPath, entityId));
+
+        // Load description from file, or empty string if file doesn't exist
+        String description = '';
+        if (await descriptionFile.exists()) {
+          description = await descriptionFile.readAsString();
+        }
+
+        entities.add(EntityMetadata.fromMetadataJson(json, description));
+      }
+
+      return entities;
+    } catch (e) {
+      print('Error loading entities: $e');
+      return [];
+    }
+  }
+
+  // Load legacy knowledge.json and convert to entities
+  Future<List<EntityMetadata>> _loadLegacyKnowledgeAsEntities(String projectPath) async {
+    try {
+      final knowledgeFile = File('$projectPath/$_knowledgeFileName');
+      if (!await knowledgeFile.exists()) {
+        return [];
+      }
+      final content = await knowledgeFile.readAsString();
+      final List<dynamic> itemsJson = jsonDecode(content);
+
+      // Convert old KnowledgeItems to EntityMetadata
+      // This is for backward compatibility only
+      print('⚠️  Converting legacy knowledge.json to entities format');
+      return [];
+    } catch (e) {
+      print('Error loading legacy knowledge: $e');
       return [];
     }
   }

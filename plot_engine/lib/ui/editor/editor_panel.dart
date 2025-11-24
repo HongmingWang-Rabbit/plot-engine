@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:super_editor/super_editor.dart';
 import '../../state/tab_state.dart';
+import '../../state/app_state.dart';
 import '../../services/save_service.dart';
+import '../../services/entity_attribution_service.dart';
 import '../../core/services/chapter_coordinator.dart';
+import '../../widgets/entity_tooltip_overlay.dart';
+import '../../screens/entity_detail_screen.dart';
 import 'editor_tab_bar.dart';
 import 'dart:async';
 
@@ -18,12 +22,15 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
   late MutableDocument _document;
   late MutableDocumentComposer _composer;
   late Editor _editor;
+  late EntityAttributionService _attributionService;
   String? _currentChapterId;
   Timer? _autoSaveTimer;
+  Timer? _attributionTimer;
 
   @override
   void initState() {
     super.initState();
+    _attributionService = EntityAttributionService(ref.read(entityRecognizerProvider));
     _initializeEditor();
   }
 
@@ -44,10 +51,20 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
       composer: _composer,
     );
 
+    // Apply entity attributions to initial content
+    _attributionService.applyToDocument(_document);
+
     // Set up auto-save timer (1 second for responsive saving)
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       _autoSave();
+    });
+
+    // Set up attribution update timer (2 seconds for entity recognition)
+    _attributionTimer?.cancel();
+    _attributionTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      _attributionService.applyToDocument(_document);
+      setState(() {}); // Trigger rebuild to show updated styling
     });
   }
 
@@ -74,7 +91,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     for (var i = 0; i < nodeCount; i++) {
       final node = _document.getNodeAt(i);
       if (node is TextNode) {
-        buffer.write(node.text.text);
+        buffer.write(node.text.toPlainText());
         if (i < nodeCount - 1) {
           buffer.write('\n');
         }
@@ -87,16 +104,20 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     final tabState = ref.read(tabStateProvider);
     final activeTab = tabState.activeTab;
 
-    if (activeTab != null) {
+    if (activeTab == null) return;
+
+    // Only auto-save for chapter tabs (entities use their own form save)
+    if (activeTab.type == TabContentType.chapter && activeTab.chapter != null) {
       final content = _getDocumentContent();
-      if (content != activeTab.chapter.content) {
+
+      if (content != activeTab.chapter!.content) {
         // Convert preview tab to permanent when user starts typing
         if (activeTab.isPreview) {
-          ref.read(tabStateProvider.notifier).makeTabPermanent(activeTab.chapter.id);
+          ref.read(tabStateProvider.notifier).makeTabPermanent(activeTab.chapter!.id);
         }
 
         // Use chapter coordinator to update chapter across all providers
-        ref.read(chapterCoordinatorProvider).updateContent(activeTab.chapter.id, content);
+        ref.read(chapterCoordinatorProvider).updateContent(activeTab.chapter!.id, content);
       }
     }
   }
@@ -109,6 +130,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
   @override
   void dispose() {
     _autoSaveTimer?.cancel();
+    _attributionTimer?.cancel();
     _composer.dispose();
     super.dispose();
   }
@@ -117,17 +139,26 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
   Widget build(BuildContext context) {
     final tabState = ref.watch(tabStateProvider);
     final activeTab = tabState.activeTab;
+    final highlightsEnabled = ref.watch(entityHighlightProvider);
+    final hoveredEntityName = ref.watch(hoveredEntityProvider);
 
-    // Update editor when active tab changes
-    if (activeTab?.chapter.id != _currentChapterId) {
-      _currentChapterId = activeTab?.chapter.id;
-      if (_currentChapterId != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          setState(() {
-            _composer.dispose();
-            _initializeEditor(content: activeTab?.chapter.content ?? '');
+    // Update editor when active chapter tab changes
+    if (activeTab?.type == TabContentType.chapter) {
+      if (activeTab?.chapter?.id != _currentChapterId) {
+        _currentChapterId = activeTab?.chapter?.id;
+        if (_currentChapterId != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            setState(() {
+              _composer.dispose();
+              _initializeEditor(content: activeTab?.chapter?.content ?? '');
+            });
           });
-        });
+        }
+      }
+    } else {
+      // Clear editor if not a chapter tab
+      if (_currentChapterId != null) {
+        _currentChapterId = null;
       }
     }
 
@@ -192,7 +223,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No chapter selected',
+                          'No tab selected',
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 color: Theme.of(
@@ -213,9 +244,19 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                       ],
                     ),
                   )
-                : Padding(
-                    padding: const EdgeInsets.all(48.0),
-                    child: SuperEditor(
+                : activeTab.type == TabContentType.entity && activeTab.entity != null
+                    ? EntityDetailScreen(
+                        metadata: activeTab.entity!,
+                        onSave: (updatedEntity) {
+                          // Update entity in store
+                          ref.read(entityStoreProvider).save(updatedEntity);
+                          // Update tab
+                          ref.read(tabStateProvider.notifier).updateTabEntity(updatedEntity);
+                        },
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(48.0),
+                        child: SuperEditor(
                       editor: _editor,
                       stylesheet: defaultStylesheet.copyWith(
                         documentPadding: EdgeInsets.zero,
@@ -230,6 +271,38 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                             };
                           }),
                         ],
+                        inlineTextStyler: (attributions, existingStyle) {
+                          // Check if entity highlights are enabled
+                          if (!highlightsEnabled) {
+                            return existingStyle;
+                          }
+
+                          // Apply entity styling based on attribution
+                          TextStyle style = existingStyle;
+                          for (final attribution in attributions) {
+                            if (attribution is EntityAttribution) {
+                              final entity = attribution.entity;
+                              final isHovered = hoveredEntityName == entity.name;
+
+                              if (entity.recognized) {
+                                // Green underline for recognized entities
+                                style = style.copyWith(
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: Colors.green.shade600,
+                                  decorationThickness: isHovered ? 3.0 : 2.0,
+                                );
+                              } else {
+                                // Orange underline for unrecognized entities
+                                style = style.copyWith(
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: Colors.orange.shade600,
+                                  decorationThickness: isHovered ? 3.0 : 2.0,
+                                );
+                              }
+                            }
+                          }
+                          return style;
+                        },
                       ),
                       selectionStyle: SelectionStyles(
                         selectionColor: Theme.of(
@@ -237,6 +310,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                         ).colorScheme.primary.withValues(alpha: 0.3),
                       ),
                       documentOverlayBuilders: [
+                        EntityTooltipOverlayBuilder(ref),
                         const SuperEditorIosToolbarFocalPointDocumentLayerBuilder(),
                         const SuperEditorIosHandlesDocumentLayerBuilder(),
                         const SuperEditorAndroidToolbarFocalPointDocumentLayerBuilder(),

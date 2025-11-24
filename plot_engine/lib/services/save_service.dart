@@ -23,14 +23,19 @@ class SaveService {
 
     ref.read(statusProvider.notifier).showLoading('Saving...');
 
+    // Only save chapter tabs
+    if (activeTab.type != TabContentType.chapter || activeTab.chapter == null) {
+      return;
+    }
+
     await ErrorHandler.handleAsyncWithCallback(
       () async {
         // The chapter content is already up-to-date from auto-save
         // Just need to save to disk and clear the modified flag
-        await ref.read(projectServiceProvider).updateChapter(activeTab.chapter);
+        await ref.read(projectServiceProvider).updateChapter(activeTab.chapter!);
 
         // Clear modified flag using coordinator
-        ref.read(chapterCoordinatorProvider).clearModified(activeTab.chapter.id);
+        ref.read(chapterCoordinatorProvider).clearModified(activeTab.chapter!.id);
 
         AppLogger.save('Saved chapter', itemCount: 1);
         ref.read(statusProvider.notifier).showSuccess('Saved successfully');

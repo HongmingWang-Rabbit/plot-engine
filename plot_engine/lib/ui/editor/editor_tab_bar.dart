@@ -30,15 +30,15 @@ class EditorTabBar extends ConsumerWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: tabState.tabs.map((tab) {
-            final isActive = tab.chapter.id == tabState.activeTabId;
+            final isActive = tab.id == tabState.activeTabId;
             return _EditorTab(
               tab: tab,
               isActive: isActive,
               onTap: () {
-                ref.read(tabStateProvider.notifier).activateTab(tab.chapter.id);
+                ref.read(tabStateProvider.notifier).activateTab(tab.id);
               },
               onClose: () {
-                ref.read(tabStateProvider.notifier).closeTab(tab.chapter.id);
+                ref.read(tabStateProvider.notifier).closeTab(tab.id);
               },
             );
           }).toList(),
@@ -116,7 +116,7 @@ class _EditorTabState extends State<_EditorTab> {
               // Tab title
               Flexible(
                 child: Text(
-                  widget.tab.chapter.title,
+                  widget.tab.title,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontStyle: widget.tab.isPreview
                             ? FontStyle.italic

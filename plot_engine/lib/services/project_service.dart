@@ -3,9 +3,11 @@ import '../models/project.dart';
 import '../models/chapter.dart';
 import '../models/knowledge_item.dart';
 import '../state/app_state.dart';
+import '../state/tab_state.dart';
 import '../core/utils/logger.dart';
 import 'storage_service.dart';
 import 'recent_projects_service.dart';
+import 'template_project_service.dart';
 
 class ProjectService {
   final Ref ref;
@@ -46,10 +48,14 @@ class ProjectService {
 
         final chapters = await _storage.loadChapters(projectPath);
         final knowledgeItems = await _storage.loadKnowledgeBase(projectPath);
+        final entities = await _storage.loadEntities(projectPath);
 
         ref.read(projectProvider.notifier).setProject(project);
         ref.read(chaptersProvider.notifier).setChapters(chapters);
         ref.read(knowledgeBaseProvider.notifier).setItems(knowledgeItems);
+
+        // Load entities into the entity store
+        ref.read(entityStoreProvider).setAll(entities);
 
         // Set first chapter as current if available
         if (chapters.isNotEmpty) {
@@ -101,6 +107,10 @@ class ProjectService {
 
     final knowledgeItems = ref.read(knowledgeBaseProvider);
     await _storage.saveKnowledgeBase(project.path, knowledgeItems);
+
+    // Save entities
+    final entities = ref.read(entityStoreProvider).getAll();
+    await _storage.saveEntities(project.path, entities);
   }
 
   // List all projects
@@ -189,6 +199,56 @@ class ProjectService {
   Future<void> deleteKnowledgeItem(String itemId) async {
     ref.read(knowledgeBaseProvider.notifier).deleteItem(itemId);
     await saveProject();
+  }
+
+  // Create template project with sample content
+  Future<Project> createTemplateProject({String? customPath}) async {
+    return await ErrorHandler.handleAsync(
+      () async {
+        // Create the project
+        final templateProject = TemplateProjectService.createTemplateProject();
+        final project = await _storage.createProject(
+          templateProject.name,
+          customPath: customPath,
+        );
+
+        // Set the project in state
+        ref.read(projectProvider.notifier).setProject(project);
+
+        // Create template chapters
+        final templateChapters = TemplateProjectService.createTemplateChapters();
+        ref.read(chaptersProvider.notifier).setChapters(templateChapters);
+
+        // Clear old knowledge items (we're now using EntityMetadata instead)
+        ref.read(knowledgeBaseProvider.notifier).clearItems();
+
+        // Set first chapter as current and open in tab
+        if (templateChapters.isNotEmpty) {
+          ref.read(currentChapterProvider.notifier).setCurrentChapter(templateChapters.first);
+          ref.read(tabStateProvider.notifier).openPreview(templateChapters.first);
+        }
+
+        // Load template entities into entity store
+        final entityStore = ref.read(entityStoreProvider);
+        final templateEntities = TemplateProjectService.createTemplateEntities();
+        for (final entity in templateEntities) {
+          entityStore.save(entity);
+        }
+
+        // Save everything
+        await _storage.saveProject(project);
+        await _storage.saveChapters(project.path, templateChapters);
+        await _storage.saveKnowledgeBase(project.path, []); // Empty knowledge base
+        await _storage.saveEntities(project.path, templateEntities);
+
+        // Track as recent project
+        await _recentProjects.addRecentProject(project.path);
+
+        AppLogger.info('Created template project', project.name);
+        return project;
+      },
+      'Create template project',
+    ) ?? (throw Exception('Failed to create template project'));
   }
 }
 

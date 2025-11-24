@@ -17,6 +17,7 @@ class AppToolbar extends ConsumerWidget {
     final currentChapter = ref.watch(currentChapterProvider);
     final chapters = ref.watch(chaptersProvider);
     final projectService = ref.read(projectServiceProvider);
+    final entityHighlightEnabled = ref.watch(entityHighlightProvider);
 
     return Container(
       height: 50,
@@ -44,6 +45,13 @@ class AppToolbar extends ConsumerWidget {
             onPressed: () => _handleNewProject(context, projectService),
           ),
           const SizedBox(width: 8),
+          // Template Project Button
+          _ToolbarButton(
+            icon: Icons.auto_awesome,
+            label: 'Try Template',
+            onPressed: () => _handleTemplateProject(context, projectService),
+          ),
+          const SizedBox(width: 8),
           // Open Project Button
           _ToolbarButton(
             icon: Icons.folder_open,
@@ -58,6 +66,16 @@ class AppToolbar extends ConsumerWidget {
             onPressed: project != null
                 ? () => _handleNewChapter(context, projectService)
                 : null,
+          ),
+          const SizedBox(width: 16),
+          // Entity Highlight Toggle
+          _ToolbarToggleButton(
+            icon: entityHighlightEnabled ? Icons.highlight : Icons.highlight_off,
+            label: entityHighlightEnabled ? 'Hide Highlights' : 'Show Highlights',
+            isActive: entityHighlightEnabled,
+            onPressed: () {
+              ref.read(entityHighlightProvider.notifier).toggle();
+            },
           ),
           const Spacer(),
           // Chapter Dropdown
@@ -165,7 +183,18 @@ class AppToolbar extends ConsumerWidget {
 
       final selectedPath = await showDialog<String>(
         context: context,
-        builder: (context) => OpenProjectDialog(projects: projects),
+        builder: (context) => OpenProjectDialog(
+          projects: projects,
+          onDeleteProject: (projectPath) async {
+            // Delete the project
+            await service.deleteProject(projectPath);
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Project deleted successfully')),
+              );
+            }
+          },
+        ),
       );
 
       if (selectedPath != null && context.mounted) {
@@ -221,6 +250,57 @@ class AppToolbar extends ConsumerWidget {
     }
   }
 
+  Future<void> _handleTemplateProject(
+    BuildContext context,
+    ProjectService service,
+  ) async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Create Template Project'),
+        content: const Text(
+          'This will create a sample project with example chapters and entities to help you get started with PlotEngine.\n\n'
+          'You can explore features like:\n'
+          '• Entity recognition and highlighting\n'
+          '• Hover tooltips for entity details\n'
+          '• Click interactions to create/edit entities\n\n'
+          'Would you like to continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Create Template'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        await service.createTemplateProject();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Template project created! Explore the sample chapters to learn about entity features.'),
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error creating template project: $e')),
+          );
+        }
+      }
+    }
+  }
+
   void _handleSettings(BuildContext context) {
     showDialog(context: context, builder: (context) => const SettingsDialog());
   }
@@ -245,6 +325,38 @@ class _ToolbarButton extends StatelessWidget {
       label: Text(label),
       style: TextButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+    );
+  }
+}
+
+class _ToolbarToggleButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final VoidCallback? onPressed;
+
+  const _ToolbarToggleButton({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        backgroundColor: isActive
+          ? Theme.of(context).colorScheme.primaryContainer
+          : null,
+        foregroundColor: isActive
+          ? Theme.of(context).colorScheme.onPrimaryContainer
+          : null,
       ),
     );
   }
