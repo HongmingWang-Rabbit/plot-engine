@@ -109,14 +109,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : Image.asset(
-                            'assets/google_logo.png',
-                            width: 24,
-                            height: 24,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.login, color: Colors.white);
-                            },
-                          ),
+                        : const Icon(Icons.login, color: Colors.white),
                     label: Text(
                       _isLoading ? 'Signing in...' : 'Sign in with Google',
                       style: const TextStyle(

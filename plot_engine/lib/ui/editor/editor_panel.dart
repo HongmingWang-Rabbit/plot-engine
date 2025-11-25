@@ -141,6 +141,36 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     final activeTab = tabState.activeTab;
     final highlightsEnabled = ref.watch(entityHighlightProvider);
     final hoveredEntityName = ref.watch(hoveredEntityProvider);
+    final isProjectLoading = ref.watch(projectLoadingProvider);
+
+    // Show loading screen when opening project from Google Drive
+    if (isProjectLoading) {
+      return Container(
+        color: Theme.of(context).colorScheme.surface,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 24),
+              Text(
+                'Loading project from Google Drive...',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'This may take a moment',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     // Update editor when active chapter tab changes
     if (activeTab?.type == TabContentType.chapter) {

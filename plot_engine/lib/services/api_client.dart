@@ -97,14 +97,18 @@ class ApiClient {
     // Handle other errors
     try {
       final error = json.decode(response.body);
+      final message = error['error'] ?? error['message'] ?? 'Request failed';
       throw ApiException(
-        error['error'] ?? 'Request failed',
+        message,
         statusCode: response.statusCode,
       );
     } catch (e) {
       if (e is ApiException || e is UnauthorizedException) rethrow;
+
+      // If we can't parse the error, include the status code and body
+      final body = response.body.isNotEmpty ? response.body : 'No error details';
       throw ApiException(
-        'Request failed: ${response.statusCode}',
+        'Backend error (${response.statusCode}): $body',
         statusCode: response.statusCode,
       );
     }

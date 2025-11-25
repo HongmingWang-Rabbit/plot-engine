@@ -8,8 +8,9 @@ import '../core/utils/logger.dart';
 import 'storage_service.dart';
 import 'recent_projects_service.dart';
 import 'template_project_service.dart';
+import 'base_project_service.dart';
 
-class ProjectService {
+class ProjectService implements BaseProjectService {
   final Ref ref;
   final StorageService _storage = StorageService();
   final RecentProjectsService _recentProjects = RecentProjectsService();
@@ -252,7 +253,4 @@ class ProjectService {
   }
 }
 
-// Provider for ProjectService
-final projectServiceProvider = Provider<ProjectService>((ref) {
-  return ProjectService(ref);
-});
+// Note: projectServiceProvider moved to app_state.dart for platform detection

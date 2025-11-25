@@ -1,5 +1,7 @@
 import '../models/project.dart';
 import '../models/chapter.dart';
+import '../models/entity_metadata.dart';
+import '../models/entity_type.dart';
 import 'api_client.dart';
 
 /// Service for syncing projects and chapters with the backend
@@ -46,9 +48,24 @@ class BackendProjectService {
   }
 
   /// Get a single project by ID
+  /// Returns project with all data (chapters, entities, etc.)
   Future<Project> getProject(String projectId) async {
     final response = await _apiClient.get('/projects/$projectId');
     return _projectFromBackend(response['project']);
+  }
+
+  /// Get full project response (for accessing chapters/entities)
+  Future<Map<String, dynamic>> getProjectResponse(String projectId) async {
+    final response = await _apiClient.get('/projects/$projectId');
+    return response['project'] as Map<String, dynamic>;
+  }
+
+  /// Get entities from project response
+  List<EntityMetadata> getEntitiesFromProject(Map<String, dynamic> projectResponse) {
+    final entitiesList = projectResponse['entities'] as List?;
+    if (entitiesList == null) return [];
+
+    return entitiesList.map((e) => _entityFromBackend(e)).toList();
   }
 
   /// Update a project
@@ -92,13 +109,16 @@ class BackendProjectService {
     required String projectId,
     required String title,
     String? content,
+    int? orderIndex,
   }) async {
     final response = await _apiClient.post('/projects/$projectId/chapters', {
       'title': title,
       if (content != null) 'content': content,
+      if (orderIndex != null) 'order_index': orderIndex,
     });
 
-    return _chapterFromBackend(response['chapter']);
+    // Response is the chapter directly (not wrapped)
+    return _chapterFromBackend(response as Map<String, dynamic>);
   }
 
   /// Update a chapter
@@ -107,14 +127,18 @@ class BackendProjectService {
     required String chapterId,
     String? title,
     String? content,
+    int? orderIndex,
   }) async {
     final response = await _apiClient
         .patch('/projects/$projectId/chapters/$chapterId', {
       if (title != null) 'title': title,
       if (content != null) 'content': content,
+      if (orderIndex != null) 'order_index': orderIndex,
     });
 
-    return _chapterFromBackend(response['chapter']);
+    // Response may be wrapped in 'chapter' or direct
+    final chapterData = response['chapter'] ?? response;
+    return _chapterFromBackend(chapterData as Map<String, dynamic>);
   }
 
   /// Delete a chapter
@@ -133,6 +157,58 @@ class BackendProjectService {
     await _apiClient.post('/projects/$projectId/chapters/reorder', {
       'chapters': chapterOrder,
     });
+  }
+
+  // ===== Entity Operations =====
+
+  /// Create a new entity
+  Future<Map<String, dynamic>> createEntity({
+    required String projectId,
+    required String name,
+    required String type,
+    required String summary,
+    required String description,
+    String? customType,
+  }) async {
+    final response = await _apiClient.post('/projects/$projectId/entities', {
+      'name': name,
+      'type': type,
+      'summary': summary,
+      'description': description,
+      if (customType != null) 'customType': customType,
+    });
+
+    return response['entity'] as Map<String, dynamic>;
+  }
+
+  /// Update an entity
+  Future<Map<String, dynamic>> updateEntity({
+    required String projectId,
+    required String entityId,
+    String? name,
+    String? summary,
+    String? description,
+    String? type,
+  }) async {
+    final response = await _apiClient.patch(
+      '/projects/$projectId/entities/$entityId',
+      {
+        if (name != null) 'name': name,
+        if (summary != null) 'summary': summary,
+        if (description != null) 'description': description,
+        if (type != null) 'type': type,
+      },
+    );
+
+    return response['entity'] as Map<String, dynamic>;
+  }
+
+  /// Delete an entity
+  Future<void> deleteEntity({
+    required String projectId,
+    required String entityId,
+  }) async {
+    await _apiClient.delete('/projects/$projectId/entities/$entityId');
   }
 
   // ===== AI Operations =====
@@ -182,24 +258,81 @@ class BackendProjectService {
 
   /// Convert backend project JSON to Project model
   Project _projectFromBackend(Map<String, dynamic> json) {
+    final now = DateTime.now();
     return Project(
       id: json['id'] as String,
       name: json['title'] as String,
       path: json['path'] as String? ?? '', // Backend may not have local path
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : (json['createdAt'] != null
+              ? DateTime.parse(json['createdAt'] as String)
+              : now),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : (json['updatedAt'] != null
+              ? DateTime.parse(json['updatedAt'] as String)
+              : now),
+    );
+  }
+
+  /// Convert backend entity JSON to EntityMetadata model
+  EntityMetadata _entityFromBackend(Map<String, dynamic> json) {
+    final now = DateTime.now();
+
+    // Map backend type to EntityType enum
+    EntityType entityType;
+    switch (json['type'] as String) {
+      case 'character':
+        entityType = EntityType.character;
+        break;
+      case 'location':
+        entityType = EntityType.location;
+        break;
+      case 'object':
+        entityType = EntityType.object;
+        break;
+      case 'event':
+        entityType = EntityType.event;
+        break;
+      case 'custom':
+        entityType = EntityType.custom;
+        break;
+      default:
+        entityType = EntityType.character;
+    }
+
+    return EntityMetadata(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      type: entityType,
+      summary: json['summary'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      customType: json['customType'] as String?,
     );
   }
 
   /// Convert backend chapter JSON to Chapter model
+  /// Handles both snake_case (API) and camelCase field names
   Chapter _chapterFromBackend(Map<String, dynamic> json) {
+    final now = DateTime.now();
     return Chapter(
       id: json['id'] as String,
       title: json['title'] as String,
       content: json['content'] as String? ?? '',
-      order: json['orderIndex'] as int? ?? 0,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      // Handle both order_index (API) and orderIndex
+      order: json['order_index'] as int? ?? json['orderIndex'] as int? ?? 0,
+      // Handle both snake_case and camelCase timestamps
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : (json['createdAt'] != null
+              ? DateTime.parse(json['createdAt'] as String)
+              : now),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : (json['updatedAt'] != null
+              ? DateTime.parse(json['updatedAt'] as String)
+              : now),
     );
   }
 

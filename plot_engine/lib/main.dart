@@ -10,7 +10,6 @@ import 'ui/footer/app_footer.dart';
 import 'ui/auth/login_screen.dart';
 import 'ui/auth/auth_success_screen.dart';
 import 'ui/auth/auth_error_screen.dart';
-import 'services/project_service.dart';
 import 'services/save_service.dart';
 import 'state/settings_state.dart';
 import 'state/app_state.dart';

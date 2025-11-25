@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/app_state.dart';
 import '../../state/tab_state.dart';
-import '../../services/project_service.dart';
+import '../../services/base_project_service.dart';
 import '../dialogs/new_project_dialog.dart';
 import '../dialogs/new_chapter_dialog.dart';
 import '../dialogs/open_project_dialog.dart';
@@ -183,7 +183,7 @@ class AppToolbar extends ConsumerWidget {
 
   Future<void> _handleNewProject(
     BuildContext context,
-    ProjectService service,
+    BaseProjectService service,
   ) async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -213,7 +213,7 @@ class AppToolbar extends ConsumerWidget {
 
   Future<void> _handleOpenProject(
     BuildContext context,
-    ProjectService service,
+    BaseProjectService service,
     WidgetRef ref,
   ) async {
     try {
@@ -225,12 +225,23 @@ class AppToolbar extends ConsumerWidget {
         builder: (context) => OpenProjectDialog(
           projects: projects,
           onDeleteProject: (projectPath) async {
-            // Delete the project
-            await service.deleteProject(projectPath);
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Project deleted successfully')),
-              );
+            try {
+              // Delete the project
+              await service.deleteProject(projectPath);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Project deleted successfully')),
+                );
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error deleting project: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             }
           },
         ),
@@ -264,7 +275,7 @@ class AppToolbar extends ConsumerWidget {
 
   Future<void> _handleNewChapter(
     BuildContext context,
-    ProjectService service,
+    BaseProjectService service,
   ) async {
     final title = await showDialog<String>(
       context: context,
@@ -291,7 +302,7 @@ class AppToolbar extends ConsumerWidget {
 
   Future<void> _handleTemplateProject(
     BuildContext context,
-    ProjectService service,
+    BaseProjectService service,
   ) async {
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(

@@ -12,6 +12,10 @@ import '../services/google_auth_service.dart';
 import '../services/web_auth_service.dart';
 import '../services/api_client.dart';
 import '../services/backend_project_service.dart';
+import '../services/cloud_storage_service.dart';
+import '../services/project_service.dart';
+import '../services/web_project_service.dart';
+import '../services/base_project_service.dart';
 
 // Current project provider
 class ProjectNotifier extends StateNotifier<Project?> {
@@ -32,6 +36,19 @@ class ProjectNotifier extends StateNotifier<Project?> {
 
 final projectProvider = StateNotifierProvider<ProjectNotifier, Project?>((ref) {
   return ProjectNotifier();
+});
+
+// Project loading state provider
+class ProjectLoadingNotifier extends StateNotifier<bool> {
+  ProjectLoadingNotifier() : super(false);
+
+  void setLoading(bool loading) {
+    state = loading;
+  }
+}
+
+final projectLoadingProvider = StateNotifierProvider<ProjectLoadingNotifier, bool>((ref) {
+  return ProjectLoadingNotifier();
 });
 
 // Chapters provider
@@ -255,4 +272,19 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 final backendProjectServiceProvider = Provider<BackendProjectService>((ref) {
   final apiClient = ref.watch(apiClientProvider);
   return BackendProjectService(apiClient: apiClient);
+});
+
+// Cloud storage service provider
+final cloudStorageServiceProvider = Provider<CloudStorageService>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
+  return CloudStorageService(apiClient: apiClient);
+});
+
+// Platform-aware project service provider
+// Uses WebProjectService (cloud) for web, ProjectService (local files) for desktop
+final projectServiceProvider = Provider<BaseProjectService>((ref) {
+  if (kIsWeb) {
+    return WebProjectService(ref);
+  }
+  return ProjectService(ref);
 });

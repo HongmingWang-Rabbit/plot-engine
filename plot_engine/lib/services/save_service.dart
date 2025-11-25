@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/tab_state.dart';
 import '../state/status_state.dart';
+import '../state/app_state.dart';
 import '../core/utils/logger.dart';
 import '../core/services/chapter_coordinator.dart';
-import 'project_service.dart';
 
 /// Centralized save service for consistent save behavior across the app
 class SaveService {

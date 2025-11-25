@@ -7,7 +7,6 @@ import '../../models/entity_metadata.dart';
 import '../../models/entity_type.dart';
 import '../../state/app_state.dart';
 import '../../state/tab_state.dart';
-import '../../services/project_service.dart';
 import '../../core/utils/icon_mapper.dart';
 import '../../core/widgets/chapter_card.dart';
 import '../dialogs/entity_metadata_dialog.dart';
@@ -245,6 +244,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
             // Also update current chapter for backward compatibility
             ref.read(projectServiceProvider).setCurrentChapter(chapter);
           },
+          onDelete: () => _handleDeleteChapter(chapter),
         );
       },
     );
@@ -658,6 +658,52 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error deleting item: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleDeleteChapter(chapter) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Chapter'),
+        content: Text('Are you sure you want to delete "${chapter.title}"?\n\nThis action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await ref.read(projectServiceProvider).deleteChapter(chapter.id);
+        // Close tab if open
+        ref.read(tabStateProvider.notifier).closeTab(chapter.id);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Chapter "${chapter.title}" deleted')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error deleting chapter: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
           );
         }
       }
