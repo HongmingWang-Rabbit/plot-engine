@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'ui/editor/editor_panel.dart';
 import 'ui/sidebar_comments/sidebar_comments.dart';
@@ -7,10 +8,13 @@ import 'ui/knowledge_panel/knowledge_panel.dart';
 import 'ui/toolbar/app_toolbar.dart';
 import 'ui/footer/app_footer.dart';
 import 'ui/auth/login_screen.dart';
+import 'ui/auth/auth_success_screen.dart';
+import 'ui/auth/auth_error_screen.dart';
 import 'services/project_service.dart';
 import 'services/save_service.dart';
 import 'state/settings_state.dart';
 import 'state/app_state.dart';
+import 'utils/web_url_helper.dart' if (dart.library.io) 'utils/web_url_helper_stub.dart';
 
 void main() {
   runApp(
@@ -27,6 +31,25 @@ class PlotEngineApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final authUser = ref.watch(authUserProvider);
+
+    // For web, check current URL for OAuth callbacks
+    Widget initialScreen;
+    if (kIsWeb) {
+      final currentUrl = getCurrentUrl();
+
+      if (currentUrl?.path == '/auth/success') {
+        final token = currentUrl?.queryParameters['token'];
+        initialScreen = AuthSuccessScreen(token: token);
+      } else if (currentUrl?.path == '/auth/error') {
+        final error = currentUrl?.queryParameters['error'];
+        final message = currentUrl?.queryParameters['message'];
+        initialScreen = AuthErrorScreen(error: error, message: message);
+      } else {
+        initialScreen = authUser == null ? const LoginScreen() : const PlotEngineHome();
+      }
+    } else {
+      initialScreen = authUser == null ? const LoginScreen() : const PlotEngineHome();
+    }
 
     return MaterialApp(
       title: 'PlotEngine',
@@ -56,7 +79,7 @@ class PlotEngineApp extends ConsumerWidget {
         ),
       ),
       themeMode: themeMode,
-      home: authUser == null ? const LoginScreen() : const PlotEngineHome(),
+      home: initialScreen,
     );
   }
 }

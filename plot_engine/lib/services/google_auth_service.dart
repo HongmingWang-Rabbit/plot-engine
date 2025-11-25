@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/auth_user.dart';
 import 'auth_service.dart';
@@ -9,7 +10,11 @@ import 'api_client.dart';
 /// Handles Google OAuth authentication flow and backend JWT verification
 class GoogleAuthService implements AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: '1049734729172-53ujfb8mlkkir19scv0v29ubrtubmfpu.apps.googleusercontent.com',
+    // For web, clientId is read from the HTML meta tag
+    // For other platforms, use the native client ID
+    clientId: kIsWeb
+        ? null
+        : '1049734729172-53ujfb8mlkkir19scv0v29ubrtubmfpu.apps.googleusercontent.com',
     scopes: [
       'email',
       'profile',
@@ -193,6 +198,7 @@ class GoogleAuthService implements AuthService {
 
   /// Get platform identifier for backend
   String _getPlatform() {
+    if (kIsWeb) return 'web';
     if (Platform.isIOS) return 'ios';
     if (Platform.isAndroid) return 'android';
     if (Platform.isWindows) return 'windows';

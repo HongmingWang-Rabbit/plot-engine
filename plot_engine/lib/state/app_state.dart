@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/project.dart';
 import '../models/chapter.dart';
@@ -8,6 +9,7 @@ import '../services/entity_store.dart';
 import '../services/local_entity_recognizer.dart';
 import '../services/auth_service.dart';
 import '../services/google_auth_service.dart';
+import '../services/web_auth_service.dart';
 import '../services/api_client.dart';
 import '../services/backend_project_service.dart';
 
@@ -193,8 +195,11 @@ final hoveredEntityProvider = StateNotifierProvider<HoveredEntityNotifier, Strin
   return HoveredEntityNotifier();
 });
 
-// Auth service provider (Google Auth as default, can be swapped for other providers)
+// Auth service provider (Web auth for web, Google Auth for native)
 final authServiceProvider = Provider<AuthService>((ref) {
+  if (kIsWeb) {
+    return WebAuthService();
+  }
   return GoogleAuthService();
 });
 
