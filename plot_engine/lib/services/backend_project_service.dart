@@ -117,8 +117,9 @@ class BackendProjectService {
       if (orderIndex != null) 'order_index': orderIndex,
     });
 
-    // Response is the chapter directly (not wrapped)
-    return _chapterFromBackend(response as Map<String, dynamic>);
+    // Response may be wrapped in 'chapter' or direct
+    final chapterData = response['chapter'] ?? response;
+    return _chapterFromBackend(chapterData as Map<String, dynamic>);
   }
 
   /// Update a chapter
@@ -316,10 +317,13 @@ class BackendProjectService {
   /// Handles both snake_case (API) and camelCase field names
   Chapter _chapterFromBackend(Map<String, dynamic> json) {
     final now = DateTime.now();
+    final id = json['id']?.toString() ?? 'chapter_${now.millisecondsSinceEpoch}';
+    final title = json['title']?.toString() ?? 'Untitled Chapter';
+
     return Chapter(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      content: json['content'] as String? ?? '',
+      id: id,
+      title: title,
+      content: json['content']?.toString() ?? '',
       // Handle both order_index (API) and orderIndex
       order: json['order_index'] as int? ?? json['orderIndex'] as int? ?? 0,
       // Handle both snake_case and camelCase timestamps

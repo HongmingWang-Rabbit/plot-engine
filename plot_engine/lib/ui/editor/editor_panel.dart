@@ -31,7 +31,18 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
   void initState() {
     super.initState();
     _attributionService = EntityAttributionService(ref.read(entityRecognizerProvider));
+    // Set up callback for AI entity extraction updates
+    _attributionService.onEntitiesUpdated = _onAIEntitiesExtracted;
     _initializeEditor();
+  }
+
+  /// Called when AI entity extraction completes (async)
+  void _onAIEntitiesExtracted() {
+    if (mounted) {
+      // Re-apply attributions with the new AI-extracted entities
+      _attributionService.applyToDocument(_document);
+      setState(() {}); // Trigger rebuild to show updated entity highlights
+    }
   }
 
   void _initializeEditor({String content = ''}) {
@@ -131,6 +142,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
   void dispose() {
     _autoSaveTimer?.cancel();
     _attributionTimer?.cancel();
+    _attributionService.dispose(); // Clean up AI extraction timer if any
     _composer.dispose();
     super.dispose();
   }
@@ -143,7 +155,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     final hoveredEntityName = ref.watch(hoveredEntityProvider);
     final isProjectLoading = ref.watch(projectLoadingProvider);
 
-    // Show loading screen when opening project from Google Drive
+    // Show loading screen when loading/creating project
     if (isProjectLoading) {
       return Container(
         color: Theme.of(context).colorScheme.surface,
@@ -154,7 +166,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
               const CircularProgressIndicator(),
               const SizedBox(height: 24),
               Text(
-                'Loading project from Google Drive...',
+                'Loading project...',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),

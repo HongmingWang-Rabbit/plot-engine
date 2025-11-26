@@ -143,8 +143,35 @@ class WebProjectService implements BaseProjectService {
       );
     }
 
-    // Note: Entities are saved individually via updateEntity/createEntity
-    // No batch save needed - backend handles it
+    // Save all entities - sync local entity store to backend
+    final entities = ref.read(entityStoreProvider).getAll();
+    for (final entity in entities) {
+      try {
+        // Try to update first, if that fails create new
+        await _backend.updateEntity(
+          projectId: project.id,
+          entityId: entity.id,
+          name: entity.name,
+          summary: entity.summary,
+          description: entity.description,
+          type: _entityTypeToString(entity.type),
+        );
+      } catch (e) {
+        // Entity doesn't exist on backend, create it
+        try {
+          await _backend.createEntity(
+            projectId: project.id,
+            name: entity.name,
+            type: _entityTypeToString(entity.type),
+            summary: entity.summary,
+            description: entity.description,
+            customType: entity.customType,
+          );
+        } catch (createError) {
+          print('[WebProjectService] Failed to save entity ${entity.name}: $createError');
+        }
+      }
+    }
   }
 
   // List all projects

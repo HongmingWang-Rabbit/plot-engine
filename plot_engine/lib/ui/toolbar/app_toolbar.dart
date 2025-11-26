@@ -50,7 +50,7 @@ class AppToolbar extends ConsumerWidget {
           _ToolbarButton(
             icon: Icons.auto_awesome,
             label: 'Try Template',
-            onPressed: () => _handleTemplateProject(context, projectService),
+            onPressed: () => _handleTemplateProject(context, projectService, ref),
           ),
           const SizedBox(width: 8),
           // Open Project Button
@@ -79,7 +79,7 @@ class AppToolbar extends ConsumerWidget {
             },
           ),
           const Spacer(),
-          if (project != null)
+          if (project != null) ...[
             Padding(
               padding: const EdgeInsets.only(left: 16),
               child: Text(
@@ -91,6 +91,14 @@ class AppToolbar extends ConsumerWidget {
                 ),
               ),
             ),
+            IconButton(
+              icon: const Icon(Icons.edit, size: 16),
+              onPressed: () => _handleEditProject(context, ref),
+              tooltip: 'Edit project name',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
           const SizedBox(width: 8),
           // User Profile Button
           if (authUser != null)
@@ -303,6 +311,7 @@ class AppToolbar extends ConsumerWidget {
   Future<void> _handleTemplateProject(
     BuildContext context,
     BaseProjectService service,
+    WidgetRef ref,
   ) async {
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
@@ -331,6 +340,9 @@ class AppToolbar extends ConsumerWidget {
     );
 
     if (confirmed == true && context.mounted) {
+      // Show loading state
+      ref.read(projectLoadingProvider.notifier).setLoading(true);
+
       try {
         await service.createTemplateProject();
         if (context.mounted) {
@@ -347,12 +359,84 @@ class AppToolbar extends ConsumerWidget {
             SnackBar(content: Text('Error creating template project: $e')),
           );
         }
+      } finally {
+        // Hide loading state
+        ref.read(projectLoadingProvider.notifier).setLoading(false);
       }
     }
   }
 
   void _handleSettings(BuildContext context) {
     showDialog(context: context, builder: (context) => const SettingsDialog());
+  }
+
+  Future<void> _handleEditProject(BuildContext context, WidgetRef ref) async {
+    final project = ref.read(projectProvider);
+    if (project == null) return;
+
+    final controller = TextEditingController(text: project.name);
+
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Project Name'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Project Name',
+            hintText: 'Enter project name',
+          ),
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              Navigator.of(context).pop(value.trim());
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) {
+                Navigator.of(context).pop(value);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (newName != null && newName != project.name && context.mounted) {
+      try {
+        // Update the project with new name
+        final updatedProject = project.copyWith(
+          name: newName,
+          updatedAt: DateTime.now(),
+        );
+        ref.read(projectProvider.notifier).updateProject(updatedProject);
+        await ref.read(projectServiceProvider).saveProject();
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Project renamed to "$newName"')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error renaming project: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 }
 

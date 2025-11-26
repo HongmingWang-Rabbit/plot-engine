@@ -6,7 +6,9 @@ import '../models/knowledge_item.dart';
 import '../models/entity_metadata.dart';
 import '../models/auth_user.dart';
 import '../services/entity_store.dart';
-import '../services/local_entity_recognizer.dart';
+import '../services/ai_entity_recognizer.dart';
+import '../services/ai_service.dart';
+import '../services/entity_recognizer.dart';
 import '../services/auth_service.dart';
 import '../services/google_auth_service.dart';
 import '../services/web_auth_service.dart';
@@ -155,10 +157,16 @@ final entityStoreProvider = Provider<EntityStore>((ref) {
   return EntityStore();
 });
 
-// Entity recognizer provider
-final entityRecognizerProvider = Provider<LocalEntityRecognizer>((ref) {
+// AI entity recognizer provider (with debounced API calls)
+final aiEntityRecognizerProvider = Provider<AIEntityRecognizer>((ref) {
   final store = ref.watch(entityStoreProvider);
-  return LocalEntityRecognizer(store);
+  final aiService = ref.watch(aiServiceProvider);
+  return AIEntityRecognizer(store, aiService);
+});
+
+// Entity recognizer provider - always uses AI for better accuracy
+final entityRecognizerProvider = Provider<EntityRecognizer>((ref) {
+  return ref.watch(aiEntityRecognizerProvider);
 });
 
 // Selected entity provider (for sidebar display)

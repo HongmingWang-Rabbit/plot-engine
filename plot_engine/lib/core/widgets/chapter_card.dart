@@ -6,6 +6,7 @@ class ChapterCard extends StatefulWidget {
   final Chapter chapter;
   final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
   const ChapterCard({
@@ -13,6 +14,7 @@ class ChapterCard extends StatefulWidget {
     required this.chapter,
     required this.isSelected,
     required this.onTap,
+    this.onEdit,
     this.onDelete,
   });
 
@@ -70,6 +72,23 @@ class _ChapterCardState extends State<ChapterCard> {
                     ],
                   ),
                 ),
+                // Edit button (shows on hover)
+                if (widget.onEdit != null && (_isHovered || widget.isSelected))
+                  IconButton(
+                    icon: Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: widget.isSelected
+                          ? Theme.of(context).colorScheme.onPrimaryContainer
+                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                    onPressed: widget.onEdit,
+                    tooltip: 'Edit chapter name',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                if (widget.onEdit != null && widget.onDelete != null && (_isHovered || widget.isSelected))
+                  const SizedBox(width: 4),
                 // Delete button (shows on hover)
                 if (widget.onDelete != null && (_isHovered || widget.isSelected))
                   IconButton(

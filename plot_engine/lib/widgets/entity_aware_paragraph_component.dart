@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:super_editor/super_editor.dart';
 import '../models/entity.dart';
-import '../services/local_entity_recognizer.dart';
+import '../services/entity_recognizer.dart';
 
 class EntityAwareParagraphComponentBuilder implements ComponentBuilder {
-  final LocalEntityRecognizer recognizer;
+  final EntityRecognizer recognizer;
   final Function(Entity)? onEntityClick;
 
   EntityAwareParagraphComponentBuilder({
@@ -49,7 +49,7 @@ class EntityAwareParagraphComponentBuilder implements ComponentBuilder {
 class EntityAwareParagraphComponent extends StatefulWidget {
   final AttributedText text;
   final AttributionStyleBuilder styleBuilder;
-  final LocalEntityRecognizer recognizer;
+  final EntityRecognizer recognizer;
   final Function(Entity)? onEntityClick;
 
   const EntityAwareParagraphComponent({

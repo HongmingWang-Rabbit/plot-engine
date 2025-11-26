@@ -244,6 +244,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
             // Also update current chapter for backward compatibility
             ref.read(projectServiceProvider).setCurrentChapter(chapter);
           },
+          onEdit: () => _handleEditChapter(chapter),
           onDelete: () => _handleDeleteChapter(chapter),
         );
       },
@@ -658,6 +659,73 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error deleting item: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleEditChapter(chapter) async {
+    final controller = TextEditingController(text: chapter.title);
+
+    final newTitle = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Chapter Name'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Chapter Name',
+            hintText: 'Enter chapter name',
+          ),
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              Navigator.of(context).pop(value.trim());
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) {
+                Navigator.of(context).pop(value);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (newTitle != null && newTitle != chapter.title && mounted) {
+      try {
+        final updatedChapter = chapter.copyWith(
+          title: newTitle,
+          updatedAt: DateTime.now(),
+        );
+        await ref.read(projectServiceProvider).updateChapter(updatedChapter);
+
+        // Update tab if open
+        ref.read(tabStateProvider.notifier).updateTabChapterTitle(chapter.id, newTitle);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Chapter renamed to "$newTitle"')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error renaming chapter: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
           );
         }
       }

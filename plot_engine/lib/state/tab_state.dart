@@ -59,6 +59,7 @@ class EditorTab {
   }
 
   EditorTab copyWith({
+    String? title,
     Chapter? chapter,
     EntityMetadata? entity,
     bool? isModified,
@@ -66,7 +67,7 @@ class EditorTab {
   }) {
     return EditorTab(
       id: id,
-      title: title,
+      title: title ?? this.title,
       type: type,
       chapter: chapter ?? this.chapter,
       entity: entity ?? this.entity,
@@ -196,6 +197,20 @@ class TabStateNotifier extends StateNotifier<TabState> {
     final tabs = state.tabs.map((tab) {
       if (tab.id == tabId) {
         return tab.copyWith(chapter: updatedChapter);
+      }
+      return tab;
+    }).toList();
+
+    state = state.copyWith(tabs: tabs);
+  }
+
+  /// Update just the chapter title in a tab
+  void updateTabChapterTitle(String chapterId, String newTitle) {
+    final tabId = 'chapter-$chapterId';
+    final tabs = state.tabs.map((tab) {
+      if (tab.id == tabId && tab.chapter != null) {
+        final updatedChapter = tab.chapter!.copyWith(title: newTitle);
+        return tab.copyWith(title: newTitle, chapter: updatedChapter);
       }
       return tab;
     }).toList();
