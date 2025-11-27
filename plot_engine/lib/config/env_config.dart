@@ -23,7 +23,7 @@ class EnvConfig {
   /// Priority: --dart-define > .env > default
   static String get apiBaseUrl {
     if (_apiBaseUrlDefine.isNotEmpty) return _apiBaseUrlDefine;
-    return dotenv.env['API_BASE_URL'] ?? 'http://localhost:3000';
+    return dotenv.env['API_BASE_URL'] ?? 'http://api.plot-engine.com';
   }
 
   /// App base URL (used for OAuth redirects, etc.)

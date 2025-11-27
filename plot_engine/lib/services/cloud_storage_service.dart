@@ -7,10 +7,10 @@ import 'api_client.dart';
 /// Handles file upload, download, list, and delete operations
 class CloudStorageService {
   final ApiClient _apiClient;
-  static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'http://api.plot-engine.com';
 
   CloudStorageService({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient();
+    : _apiClient = apiClient ?? ApiClient();
 
   /// Upload a single file to a project
   Future<CloudFile> uploadFile({
@@ -28,11 +28,7 @@ class CloudStorageService {
     final request = http.MultipartRequest('POST', uri);
     request.headers['Authorization'] = 'Bearer $token';
     request.files.add(
-      http.MultipartFile.fromBytes(
-        'file',
-        fileBytes,
-        filename: fileName,
-      ),
+      http.MultipartFile.fromBytes('file', fileBytes, filename: fileName),
     );
 
     final streamedResponse = await request.send();
@@ -70,9 +66,7 @@ class CloudStorageService {
 
     final response = await http.get(
       Uri.parse('$baseUrl/storage/files/$fileId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode != 200) {
@@ -158,13 +152,13 @@ class CloudFile {
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : (json['createdAt'] != null
-              ? DateTime.parse(json['createdAt'])
-              : DateTime.now()),
+                ? DateTime.parse(json['createdAt'])
+                : DateTime.now()),
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'])
           : (json['updatedAt'] != null
-              ? DateTime.parse(json['updatedAt'])
-              : DateTime.now()),
+                ? DateTime.parse(json['updatedAt'])
+                : DateTime.now()),
     );
   }
 

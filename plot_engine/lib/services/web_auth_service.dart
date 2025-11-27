@@ -7,7 +7,7 @@ import 'api_client.dart';
 /// Web-specific auth service that uses backend OAuth flow
 /// Redirects to backend for Google authentication
 class WebAuthService implements AuthService {
-  static const String backendUrl = 'http://localhost:3000';
+  static const String backendUrl = 'http://api.plot-engine.com';
 
   final ApiClient _apiClient;
   AuthUser? _currentUser;
@@ -15,7 +15,7 @@ class WebAuthService implements AuthService {
       StreamController<AuthUser?>.broadcast();
 
   WebAuthService({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient() {
+    : _apiClient = apiClient ?? ApiClient() {
     _restoreUser();
   }
 
@@ -98,7 +98,10 @@ class WebAuthService implements AuthService {
   }
 
   /// Convert backend user response to AuthUser
-  AuthUser _convertBackendUser(Map<String, dynamic> backendUser, String jwtToken) {
+  AuthUser _convertBackendUser(
+    Map<String, dynamic> backendUser,
+    String jwtToken,
+  ) {
     return AuthUser(
       id: backendUser['id'] as String,
       email: backendUser['email'] as String?,
@@ -128,7 +131,9 @@ class WebAuthService implements AuthService {
 
       return AuthResult.failure('Failed to get user info');
     } catch (error) {
-      return AuthResult.failure('Callback handling failed: ${error.toString()}');
+      return AuthResult.failure(
+        'Callback handling failed: ${error.toString()}',
+      );
     }
   }
 
