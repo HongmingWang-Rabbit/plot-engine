@@ -8,7 +8,7 @@ export PATH="/tmp/flutter/bin:$PATH"
 
 # Build with environment variables
 flutter build web --release \
-  --dart-define=API_BASE_URL="${API_BASE_URL:-http://api.plot-engine.com}" \
+  --dart-define=API_BASE_URL="${API_BASE_URL:-https://api.plot-engine.com}" \
   --dart-define=APP_BASE_URL="${APP_BASE_URL:-https://plot-engine.com}"
 
 echo "Build complete!"
