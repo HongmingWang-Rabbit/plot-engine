@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:html' as html;
 import '../models/auth_user.dart';
+import '../config/env_config.dart';
 import 'auth_service.dart';
 import 'api_client.dart';
 
 /// Web-specific auth service that uses backend OAuth flow
 /// Redirects to backend for Google authentication
 class WebAuthService implements AuthService {
-  static const String backendUrl = 'http://api.plot-engine.com';
-
   final ApiClient _apiClient;
   AuthUser? _currentUser;
   final StreamController<AuthUser?> _authStateController =
@@ -60,7 +59,8 @@ class WebAuthService implements AuthService {
     final redirectUrl = Uri.encodeComponent(currentUrl);
 
     // Redirect to backend OAuth endpoint
-    html.window.location.href = '$backendUrl/auth/google?redirect=$redirectUrl';
+    final apiBaseUrl = EnvConfig.apiBaseUrl;
+    html.window.location.href = '$apiBaseUrl/auth/google?redirect=$redirectUrl';
 
     // This won't actually return since we're redirecting
     return AuthResult.failure('Redirecting to Google Sign-In...');
