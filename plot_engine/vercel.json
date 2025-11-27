@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "flutter build web --release --dart-define=API_BASE_URL=$API_BASE_URL --dart-define=APP_BASE_URL=$APP_BASE_URL",
+  "outputDirectory": "build/web",
+  "installCommand": "git clone https://github.com/nicholasunderwood/vercel-flutter.git vercel-flutter && chmod +x vercel-flutter/install.sh && vercel-flutter/install.sh",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
