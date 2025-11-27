@@ -13,9 +13,13 @@ import 'ui/auth/auth_error_screen.dart';
 import 'services/save_service.dart';
 import 'state/settings_state.dart';
 import 'state/app_state.dart';
+import 'config/env_config.dart';
 import 'utils/web_url_helper.dart' if (dart.library.io) 'utils/web_url_helper_stub.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await EnvConfig.init();
+
   runApp(
     const ProviderScope(
       child: PlotEngineApp(),

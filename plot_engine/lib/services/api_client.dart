@@ -1,14 +1,14 @@
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
+import '../config/env_config.dart';
 
 /// API client for communicating with the PlotEngine backend
 class ApiClient {
-  static const String defaultBaseUrl = 'http://localhost:3000';
   final String baseUrl;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  ApiClient({this.baseUrl = defaultBaseUrl});
+  ApiClient({String? baseUrl}) : baseUrl = baseUrl ?? EnvConfig.apiBaseUrl;
 
   /// Get authentication headers with JWT token
   Future<Map<String, String>> _getHeaders() async {

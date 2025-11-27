@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/app_state.dart';
-import '../../state/tab_state.dart';
 import '../../services/base_project_service.dart';
 import '../dialogs/new_project_dialog.dart';
 import '../dialogs/new_chapter_dialog.dart';
 import '../dialogs/open_project_dialog.dart';
 import '../dialogs/settings_dialog.dart';
+import '../dialogs/billing_dashboard_dialog.dart';
 
 class AppToolbar extends ConsumerWidget {
   const AppToolbar({super.key});
@@ -14,8 +14,6 @@ class AppToolbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final project = ref.watch(projectProvider);
-    final currentChapter = ref.watch(currentChapterProvider);
-    final chapters = ref.watch(chaptersProvider);
     final projectService = ref.read(projectServiceProvider);
     final entityHighlightEnabled = ref.watch(entityHighlightProvider);
     final authUser = ref.watch(authUserProvider);
@@ -99,6 +97,9 @@ class AppToolbar extends ConsumerWidget {
               constraints: const BoxConstraints(),
             ),
           ],
+          const SizedBox(width: 16),
+          // Credits Balance Display
+          if (authUser != null) _CreditsDisplay(),
           const SizedBox(width: 8),
           // User Profile Button
           if (authUser != null)
@@ -495,3 +496,78 @@ class _ToolbarToggleButton extends StatelessWidget {
     );
   }
 }
+
+class _CreditsDisplay extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final creditsAsync = ref.watch(creditsBalanceNotifierProvider);
+
+    if (creditsAsync == null) {
+      return const SizedBox(
+        width: 80,
+        child: Center(
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    final balance = creditsAsync;
+    final isLow = balance < 1.0;
+
+    return InkWell(
+      onTap: () => _showBillingDialog(context, ref),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isLow
+              ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.5)
+              : Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.account_balance_wallet,
+              size: 16,
+              color: isLow
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '\$${balance.toStringAsFixed(2)}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isLow
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            if (isLow) ...[
+              const SizedBox(width: 4),
+              Icon(
+                Icons.warning_amber,
+                size: 14,
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBillingDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => const BillingDashboardDialog(),
+    );
+  }
+}
+

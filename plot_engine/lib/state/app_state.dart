@@ -5,6 +5,7 @@ import '../models/chapter.dart';
 import '../models/knowledge_item.dart';
 import '../models/entity_metadata.dart';
 import '../models/auth_user.dart';
+import '../models/billing_models.dart';
 import '../services/entity_store.dart';
 import '../services/ai_entity_recognizer.dart';
 import '../services/ai_service.dart';
@@ -18,6 +19,7 @@ import '../services/cloud_storage_service.dart';
 import '../services/project_service.dart';
 import '../services/web_project_service.dart';
 import '../services/base_project_service.dart';
+import '../services/billing_service.dart';
 
 // Current project provider
 class ProjectNotifier extends StateNotifier<Project?> {
@@ -295,4 +297,59 @@ final projectServiceProvider = Provider<BaseProjectService>((ref) {
     return WebProjectService(ref);
   }
   return ProjectService(ref);
+});
+
+// ===== Billing Providers =====
+
+// Billing service provider
+final billingServiceProvider = Provider<BillingService>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
+  return BillingService(apiClient: apiClient);
+});
+
+// Credits balance provider (async)
+final creditsBalanceProvider = FutureProvider<double>((ref) async {
+  final billingService = ref.watch(billingServiceProvider);
+  return await billingService.getCreditsBalance();
+});
+
+// Billing status provider (async)
+final billingStatusProvider = FutureProvider<BillingStatus>((ref) async {
+  final billingService = ref.watch(billingServiceProvider);
+  return await billingService.getBillingStatus();
+});
+
+// Billing summary provider (async)
+final billingSummaryProvider = FutureProvider<BillingSummary>((ref) async {
+  final billingService = ref.watch(billingServiceProvider);
+  return await billingService.getBillingSummary();
+});
+
+// Usage summary provider (async)
+final usageSummaryProvider = FutureProvider<UsageSummary>((ref) async {
+  final billingService = ref.watch(billingServiceProvider);
+  return await billingService.getUsageSummary(days: 30);
+});
+
+// Credits balance notifier for manual refresh
+class CreditsBalanceNotifier extends StateNotifier<double?> {
+  final BillingService _billingService;
+
+  CreditsBalanceNotifier(this._billingService) : super(null) {
+    refresh();
+  }
+
+  Future<void> refresh() async {
+    state = await _billingService.getCreditsBalance();
+  }
+
+  void setBalance(double balance) {
+    state = balance;
+  }
+}
+
+final creditsBalanceNotifierProvider =
+    StateNotifierProvider<CreditsBalanceNotifier, double?>((ref) {
+  final billingService = ref.watch(billingServiceProvider);
+  return CreditsBalanceNotifier(billingService);
 });
