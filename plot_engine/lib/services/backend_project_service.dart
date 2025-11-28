@@ -2,6 +2,7 @@ import '../models/project.dart';
 import '../models/chapter.dart';
 import '../models/entity_metadata.dart';
 import '../models/entity_type.dart';
+import '../core/utils/logger.dart';
 import 'api_client.dart';
 
 /// Service for syncing projects and chapters with the backend
@@ -75,8 +76,8 @@ class BackendProjectService {
       final entitiesList = response['entities'] as List?;
       if (entitiesList == null) return [];
       return entitiesList.map((e) => _entityFromBackend(e)).toList();
-    } catch (e) {
-      print('[BackendProjectService] Error fetching entities: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error fetching entities', e, stackTrace);
       return [];
     }
   }
@@ -292,34 +293,10 @@ class BackendProjectService {
 
   /// Convert backend entity JSON to EntityMetadata model
   EntityMetadata _entityFromBackend(Map<String, dynamic> json) {
-    final now = DateTime.now();
-
-    // Map backend type to EntityType enum
-    EntityType entityType;
-    switch (json['type'] as String) {
-      case 'character':
-        entityType = EntityType.character;
-        break;
-      case 'location':
-        entityType = EntityType.location;
-        break;
-      case 'object':
-        entityType = EntityType.object;
-        break;
-      case 'event':
-        entityType = EntityType.event;
-        break;
-      case 'custom':
-        entityType = EntityType.custom;
-        break;
-      default:
-        entityType = EntityType.character;
-    }
-
     return EntityMetadata(
       id: json['id'] as String,
       name: json['name'] as String,
-      type: entityType,
+      type: EntityType.fromString(json['type'] as String? ?? ''),
       summary: json['summary'] as String? ?? '',
       description: json['description'] as String? ?? '',
       customType: json['customType'] as String?,

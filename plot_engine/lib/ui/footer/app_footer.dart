@@ -86,7 +86,6 @@ class AppFooter extends ConsumerWidget {
           ),
         );
       case StatusType.info:
-      default:
         icon = Icons.info;
     }
 
@@ -106,7 +105,6 @@ class AppFooter extends ConsumerWidget {
       case StatusType.loading:
         return Theme.of(context).colorScheme.primary;
       case StatusType.info:
-      default:
         return Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7);
     }
   }

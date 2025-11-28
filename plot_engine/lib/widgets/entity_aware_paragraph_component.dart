@@ -66,7 +66,6 @@ class EntityAwareParagraphComponent extends StatefulWidget {
 
 class _EntityAwareParagraphComponentState extends State<EntityAwareParagraphComponent> {
   Entity? _hoveredEntity;
-  final _tooltipKey = GlobalKey();
   Offset? _tooltipPosition;
 
   @override

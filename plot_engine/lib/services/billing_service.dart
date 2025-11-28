@@ -1,6 +1,7 @@
 import 'package:url_launcher/url_launcher.dart';
 import '../models/billing_models.dart';
 import '../config/env_config.dart';
+import '../core/utils/logger.dart';
 import 'api_client.dart';
 
 /// Service for billing and credits management
@@ -14,8 +15,8 @@ class BillingService {
     try {
       final response = await _apiClient.get('/billing/credits');
       return (response['creditsBalance'] as num?)?.toDouble() ?? 0.0;
-    } catch (e) {
-      print('[BillingService] Error getting credits balance: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error getting credits balance', e, stackTrace);
       return 0.0;
     }
   }
@@ -25,8 +26,8 @@ class BillingService {
     try {
       final response = await _apiClient.get('/billing/status');
       return BillingStatus.fromJson(response);
-    } catch (e) {
-      print('[BillingService] Error getting billing status: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error getting billing status', e, stackTrace);
       return BillingStatus(enabled: false, creditsBalance: 0.0, pricing: {});
     }
   }
@@ -41,8 +42,8 @@ class BillingService {
       return pricingJson.map(
         (key, value) => MapEntry(key, ModelPricing.fromJson(value as Map<String, dynamic>)),
       );
-    } catch (e) {
-      print('[BillingService] Error getting pricing: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error getting pricing', e, stackTrace);
       return {};
     }
   }
@@ -52,8 +53,8 @@ class BillingService {
     try {
       final response = await _apiClient.get('/billing/summary');
       return BillingSummary.fromJson(response);
-    } catch (e) {
-      print('[BillingService] Error getting billing summary: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error getting billing summary', e, stackTrace);
       return BillingSummary(
         creditsBalance: 0.0,
         transactions: [],
@@ -73,8 +74,8 @@ class BillingService {
       return transactionsJson
           .map((e) => Transaction.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (e) {
-      print('[BillingService] Error getting transactions: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error getting transactions', e, stackTrace);
       return [];
     }
   }
@@ -114,8 +115,8 @@ class BillingService {
       }
       final response = await _apiClient.get(url);
       return UsageSummary.fromJson(response);
-    } catch (e) {
-      print('[BillingService] Error getting usage summary: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error getting usage summary', e, stackTrace);
       return UsageSummary(
         summary: [],
         totals: UsageTotals(
@@ -139,8 +140,8 @@ class BillingService {
       return dailyJson
           .map((e) => DailyUsage.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (e) {
-      print('[BillingService] Error getting daily usage: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error getting daily usage', e, stackTrace);
       return [];
     }
   }

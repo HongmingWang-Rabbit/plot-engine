@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
+import '../core/utils/logger.dart';
 
 /// Centralized folder picking service with platform-specific handling
 class FolderPickerService {
@@ -14,7 +15,7 @@ class FolderPickerService {
         final String? result = await platform.invokeMethod('pickDirectory');
         return result;
       } on PlatformException catch (e) {
-        print("Failed to pick directory: '${e.message}'.");
+        AppLogger.error('Failed to pick directory', e.message);
         return null;
       }
     } else {

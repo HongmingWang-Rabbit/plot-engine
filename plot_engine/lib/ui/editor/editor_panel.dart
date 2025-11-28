@@ -175,14 +175,14 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
            chapter.createdAt != _currentChapterCreatedAt);
 
       if (isDifferentChapter) {
-        _currentChapterId = chapter?.id;
-        _currentChapterCreatedAt = chapter?.createdAt;
+        _currentChapterId = chapter.id;
+        _currentChapterCreatedAt = chapter.createdAt;
         if (_currentChapterId != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               setState(() {
                 _composer.dispose();
-                _initializeEditor(content: chapter?.content ?? '');
+                _initializeEditor(content: chapter.content);
               });
             }
           });

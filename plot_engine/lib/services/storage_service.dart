@@ -5,6 +5,7 @@ import '../models/project.dart';
 import '../models/chapter.dart';
 import '../models/knowledge_item.dart';
 import '../models/entity_metadata.dart';
+import '../core/utils/logger.dart';
 
 class StorageService {
   static const String _projectsDir = 'PlotEngine';
@@ -79,8 +80,8 @@ class StorageService {
       }
       final content = await projectFile.readAsString();
       return Project.fromJson(jsonDecode(content));
-    } catch (e) {
-      print('Error loading project: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error loading project', e, stackTrace);
       return null;
     }
   }
@@ -118,8 +119,7 @@ class StorageService {
 
   // Save chapters
   Future<void> saveChapters(String projectPath, List<Chapter> chapters) async {
-    print('📝 Saving chapters to: $projectPath');
-    print('📝 Number of chapters: ${chapters.length}');
+    AppLogger.debug('Saving chapters', {'path': projectPath, 'count': chapters.length});
 
     // Ensure chapters directory exists
     await _getChaptersDirectory(projectPath);
@@ -128,16 +128,14 @@ class StorageService {
     final chaptersFile = File('$projectPath/$_chaptersFileName');
     final chaptersJson = chapters.map((c) => c.toMetadataJson()).toList();
     await chaptersFile.writeAsString(jsonEncode(chaptersJson));
-    print('📝 Saved chapters metadata to: ${chaptersFile.path}');
 
     // Save each chapter's content to separate file
     for (final chapter in chapters) {
       final contentFile = File(_getChapterContentPath(projectPath, chapter.id));
       await contentFile.writeAsString(chapter.content);
-      print('📝 Saved chapter ${chapter.id} (${chapter.content.length} chars) to: ${contentFile.path}');
     }
 
-    print('✅ All chapters saved successfully');
+    AppLogger.save('Saved chapters', itemCount: chapters.length, path: projectPath);
   }
 
   // Load chapters
@@ -168,8 +166,8 @@ class StorageService {
       }
 
       return chapters;
-    } catch (e) {
-      print('Error loading chapters: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error loading chapters', e, stackTrace);
       return [];
     }
   }
@@ -191,8 +189,8 @@ class StorageService {
       final content = await knowledgeFile.readAsString();
       final List<dynamic> itemsJson = jsonDecode(content);
       return itemsJson.map((json) => KnowledgeItem.fromJson(json)).toList();
-    } catch (e) {
-      print('Error loading knowledge base: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error loading knowledge base', e, stackTrace);
       return [];
     }
   }
@@ -213,8 +211,7 @@ class StorageService {
 
   // Save entities
   Future<void> saveEntities(String projectPath, List<EntityMetadata> entities) async {
-    print('📝 Saving entities to: $projectPath');
-    print('📝 Number of entities: ${entities.length}');
+    AppLogger.debug('Saving entities', {'path': projectPath, 'count': entities.length});
 
     // Ensure entities directory exists
     await _getEntitiesDirectory(projectPath);
@@ -223,16 +220,14 @@ class StorageService {
     final entitiesFile = File('$projectPath/$_entitiesFileName');
     final entitiesJson = entities.map((e) => e.toMetadataJson()).toList();
     await entitiesFile.writeAsString(jsonEncode(entitiesJson));
-    print('📝 Saved entities metadata to: ${entitiesFile.path}');
 
     // Save each entity's description to separate file
     for (final entity in entities) {
       final descriptionFile = File(_getEntityDescriptionPath(projectPath, entity.id));
       await descriptionFile.writeAsString(entity.description);
-      print('📝 Saved entity ${entity.id} (${entity.description.length} chars) to: ${descriptionFile.path}');
     }
 
-    print('✅ All entities saved successfully');
+    AppLogger.save('Saved entities', itemCount: entities.length, path: projectPath);
   }
 
   // Load entities
@@ -264,30 +259,20 @@ class StorageService {
       }
 
       return entities;
-    } catch (e) {
-      print('Error loading entities: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error loading entities', e, stackTrace);
       return [];
     }
   }
 
   // Load legacy knowledge.json and convert to entities
+  // This is a stub for backward compatibility - legacy format not yet implemented
   Future<List<EntityMetadata>> _loadLegacyKnowledgeAsEntities(String projectPath) async {
-    try {
-      final knowledgeFile = File('$projectPath/$_knowledgeFileName');
-      if (!await knowledgeFile.exists()) {
-        return [];
-      }
-      final content = await knowledgeFile.readAsString();
-      final List<dynamic> itemsJson = jsonDecode(content);
-
-      // Convert old KnowledgeItems to EntityMetadata
-      // This is for backward compatibility only
-      print('⚠️  Converting legacy knowledge.json to entities format');
-      return [];
-    } catch (e) {
-      print('Error loading legacy knowledge: $e');
-      return [];
+    final knowledgeFile = File('$projectPath/$_knowledgeFileName');
+    if (await knowledgeFile.exists()) {
+      AppLogger.warn('Legacy knowledge.json found but conversion not implemented');
     }
+    return [];
   }
 
   // Delete project

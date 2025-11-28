@@ -56,13 +56,9 @@ class RecentProjectsService {
 
       // resolveBookmark() expects the bookmark string directly
       final resolvedFile = await _secureBookmarks.resolveBookmark(bookmarkData);
-
-      if (resolvedFile != null) {
-        // Start accessing the security-scoped resource
-        await _secureBookmarks.startAccessingSecurityScopedResource(resolvedFile);
-        return resolvedFile.path;
-      }
-      return null;
+      // Start accessing the security-scoped resource
+      await _secureBookmarks.startAccessingSecurityScopedResource(resolvedFile);
+      return resolvedFile.path;
     } catch (e) {
       AppLogger.error('Error resolving bookmark', e);
       return null;

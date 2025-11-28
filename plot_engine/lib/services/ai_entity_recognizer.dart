@@ -2,6 +2,7 @@ import 'dart:async';
 import '../models/entity.dart';
 import '../models/entity_type.dart';
 import '../models/ai_models.dart';
+import '../core/utils/logger.dart';
 import 'entity_store.dart';
 import 'entity_recognizer.dart';
 import 'ai_service.dart';
@@ -27,8 +28,7 @@ class AIEntityRecognizer implements EntityRecognizer {
   // Last processed text hash (to avoid redundant processing)
   int? _lastTextHash;
 
-  // Current full document text (for document-level extraction)
-  String? _currentDocumentText;
+  // Current document hash (for document-level extraction)
   int? _currentDocumentHash;
 
   // Debounce duration (longer for AI to reduce API calls)
@@ -48,12 +48,10 @@ class AIEntityRecognizer implements EntityRecognizer {
 
     // Skip if already cached
     if (_cache.containsKey(newHash)) {
-      _currentDocumentText = fullText;
       _currentDocumentHash = newHash;
       return;
     }
 
-    _currentDocumentText = fullText;
     _currentDocumentHash = newHash;
     // Schedule extraction for the full document
     _scheduleAIExtraction(fullText);
@@ -230,8 +228,8 @@ class AIEntityRecognizer implements EntityRecognizer {
       // Notify with results
       _notifyWithAIEntities(text, allExtracted);
 
-    } catch (e) {
-      print('[AIEntityRecognizer] AI extraction failed: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('AI extraction failed', e, stackTrace);
     } finally {
       _isProcessing = false;
     }
@@ -331,7 +329,6 @@ class AIEntityRecognizer implements EntityRecognizer {
   void clearCache() {
     _cache.clear();
     _lastTextHash = null;
-    _currentDocumentText = null;
     _currentDocumentHash = null;
   }
 }

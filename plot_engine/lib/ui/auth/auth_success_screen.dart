@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/app_state.dart';
-import '../../services/api_client.dart';
+import '../../core/utils/logger.dart';
 import '../../utils/web_url_helper.dart' if (dart.library.io) '../../utils/web_url_helper_stub.dart';
 import 'login_screen.dart';
 
@@ -37,10 +37,10 @@ class _AuthSuccessScreenState extends ConsumerState<AuthSuccessScreen> {
     try {
       final token = widget.token;
 
-      print('AuthSuccess: Processing token: ${token?.substring(0, 20)}...');
+      AppLogger.debug('AuthSuccess: Processing token');
 
       if (token == null || token.isEmpty) {
-        print('AuthSuccess: No token, redirecting to home');
+        AppLogger.debug('AuthSuccess: No token, redirecting to home');
         // No token - likely duplicate request, just reload page
         await Future.delayed(const Duration(milliseconds: 500));
         if (mounted && kIsWeb) {
@@ -57,26 +57,23 @@ class _AuthSuccessScreenState extends ConsumerState<AuthSuccessScreen> {
       }
 
       // Save token using API client
-      print('AuthSuccess: Saving token...');
+      AppLogger.debug('AuthSuccess: Saving token');
       final apiClient = ref.read(apiClientProvider);
       await apiClient.setToken(token);
-      print('AuthSuccess: Token saved');
 
       // Get user info to verify token
-      print('AuthSuccess: Verifying token with /auth/me...');
+      AppLogger.debug('AuthSuccess: Verifying token');
       final response = await apiClient.get('/auth/me');
-      print('AuthSuccess: Response: $response');
 
       if (response != null && response['user'] != null) {
-        print('AuthSuccess: User verified, refreshing auth state...');
+        AppLogger.debug('AuthSuccess: User verified, refreshing auth state');
         // Trigger auth state refresh
         await ref.read(authUserProvider.notifier).refreshToken();
-        print('AuthSuccess: Auth state refreshed');
 
         // Wait a moment before redirecting
         await Future.delayed(const Duration(milliseconds: 500));
 
-        print('AuthSuccess: Navigating to home...');
+        AppLogger.debug('AuthSuccess: Navigating to home');
         if (mounted && kIsWeb) {
           // For web, reload the page to clear URL and reinitialize with auth state
           reloadPage();
@@ -90,8 +87,8 @@ class _AuthSuccessScreenState extends ConsumerState<AuthSuccessScreen> {
       } else {
         throw Exception('Failed to verify token - no user data');
       }
-    } catch (e) {
-      print('AuthSuccess: Error: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('AuthSuccess: Error', e, stackTrace);
       setState(() {
         _error = e.toString();
       });

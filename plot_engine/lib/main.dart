@@ -18,7 +18,20 @@ import 'utils/web_url_helper.dart' if (dart.library.io) 'utils/web_url_helper_st
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await EnvConfig.init();
+
+  // Add error handling for debugging
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('FlutterError: ${details.exception}');
+    debugPrint('Stack: ${details.stack}');
+  };
+
+  try {
+    await EnvConfig.init();
+    debugPrint('EnvConfig initialized');
+  } catch (e) {
+    debugPrint('EnvConfig.init() error: $e');
+  }
 
   runApp(
     const ProviderScope(
@@ -32,16 +45,23 @@ class PlotEngineApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    debugPrint('PlotEngineApp.build() called');
+
     final themeMode = ref.watch(themeModeProvider);
     final authUser = ref.watch(authUserProvider);
+    debugPrint('authUser: $authUser');
 
     // For web, check current URL for OAuth callbacks
     Widget initialScreen;
     if (kIsWeb) {
       final currentUrl = getCurrentUrl();
+      debugPrint('currentUrl: $currentUrl');
 
-      if (currentUrl?.path == '/auth/success') {
-        final token = currentUrl?.queryParameters['token'];
+      // Check for token in query params (backend may redirect to /?token=... or /auth/success?token=...)
+      final token = currentUrl?.queryParameters['token'];
+
+      if (currentUrl?.path == '/auth/success' || (token != null && token.isNotEmpty)) {
+        debugPrint('Found token, showing AuthSuccessScreen');
         initialScreen = AuthSuccessScreen(token: token);
       } else if (currentUrl?.path == '/auth/error') {
         final error = currentUrl?.queryParameters['error'];
@@ -49,6 +69,7 @@ class PlotEngineApp extends ConsumerWidget {
         initialScreen = AuthErrorScreen(error: error, message: message);
       } else {
         initialScreen = authUser == null ? const LoginScreen() : const PlotEngineHome();
+        debugPrint('initialScreen: ${authUser == null ? "LoginScreen" : "PlotEngineHome"}');
       }
     } else {
       initialScreen = authUser == null ? const LoginScreen() : const PlotEngineHome();

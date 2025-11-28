@@ -4,7 +4,6 @@ import 'dart:io';
 import '../../models/project.dart';
 import '../../services/folder_picker_service.dart';
 import '../../core/widgets/empty_state.dart';
-import '../../core/extensions/context_extensions.dart';
 import '../../l10n/app_localizations.dart';
 
 class OpenProjectDialog extends ConsumerStatefulWidget {
