@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/ai_models.dart';
 import '../../state/app_state.dart';
 import '../../services/ai_service.dart';
+import '../../l10n/app_localizations.dart';
 
 class SidebarComments extends ConsumerWidget {
   const SidebarComments({super.key});
@@ -42,7 +43,7 @@ class SidebarComments extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    selectedEntity != null ? 'Entity Details' : 'AI Assistant',
+                    selectedEntity != null ? ref.tr('entity_details') : ref.tr('ai_assistant'),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),
@@ -52,7 +53,7 @@ class SidebarComments extends ConsumerWidget {
                     onPressed: () {
                       ref.read(selectedEntityProvider.notifier).clearSelection();
                     },
-                    tooltip: 'Close',
+                    tooltip: ref.tr('close'),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -92,7 +93,7 @@ class SidebarComments extends ConsumerWidget {
     if (project == null) {
       return _buildEmptyState(
         context,
-        'Open a project to use AI features',
+        L10n.get(ref.read(localeProvider), 'open_project_ai'),
         Icons.auto_awesome,
       );
     }
@@ -100,7 +101,7 @@ class SidebarComments extends ConsumerWidget {
     if (currentChapter == null) {
       return _buildEmptyState(
         context,
-        'Select a chapter to analyze',
+        L10n.get(ref.read(localeProvider), 'select_chapter_analyze'),
         Icons.article,
       );
     }

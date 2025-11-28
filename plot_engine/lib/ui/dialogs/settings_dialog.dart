@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/settings_state.dart';
+import '../../l10n/app_localizations.dart';
 
 class SettingsDialog extends ConsumerStatefulWidget {
   const SettingsDialog({super.key});
@@ -13,6 +14,8 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
+    final currentLanguage = ref.watch(localeProvider);
+
     return Dialog(
       child: Container(
         width: 600,
@@ -31,7 +34,7 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Settings',
+                  ref.tr('settings_title'),
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const Spacer(),
@@ -51,85 +54,51 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                 children: [
                   _buildSettingsSection(
                     context,
-                    'Editor',
+                    ref.tr('appearance'),
                     [
                       _buildSettingItem(
                         context,
-                        'Auto-save interval',
-                        'Automatically save changes every 5 seconds',
-                        Switch(
-                          value: true,
-                          onChanged: (value) {
-                            // TODO: Implement auto-save toggle
-                          },
-                        ),
-                      ),
-                      _buildSettingItem(
-                        context,
-                        'Font size',
-                        'Default font size for editor',
-                        DropdownButton<int>(
-                          value: 16,
-                          items: [12, 14, 16, 18, 20, 24]
-                              .map((size) => DropdownMenuItem(
-                                    value: size,
-                                    child: Text('$size pt'),
+                        ref.tr('language'),
+                        '',
+                        DropdownButton<AppLanguage>(
+                          value: currentLanguage,
+                          items: AppLanguage.values
+                              .map((lang) => DropdownMenuItem(
+                                    value: lang,
+                                    child: Text(lang.displayName),
                                   ))
                               .toList(),
                           onChanged: (value) {
-                            // TODO: Implement font size change
+                            if (value != null) {
+                              ref.read(localeProvider.notifier).setLanguage(value);
+                            }
                           },
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _buildSettingsSection(
-                    context,
-                    'Appearance',
-                    [
                       _buildSettingItem(
                         context,
-                        'Theme',
-                        'Choose light, dark, or system theme',
+                        ref.tr('theme'),
+                        '',
                         DropdownButton<ThemeMode>(
                           value: themeMode,
-                          items: const [
+                          items: [
+                            DropdownMenuItem(
+                              value: ThemeMode.system,
+                              child: Text(ref.tr('system')),
+                            ),
                             DropdownMenuItem(
                               value: ThemeMode.light,
-                              child: Text('Light'),
+                              child: Text(ref.tr('light')),
                             ),
                             DropdownMenuItem(
                               value: ThemeMode.dark,
-                              child: Text('Dark'),
-                            ),
-                            DropdownMenuItem(
-                              value: ThemeMode.system,
-                              child: Text('System'),
+                              child: Text(ref.tr('dark')),
                             ),
                           ],
                           onChanged: (value) {
                             if (value != null) {
                               ref.read(themeModeProvider.notifier).setThemeMode(value);
                             }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _buildSettingsSection(
-                    context,
-                    'Projects',
-                    [
-                      _buildSettingItem(
-                        context,
-                        'Auto-open last project',
-                        'Automatically open the last project on startup',
-                        Switch(
-                          value: true,
-                          onChanged: (value) {
-                            // TODO: Implement auto-open toggle
                           },
                         ),
                       ),
@@ -147,7 +116,7 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Close'),
+                  child: Text(ref.tr('close')),
                 ),
               ],
             ),

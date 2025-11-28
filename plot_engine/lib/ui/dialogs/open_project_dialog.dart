@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 import '../../models/project.dart';
 import '../../services/folder_picker_service.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/extensions/context_extensions.dart';
+import '../../l10n/app_localizations.dart';
 
-class OpenProjectDialog extends StatefulWidget {
+class OpenProjectDialog extends ConsumerStatefulWidget {
   final List<Project> projects;
   final Function(String projectPath)? onDeleteProject;
 
@@ -16,15 +18,15 @@ class OpenProjectDialog extends StatefulWidget {
   });
 
   @override
-  State<OpenProjectDialog> createState() => _OpenProjectDialogState();
+  ConsumerState<OpenProjectDialog> createState() => _OpenProjectDialogState();
 }
 
-class _OpenProjectDialogState extends State<OpenProjectDialog> {
+class _OpenProjectDialogState extends ConsumerState<OpenProjectDialog> {
   late List<Project> _projects;
 
   Future<String?> _browseForProject(BuildContext context) async {
     return await FolderPickerService.pickDirectory(
-      dialogTitle: 'Select Project Folder',
+      dialogTitle: ref.tr('select_project_folder'),
     );
   }
 
@@ -48,19 +50,19 @@ class _OpenProjectDialogState extends State<OpenProjectDialog> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Project'),
+        title: Text(ref.tr('delete_project')),
         content: Text(
-          'Are you sure you want to delete "${project.name}"?\n\nThis will permanently delete all project files.',
+          '${ref.tr('delete_project_confirm').replaceAll('this project', '"${project.name}"')}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(ref.tr('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(ref.tr('delete')),
           ),
         ],
       ),
@@ -80,7 +82,7 @@ class _OpenProjectDialogState extends State<OpenProjectDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Open Project'),
+      title: Text(ref.tr('open_project_title')),
       content: SizedBox(
         width: 500,
         height: 400,
@@ -96,13 +98,13 @@ class _OpenProjectDialogState extends State<OpenProjectDialog> {
                 }
               },
               icon: const Icon(Icons.folder_open),
-              label: const Text('Browse for Project...'),
+              label: Text(ref.tr('browse_project')),
             ),
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
             Text(
-              'Recent Projects',
+              ref.tr('recent_projects'),
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
@@ -111,8 +113,8 @@ class _OpenProjectDialogState extends State<OpenProjectDialog> {
               child: _projects.isEmpty
                   ? EmptyState(
                       icon: Icons.folder_open,
-                      message: 'No recent projects',
-                      subtitle: 'Use the Browse button above to open a project',
+                      message: ref.tr('no_recent_projects'),
+                      subtitle: ref.tr('use_browse_hint'),
                     )
                   : ListView.builder(
                       itemCount: _projects.length,
@@ -132,7 +134,7 @@ class _OpenProjectDialogState extends State<OpenProjectDialog> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
-                                  'Updated: ${_formatDate(project.updatedAt)}',
+                                  '${ref.tr('updated')}: ${_formatDate(project.updatedAt)}',
                                   style: Theme.of(context).textTheme.labelSmall,
                                 ),
                               ],
@@ -142,12 +144,12 @@ class _OpenProjectDialogState extends State<OpenProjectDialog> {
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.folder_open),
-                                  tooltip: 'Open in Finder',
+                                  tooltip: ref.tr('open_in_finder'),
                                   onPressed: () => _openInFinder(project.path),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline),
-                                  tooltip: 'Delete Project',
+                                  tooltip: ref.tr('delete_project'),
                                   color: Colors.red[400],
                                   onPressed: () => _deleteProject(project),
                                 ),
@@ -165,7 +167,7 @@ class _OpenProjectDialogState extends State<OpenProjectDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(ref.tr('cancel')),
         ),
       ],
     );

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/validators.dart';
 import '../../core/widgets/dialog_actions.dart' as core;
+import '../../l10n/app_localizations.dart';
 
-class NewChapterDialog extends StatefulWidget {
+class NewChapterDialog extends ConsumerStatefulWidget {
   const NewChapterDialog({super.key});
 
   @override
-  State<NewChapterDialog> createState() => _NewChapterDialogState();
+  ConsumerState<NewChapterDialog> createState() => _NewChapterDialogState();
 }
 
-class _NewChapterDialogState extends State<NewChapterDialog> {
+class _NewChapterDialogState extends ConsumerState<NewChapterDialog> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
 
@@ -22,15 +24,15 @@ class _NewChapterDialogState extends State<NewChapterDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Create New Chapter'),
+      title: Text(ref.tr('new_chapter')),
       content: Form(
         key: _formKey,
         child: TextFormField(
           controller: _titleController,
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Chapter Title',
-            hintText: 'Chapter 1: The Beginning',
+          decoration: InputDecoration(
+            labelText: ref.tr('chapter_title'),
+            hintText: ref.tr('chapter_hint'),
           ),
           validator: Validators.required,
           onFieldSubmitted: (_) => _submit(),
@@ -39,7 +41,7 @@ class _NewChapterDialogState extends State<NewChapterDialog> {
       actions: [
         core.DialogActions(
           onConfirm: _submit,
-          confirmLabel: 'Create',
+          confirmLabel: ref.tr('create'),
         ),
       ],
     );

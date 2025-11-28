@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/app_state.dart';
 import '../../state/status_state.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/base_project_service.dart';
 import '../dialogs/new_project_dialog.dart';
 import '../dialogs/open_project_dialog.dart';
@@ -31,7 +32,7 @@ class AppToolbar extends ConsumerWidget {
           const SizedBox(width: 16),
           // App Title
           Text(
-            'PlotEngine',
+            ref.tr('app_title'),
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -40,28 +41,28 @@ class AppToolbar extends ConsumerWidget {
           // New Project Button
           _ToolbarButton(
             icon: Icons.create_new_folder,
-            label: 'New Project',
+            label: ref.tr('new_project'),
             onPressed: () => _handleNewProject(context, projectService, ref),
           ),
           const SizedBox(width: 8),
           // Template Project Button
           _ToolbarButton(
             icon: Icons.auto_awesome,
-            label: 'Try Template',
+            label: ref.tr('try_template'),
             onPressed: () => _handleTemplateProject(context, projectService, ref),
           ),
           const SizedBox(width: 8),
           // Open Project Button
           _ToolbarButton(
             icon: Icons.folder_open,
-            label: 'Open Project',
+            label: ref.tr('open_project'),
             onPressed: () => _handleOpenProject(context, projectService, ref),
           ),
           const SizedBox(width: 16),
           // Entity Highlight Toggle
           _ToolbarToggleButton(
             icon: entityHighlightEnabled ? Icons.highlight : Icons.highlight_off,
-            label: entityHighlightEnabled ? 'Hide Highlights' : 'Show Highlights',
+            label: entityHighlightEnabled ? ref.tr('hide_highlights') : ref.tr('show_highlights'),
             isActive: entityHighlightEnabled,
             onPressed: () {
               ref.read(entityHighlightProvider.notifier).toggle();
@@ -83,7 +84,7 @@ class AppToolbar extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.edit, size: 16),
               onPressed: () => _handleEditProject(context, ref),
-              tooltip: 'Edit project name',
+              tooltip: ref.tr('edit_project_name'),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
             ),
@@ -114,7 +115,7 @@ class AppToolbar extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        authUser.displayName ?? 'User',
+                        authUser.displayName ?? ref.tr('user'),
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -130,13 +131,13 @@ class AppToolbar extends ConsumerWidget {
                   ),
                 ),
                 const PopupMenuDivider(),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'signout',
                   child: Row(
                     children: [
-                      Icon(Icons.logout, size: 18),
-                      SizedBox(width: 8),
-                      Text('Sign Out'),
+                      const Icon(Icons.logout, size: 18),
+                      const SizedBox(width: 8),
+                      Text(ref.tr('sign_out')),
                     ],
                   ),
                 ),
@@ -146,16 +147,16 @@ class AppToolbar extends ConsumerWidget {
                   final confirmed = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Sign Out'),
-                      content: const Text('Are you sure you want to sign out?'),
+                      title: Text(ref.tr('sign_out')),
+                      content: Text(ref.tr('sign_out_confirm')),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('Cancel'),
+                          child: Text(ref.tr('cancel')),
                         ),
                         ElevatedButton(
                           onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text('Sign Out'),
+                          child: Text(ref.tr('sign_out')),
                         ),
                       ],
                     ),
@@ -173,7 +174,7 @@ class AppToolbar extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => _handleSettings(context),
-            tooltip: 'Settings',
+            tooltip: ref.tr('settings'),
           ),
           const SizedBox(width: 8),
         ],
@@ -272,23 +273,16 @@ class AppToolbar extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Create Template Project'),
-        content: const Text(
-          'This will create a sample project with example chapters and entities to help you get started with PlotEngine.\n\n'
-          'You can explore features like:\n'
-          '• Entity recognition and highlighting\n'
-          '• Hover tooltips for entity details\n'
-          '• Click interactions to create/edit entities\n\n'
-          'Would you like to continue?',
-        ),
+        title: Text(ref.tr('create_template_project')),
+        content: Text(ref.tr('template_description')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(ref.tr('cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Create Template'),
+            child: Text(ref.tr('create_template')),
           ),
         ],
       ),
@@ -323,13 +317,13 @@ class AppToolbar extends ConsumerWidget {
     final newName = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Project Name'),
+        title: Text(ref.tr('edit_project_name_title')),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Project Name',
-            hintText: 'Enter project name',
+          decoration: InputDecoration(
+            labelText: ref.tr('project_name'),
+            hintText: ref.tr('enter_project_name'),
           ),
           onSubmitted: (value) {
             if (value.trim().isNotEmpty) {
@@ -340,7 +334,7 @@ class AppToolbar extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(ref.tr('cancel')),
           ),
           FilledButton(
             onPressed: () {
@@ -349,7 +343,7 @@ class AppToolbar extends ConsumerWidget {
                 Navigator.of(context).pop(value);
               }
             },
-            child: const Text('Save'),
+            child: Text(ref.tr('save')),
           ),
         ],
       ),

@@ -9,6 +9,7 @@ import '../../core/services/chapter_coordinator.dart';
 import '../../widgets/entity_tooltip_overlay.dart';
 import '../../screens/entity_detail_screen.dart';
 import 'editor_tab_bar.dart';
+import '../../l10n/app_localizations.dart';
 import 'dart:async';
 
 class EditorPanel extends ConsumerStatefulWidget {
@@ -221,7 +222,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                   TextButton.icon(
                     onPressed: () => _saveCurrentTab(),
                     icon: const Icon(Icons.save, size: 18),
-                    label: const Text('Save'),
+                    label: Text(ref.tr('save')),
                   ),
               ],
             ),
@@ -242,7 +243,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No tab selected',
+                          ref.tr('no_tab_selected'),
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 color: Theme.of(
@@ -252,7 +253,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Create a new project and chapter to start writing',
+                          ref.tr('create_project_hint'),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(

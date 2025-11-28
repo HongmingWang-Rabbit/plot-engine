@@ -8,6 +8,7 @@ import '../../models/entity_type.dart';
 import '../../state/app_state.dart';
 import '../../state/tab_state.dart';
 import '../../state/status_state.dart';
+import '../../l10n/app_localizations.dart';
 import '../../core/utils/icon_mapper.dart';
 import '../../core/widgets/chapter_card.dart';
 import '../dialogs/entity_metadata_dialog.dart';
@@ -64,7 +65,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                     child: IconButton(
                       icon: const Icon(Icons.add, size: 20),
                       onPressed: () => _handleAddTab(),
-                      tooltip: 'Add custom tab',
+                      tooltip: ref.tr('add_custom_tab'),
                     ),
                   ),
               ],
@@ -101,7 +102,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                         IconButton(
                           icon: const Icon(Icons.edit, size: 18),
                           onPressed: () => _handleEditTab(selectedTab),
-                          tooltip: 'Edit tab',
+                          tooltip: ref.tr('edit_tab'),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -109,7 +110,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                         IconButton(
                           icon: const Icon(Icons.add, size: 20),
                           onPressed: () => _handleAddChapter(),
-                          tooltip: 'Add chapter',
+                          tooltip: ref.tr('add_chapter'),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -117,7 +118,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                         IconButton(
                           icon: const Icon(Icons.add, size: 20),
                           onPressed: () => _handleAddItem(selectedTab),
-                          tooltip: 'Add item',
+                          tooltip: ref.tr('add_item'),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -233,11 +234,11 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     final currentChapter = ref.watch(currentChapterProvider);
 
     if (project == null) {
-      return _buildEmptyState('Open a project to see chapters', Icons.menu_book);
+      return _buildEmptyState(ref.tr('open_project_to_see_chapters'), Icons.menu_book);
     }
 
     if (chapters.isEmpty) {
-      return _buildEmptyState('No chapters yet\nClick + to add a chapter', Icons.menu_book);
+      return _buildEmptyState(ref.tr('no_chapters'), Icons.menu_book);
     }
 
     return ListView.builder(
@@ -376,11 +377,11 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
       position: RelativeRect.fromLTRB(0, 100, 200, 0),
       items: [
         PopupMenuItem(
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.edit, size: 18),
-              SizedBox(width: 8),
-              Text('Edit'),
+              const Icon(Icons.edit, size: 18),
+              const SizedBox(width: 8),
+              Text(ref.tr('edit')),
             ],
           ),
           onTap: () => Future.delayed(Duration.zero, () => _handleEditTab(tab)),
@@ -390,7 +391,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
             children: [
               Icon(Icons.delete, size: 18, color: Theme.of(context).colorScheme.error),
               const SizedBox(width: 8),
-              Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              Text(ref.tr('delete'), style: TextStyle(color: Theme.of(context).colorScheme.error)),
             ],
           ),
           onTap: () => Future.delayed(Duration.zero, () => _handleDeleteTab(tab)),
@@ -477,21 +478,21 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Tab'),
+        title: Text(ref.tr('delete_tab')),
         content: Text(
-          'Are you sure you want to delete "${tab.name}"?\n\nAll items in this tab will also be deleted.',
+          '${ref.tr('delete_tab_confirm').replaceAll('this tab', '"${tab.name}"')}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(ref.tr('cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(ref.tr('delete')),
           ),
         ],
       ),
@@ -632,19 +633,19 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Item'),
-        content: Text('Are you sure you want to delete "${entity.name}"?'),
+        title: Text(ref.tr('delete_item')),
+        content: Text('${ref.tr('delete_item_confirm').replaceAll('this item', '"${entity.name}"')}'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(ref.tr('cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(ref.tr('delete')),
           ),
         ],
       ),
@@ -681,17 +682,18 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
 
   Future<void> _handleAddChapter() async {
     final controller = TextEditingController();
+    final lang = ref.read(localeProvider);
 
     final title = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Chapter'),
+        title: Text(L10n.get(lang, 'new_chapter')),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Chapter Title',
-            hintText: 'Enter chapter title',
+          decoration: InputDecoration(
+            labelText: L10n.get(lang, 'chapter_title'),
+            hintText: L10n.get(lang, 'enter_chapter_title'),
           ),
           onSubmitted: (value) {
             if (value.trim().isNotEmpty) {
@@ -702,7 +704,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(L10n.get(lang, 'cancel')),
           ),
           FilledButton(
             onPressed: () {
@@ -711,7 +713,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                 Navigator.of(context).pop(value);
               }
             },
-            child: const Text('Create'),
+            child: Text(L10n.get(lang, 'create')),
           ),
         ],
       ),
@@ -720,26 +722,27 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     if (title != null && mounted) {
       try {
         await ref.read(projectServiceProvider).createChapter(title);
-        ref.read(statusProvider.notifier).showSuccess('Chapter "$title" created');
+        ref.read(statusProvider.notifier).showSuccess('${L10n.get(lang, 'chapter_created')}: "$title"');
       } catch (e) {
-        ref.read(statusProvider.notifier).showError('Error creating chapter: $e');
+        ref.read(statusProvider.notifier).showError('${L10n.get(lang, 'error_creating_chapter')}: $e');
       }
     }
   }
 
   Future<void> _handleEditChapter(chapter) async {
     final controller = TextEditingController(text: chapter.title);
+    final lang = ref.read(localeProvider);
 
     final newTitle = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Chapter Name'),
+        title: Text(L10n.get(lang, 'edit_chapter_name')),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Chapter Name',
-            hintText: 'Enter chapter name',
+          decoration: InputDecoration(
+            labelText: L10n.get(lang, 'chapter_name'),
+            hintText: L10n.get(lang, 'enter_chapter_name'),
           ),
           onSubmitted: (value) {
             if (value.trim().isNotEmpty) {
@@ -750,7 +753,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(L10n.get(lang, 'cancel')),
           ),
           FilledButton(
             onPressed: () {
@@ -759,7 +762,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                 Navigator.of(context).pop(value);
               }
             },
-            child: const Text('Save'),
+            child: Text(L10n.get(lang, 'save')),
           ),
         ],
       ),
@@ -795,22 +798,23 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
   }
 
   Future<void> _handleDeleteChapter(chapter) async {
+    final lang = ref.read(localeProvider);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Chapter'),
-        content: Text('Are you sure you want to delete "${chapter.title}"?\n\nThis action cannot be undone.'),
+        title: Text(L10n.get(lang, 'delete_chapter')),
+        content: Text('${L10n.get(lang, 'delete_chapter_confirm').replaceAll('this chapter', '"${chapter.title}"')}'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(L10n.get(lang, 'cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(L10n.get(lang, 'delete')),
           ),
         ],
       ),

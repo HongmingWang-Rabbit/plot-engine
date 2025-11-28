@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/status_state.dart';
+import '../../l10n/app_localizations.dart';
 
 class AppFooter extends ConsumerWidget {
   const AppFooter({super.key});
@@ -37,7 +38,7 @@ class AppFooter extends ConsumerWidget {
             ),
           ] else ...[
             Text(
-              'Ready',
+              ref.tr('ready'),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context)
                         .colorScheme

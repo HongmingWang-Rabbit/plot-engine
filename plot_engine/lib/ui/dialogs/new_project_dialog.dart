@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/folder_picker_service.dart';
 import '../../core/utils/validators.dart';
 import '../../core/widgets/dialog_actions.dart' as core;
+import '../../l10n/app_localizations.dart';
 
-class NewProjectDialog extends StatefulWidget {
+class NewProjectDialog extends ConsumerStatefulWidget {
   const NewProjectDialog({super.key});
 
   @override
-  State<NewProjectDialog> createState() => _NewProjectDialogState();
+  ConsumerState<NewProjectDialog> createState() => _NewProjectDialogState();
 }
 
-class _NewProjectDialogState extends State<NewProjectDialog> {
+class _NewProjectDialogState extends ConsumerState<NewProjectDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   String? _selectedPath;
@@ -23,7 +25,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
 
   Future<void> _selectLocation() async {
     final selectedDirectory = await FolderPickerService.pickDirectory(
-      dialogTitle: 'Select Project Location',
+      dialogTitle: ref.tr('select_project_folder'),
     );
 
     if (selectedDirectory != null) {
@@ -36,7 +38,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
 
   String _getDisplayPath() {
     if (_selectedPath == null) {
-      return 'Default location (~/Documents/PlotEngine)';
+      return ref.tr('default_location');
     }
     return _selectedPath!;
   }
@@ -44,7 +46,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Create New Project'),
+      title: Text(ref.tr('create_new_project')),
       content: SizedBox(
         width: 500,
         child: Form(
@@ -56,16 +58,16 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
               TextFormField(
                 controller: _nameController,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Project Name',
-                  hintText: 'My Novel',
+                decoration: InputDecoration(
+                  labelText: ref.tr('project_name'),
+                  hintText: ref.tr('my_novel'),
                 ),
                 validator: Validators.required,
                 onFieldSubmitted: (_) => _submit(),
               ),
               const SizedBox(height: 24),
               Text(
-                'Project Location',
+                ref.tr('project_location'),
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 8),
@@ -104,7 +106,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
               TextButton.icon(
                 onPressed: _selectLocation,
                 icon: const Icon(Icons.folder_open, size: 18),
-                label: const Text('Choose Location'),
+                label: Text(ref.tr('choose_location')),
               ),
             ],
           ),
@@ -113,7 +115,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
       actions: [
         core.DialogActions(
           onConfirm: _submit,
-          confirmLabel: 'Create',
+          confirmLabel: ref.tr('create'),
         ),
       ],
     );
