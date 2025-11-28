@@ -39,7 +39,28 @@ class WebProjectService implements BaseProjectService {
         ref.read(projectProvider.notifier).setProject(project);
         ref.read(chaptersProvider.notifier).clearChapters();
         ref.read(knowledgeBaseProvider.notifier).clearItems();
-        ref.read(currentChapterProvider.notifier).setCurrentChapter(null);
+        ref.read(entityStoreProvider).clear();
+
+        // Create default chapter
+        final backendChapter = await _backend.createChapter(
+          projectId: project.id,
+          title: 'Chapter 1',
+          content: '',
+          orderIndex: 0,
+        );
+
+        final chapter = Chapter(
+          id: backendChapter.id,
+          title: backendChapter.title,
+          content: backendChapter.content,
+          order: backendChapter.order,
+          createdAt: backendChapter.createdAt,
+          updatedAt: backendChapter.updatedAt,
+        );
+
+        ref.read(chaptersProvider.notifier).addChapter(chapter);
+        ref.read(currentChapterProvider.notifier).setCurrentChapter(chapter);
+        ref.read(tabStateProvider.notifier).openPreview(chapter);
 
         AppLogger.info('Created project on cloud', name);
         return project;
@@ -86,6 +107,7 @@ class WebProjectService implements BaseProjectService {
 
           if (chapters.isNotEmpty) {
             ref.read(currentChapterProvider.notifier).setCurrentChapter(chapters.first);
+            ref.read(tabStateProvider.notifier).openPreview(chapters.first);
           }
 
           AppLogger.load('Opened project from cloud', itemCount: chapters.length, path: projectId);

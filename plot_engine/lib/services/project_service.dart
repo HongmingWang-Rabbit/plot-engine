@@ -26,7 +26,26 @@ class ProjectService implements BaseProjectService {
         ref.read(projectProvider.notifier).setProject(project);
         ref.read(chaptersProvider.notifier).clearChapters();
         ref.read(knowledgeBaseProvider.notifier).clearItems();
-        ref.read(currentChapterProvider.notifier).setCurrentChapter(null);
+        ref.read(entityStoreProvider).clear();
+
+        // Create default chapter
+        final now = DateTime.now();
+        final chapter = Chapter(
+          id: '${now.millisecondsSinceEpoch}',
+          title: 'Chapter 1',
+          content: '',
+          order: 0,
+          createdAt: now,
+          updatedAt: now,
+        );
+
+        ref.read(chaptersProvider.notifier).addChapter(chapter);
+        ref.read(currentChapterProvider.notifier).setCurrentChapter(chapter);
+        ref.read(tabStateProvider.notifier).openPreview(chapter);
+
+        // Save project with the new chapter
+        await _storage.saveProject(project);
+        await _storage.saveChapters(project.path, [chapter]);
 
         // Track as recent project
         await _recentProjects.addRecentProject(project.path);
@@ -59,9 +78,10 @@ class ProjectService implements BaseProjectService {
         // Load entities into the entity store
         ref.read(entityStoreProvider).setAll(entities);
 
-        // Set first chapter as current if available
+        // Set first chapter as current and open in tab if available
         if (chapters.isNotEmpty) {
           ref.read(currentChapterProvider.notifier).setCurrentChapter(chapters.first);
+          ref.read(tabStateProvider.notifier).openPreview(chapters.first);
         }
 
         // Track as recent project
