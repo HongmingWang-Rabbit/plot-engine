@@ -78,6 +78,13 @@ class ChaptersNotifier extends StateNotifier<List<Chapter>> {
     state = state.where((c) => c.id != chapterId).toList();
   }
 
+  void replaceChapter(String oldId, Chapter newChapter) {
+    state = [
+      for (final c in state)
+        if (c.id == oldId) newChapter else c,
+    ];
+  }
+
   void clearChapters() {
     state = [];
   }

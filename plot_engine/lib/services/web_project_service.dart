@@ -179,27 +179,86 @@ class WebProjectService implements BaseProjectService {
     }
 
     final chapters = ref.read(chaptersProvider);
-    final backendChapter = await _backend.createChapter(
-      projectId: project.id,
+    final now = DateTime.now();
+
+    // Create local chapter immediately with client-generated ID
+    final localChapter = Chapter(
+      id: '${now.millisecondsSinceEpoch}',
       title: title,
       content: '',
-      orderIndex: chapters.length,
+      order: chapters.length,
+      createdAt: now,
+      updatedAt: now,
     );
 
-    final chapter = Chapter(
-      id: backendChapter.id,
-      title: backendChapter.title,
-      content: backendChapter.content,
-      order: backendChapter.order,
-      createdAt: backendChapter.createdAt,
-      updatedAt: backendChapter.updatedAt,
-    );
+    // Add to UI immediately (optimistic update)
+    ref.read(chaptersProvider.notifier).addChapter(localChapter);
+    ref.read(currentChapterProvider.notifier).setCurrentChapter(localChapter);
+    ref.read(tabStateProvider.notifier).openPreview(localChapter);
 
-    ref.read(chaptersProvider.notifier).addChapter(chapter);
-    ref.read(currentChapterProvider.notifier).setCurrentChapter(chapter);
+    AppLogger.info('Created chapter locally', title);
 
-    AppLogger.info('Created chapter on cloud', title);
-    return chapter;
+    // Sync with backend in background
+    _syncChapterToBackend(project.id, localChapter);
+
+    return localChapter;
+  }
+
+  /// Sync a locally-created chapter to the backend
+  Future<void> _syncChapterToBackend(String projectId, Chapter chapter) async {
+    if (!_isClientGeneratedId(chapter.id)) return;
+
+    try {
+      final backendChapter = await _backend.createChapter(
+        projectId: projectId,
+        title: chapter.title,
+        content: chapter.content,
+        orderIndex: chapter.order,
+      );
+
+      final backendId = backendChapter.id;
+      if (backendId != chapter.id) {
+        // Get the CURRENT local chapter state (user may have typed more content)
+        final chapters = ref.read(chaptersProvider);
+        final currentLocalChapter = chapters.where((c) => c.id == chapter.id).firstOrNull;
+
+        // Keep all local data, only update the ID
+        final updatedChapter = Chapter(
+          id: backendId,
+          title: currentLocalChapter?.title ?? chapter.title,
+          content: currentLocalChapter?.content ?? chapter.content,
+          order: currentLocalChapter?.order ?? chapter.order,
+          createdAt: backendChapter.createdAt,
+          updatedAt: DateTime.now(),
+        );
+
+        // Replace in chapters list
+        ref.read(chaptersProvider.notifier).replaceChapter(chapter.id, updatedChapter);
+
+        // Update current chapter if it's the one we just synced
+        final currentChapter = ref.read(currentChapterProvider);
+        if (currentChapter?.id == chapter.id) {
+          // Keep the current content from currentChapterProvider too
+          final latestContent = currentChapter?.content ?? updatedChapter.content;
+          ref.read(currentChapterProvider.notifier).setCurrentChapter(
+            updatedChapter.copyWith(content: latestContent),
+          );
+        }
+
+        // Update tab if open (keep the tab's current chapter content)
+        final tabState = ref.read(tabStateProvider);
+        final existingTab = tabState.tabs.where((t) => t.id == 'chapter-${chapter.id}').firstOrNull;
+        final tabContent = existingTab?.chapter?.content ?? updatedChapter.content;
+        ref.read(tabStateProvider.notifier).replaceChapterTab(
+          chapter.id,
+          updatedChapter.copyWith(content: tabContent),
+        );
+
+        AppLogger.info('Synced chapter to cloud', chapter.title);
+      }
+    } catch (e) {
+      AppLogger.warn('Failed to sync chapter to cloud', e.toString());
+    }
   }
 
   @override

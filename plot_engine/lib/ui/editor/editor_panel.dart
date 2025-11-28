@@ -24,6 +24,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
   late Editor _editor;
   late EntityAttributionService _attributionService;
   String? _currentChapterId;
+  DateTime? _currentChapterCreatedAt; // Track by creation time to handle ID changes
   Timer? _autoSaveTimer;
   Timer? _attributionTimer;
   final GlobalKey<EntityDetailScreenState> _entityDetailKey = GlobalKey<EntityDetailScreenState>();
@@ -165,21 +166,35 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
 
     // Update editor when active chapter tab changes
     if (activeTab?.type == TabContentType.chapter) {
-      if (activeTab?.chapter?.id != _currentChapterId) {
-        _currentChapterId = activeTab?.chapter?.id;
+      final chapter = activeTab?.chapter;
+      // Check if this is actually a different chapter (not just an ID sync)
+      // Use createdAt as stable identifier since ID can change from timestamp to UUID
+      final isDifferentChapter = chapter != null &&
+          (_currentChapterCreatedAt == null ||
+           chapter.createdAt != _currentChapterCreatedAt);
+
+      if (isDifferentChapter) {
+        _currentChapterId = chapter?.id;
+        _currentChapterCreatedAt = chapter?.createdAt;
         if (_currentChapterId != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            setState(() {
-              _composer.dispose();
-              _initializeEditor(content: activeTab?.chapter?.content ?? '');
-            });
+            if (mounted) {
+              setState(() {
+                _composer.dispose();
+                _initializeEditor(content: chapter?.content ?? '');
+              });
+            }
           });
         }
+      } else if (chapter != null && chapter.id != _currentChapterId) {
+        // Just an ID change (sync), update the tracked ID without re-initializing
+        _currentChapterId = chapter.id;
       }
     } else {
       // Clear editor if not a chapter tab
       if (_currentChapterId != null) {
         _currentChapterId = null;
+        _currentChapterCreatedAt = null;
       }
     }
 

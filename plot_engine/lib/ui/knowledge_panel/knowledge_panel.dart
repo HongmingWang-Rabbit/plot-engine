@@ -563,28 +563,22 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     );
 
     if (entity != null && mounted) {
-      final statusNotifier = ref.read(statusProvider.notifier);
-      statusNotifier.showLoading('Creating ${entity.name}...');
+      final entityStore = ref.read(entityStoreProvider);
+      // If custom tab, set customType to tab.id
+      final entityToSave = isCustomTab
+          ? entity.copyWith(customType: tab.id)
+          : entity;
 
-      try {
-        final entityStore = ref.read(entityStoreProvider);
-        // If custom tab, set customType to tab.id
-        final entityToSave = isCustomTab
-            ? entity.copyWith(customType: tab.id)
-            : entity;
+      // Save locally immediately (optimistic update)
+      entityStore.save(entityToSave);
 
-        entityStore.save(entityToSave);
+      // Trigger UI rebuild
+      ref.read(entityStoreVersionProvider.notifier).increment();
 
-        // Trigger UI rebuild
-        ref.read(entityStoreVersionProvider.notifier).increment();
+      ref.read(statusProvider.notifier).showSuccess('${entity.name} created');
 
-        // Save only this entity to backend
-        await ref.read(projectServiceProvider).saveEntity(entityToSave);
-
-        statusNotifier.showSuccess('${entity.name} created');
-      } catch (e) {
-        statusNotifier.showError('Error creating ${entity.name}: $e');
-      }
+      // Sync to backend in background (don't await)
+      ref.read(projectServiceProvider).saveEntity(entityToSave);
     }
   }
 
@@ -724,14 +718,11 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     );
 
     if (title != null && mounted) {
-      final statusNotifier = ref.read(statusProvider.notifier);
-      statusNotifier.showLoading('Creating chapter "$title"...');
-
       try {
         await ref.read(projectServiceProvider).createChapter(title);
-        statusNotifier.showSuccess('Chapter "$title" created');
+        ref.read(statusProvider.notifier).showSuccess('Chapter "$title" created');
       } catch (e) {
-        statusNotifier.showError('Error creating chapter: $e');
+        ref.read(statusProvider.notifier).showError('Error creating chapter: $e');
       }
     }
   }

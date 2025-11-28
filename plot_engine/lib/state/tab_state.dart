@@ -218,6 +218,34 @@ class TabStateNotifier extends StateNotifier<TabState> {
     state = state.copyWith(tabs: tabs);
   }
 
+  /// Replace a chapter tab with a new chapter (updates the tab ID)
+  void replaceChapterTab(String oldChapterId, Chapter newChapter) {
+    final oldTabId = 'chapter-$oldChapterId';
+    final newTabId = 'chapter-${newChapter.id}';
+
+    final tabs = state.tabs.map((tab) {
+      if (tab.id == oldTabId) {
+        return EditorTab(
+          id: newTabId,
+          title: newChapter.title,
+          type: TabContentType.chapter,
+          chapter: newChapter,
+          isModified: tab.isModified,
+          isPreview: tab.isPreview,
+        );
+      }
+      return tab;
+    }).toList();
+
+    // Update active tab ID if it was the replaced tab
+    final newActiveTabId = state.activeTabId == oldTabId ? newTabId : state.activeTabId;
+
+    state = TabState(
+      tabs: tabs,
+      activeTabId: newActiveTabId,
+    );
+  }
+
   /// Update entity content in a tab
   void updateTabEntity(EntityMetadata updatedEntity) {
     final tabId = 'entity-${updatedEntity.id}';
