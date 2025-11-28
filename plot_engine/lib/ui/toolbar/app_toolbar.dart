@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/app_state.dart';
 import '../../services/base_project_service.dart';
 import '../dialogs/new_project_dialog.dart';
-import '../dialogs/new_chapter_dialog.dart';
 import '../dialogs/open_project_dialog.dart';
 import '../dialogs/settings_dialog.dart';
 import '../dialogs/billing_dashboard_dialog.dart';
@@ -56,15 +55,6 @@ class AppToolbar extends ConsumerWidget {
             icon: Icons.folder_open,
             label: 'Open Project',
             onPressed: () => _handleOpenProject(context, projectService, ref),
-          ),
-          const SizedBox(width: 8),
-          // New Chapter Button
-          _ToolbarButton(
-            icon: Icons.add,
-            label: 'New Chapter',
-            onPressed: project != null
-                ? () => _handleNewChapter(context, projectService, ref)
-                : null,
           ),
           const SizedBox(width: 16),
           // Entity Highlight Toggle
@@ -210,9 +200,6 @@ class AppToolbar extends ConsumerWidget {
       try {
         await service.createProject(name, customPath: customPath);
 
-        // Auto-create first chapter
-        await service.createChapter('Chapter 1');
-
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Project "$name" created successfully')),
@@ -289,40 +276,6 @@ class AppToolbar extends ConsumerWidget {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
-  }
-
-  Future<void> _handleNewChapter(
-    BuildContext context,
-    BaseProjectService service,
-    WidgetRef ref,
-  ) async {
-    final title = await showDialog<String>(
-      context: context,
-      builder: (context) => const NewChapterDialog(),
-    );
-
-    if (title != null && context.mounted) {
-      // Show loading state
-      ref.read(projectLoadingProvider.notifier).setLoading(true);
-
-      try {
-        await service.createChapter(title);
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Chapter "$title" created')));
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error creating chapter: $e')));
-        }
-      } finally {
-        // Hide loading state
-        ref.read(projectLoadingProvider.notifier).setLoading(false);
       }
     }
   }

@@ -104,6 +104,14 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
+                      if (project != null && selectedTab.id == 'chapters')
+                        IconButton(
+                          icon: const Icon(Icons.add, size: 20),
+                          onPressed: () => _handleAddChapter(),
+                          tooltip: 'Add chapter',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
                       if (project != null && selectedTab.id != 'chapters')
                         IconButton(
                           icon: const Icon(Icons.add, size: 20),
@@ -228,7 +236,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     }
 
     if (chapters.isEmpty) {
-      return _buildEmptyState('No chapters yet\nClick "New Chapter" to start', Icons.menu_book);
+      return _buildEmptyState('No chapters yet\nClick + to add a chapter', Icons.menu_book);
     }
 
     return ListView.builder(
@@ -675,6 +683,66 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error deleting item: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleAddChapter() async {
+    final controller = TextEditingController();
+
+    final title = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('New Chapter'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Chapter Title',
+            hintText: 'Enter chapter title',
+          ),
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              Navigator.of(context).pop(value.trim());
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) {
+                Navigator.of(context).pop(value);
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+
+    if (title != null && mounted) {
+      try {
+        await ref.read(projectServiceProvider).createChapter(title);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Chapter "$title" created')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error creating chapter: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
           );
         }
       }
