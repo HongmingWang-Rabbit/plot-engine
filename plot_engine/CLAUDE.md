@@ -4,170 +4,155 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-PlotEngine is a Flutter desktop application for creative writing with AI-assisted features. It provides a rich text editor for writing chapters, a knowledge base for tracking story elements (characters, locations, objects, events), and a sidebar for AI-generated comments (planned).
+PlotEngine is a Flutter application for creative writing with AI-assisted features. It provides a rich text editor for writing chapters, a knowledge base for tracking story elements (characters, locations, objects, events), and AI-powered entity recognition.
 
 ## Commands
 
-### Development
 ```bash
-# Get dependencies
-flutter pub get
-
-# Run the app (macOS)
-flutter run -d macos
-
-# Run tests
-flutter test
-
-# Analyze code
-flutter analyze
-
-# Format code
-dart format .
-```
-
-### Building
-```bash
-# Build for macOS
-flutter build macos
-
-# Clean build artifacts
-flutter clean
+flutter pub get          # Get dependencies
+flutter run -d macos     # Run macOS desktop app
+flutter run -d chrome    # Run web version
+flutter test             # Run tests
+flutter test test/widget_test.dart  # Run single test
+flutter analyze          # Static analysis
+dart format .            # Format code
+flutter build macos      # Build macOS app
+flutter clean            # Clean build artifacts
 ```
 
 ## Architecture
 
-### State Management
-The app uses **Riverpod** for state management with a clear separation of concerns:
-- **Models** (`lib/models/`): Immutable data classes with JSON serialization
-- **Services** (`lib/services/`): Business logic and I/O operations
-- **State** (`lib/state/app_state.dart`): StateNotifier providers that connect UI to services
-- **UI** (`lib/ui/`): Widgets that consume state via providers
+### Platform-Aware Services
 
-### Key State Providers
-All providers are defined in `lib/state/app_state.dart`:
-- `projectProvider`: Current open project (nullable)
-- `chaptersProvider`: List of all chapters in current project
-- `currentChapterProvider`: Currently active chapter in the editor
-- `knowledgeBaseProvider`: List of all knowledge base items
+The app runs on both desktop (macOS) and web, with platform-specific service implementations:
+
+```
+BaseProjectService (interface)
+├── ProjectService (desktop) - local file storage
+└── WebProjectService (web) - cloud backend API
+```
+
+The `projectServiceProvider` automatically selects the correct implementation based on `kIsWeb`.
+
+### State Management (Riverpod)
+
+State is organized in `lib/state/`:
+- `app_state.dart`: Core providers (project, chapters, knowledge, auth, entities, billing)
+- `tab_state.dart`: Multi-tab editor state with preview/permanent tabs
+- `settings_state.dart`: Theme and preferences
+- `status_state.dart`: Loading/status indicators
+
+Key providers in `app_state.dart`:
+- `projectProvider`: Current open project
+- `chaptersProvider`: List of chapters
+- `currentChapterProvider`: Active chapter in editor
+- `knowledgeBaseProvider`: Knowledge items
+- `entityStoreProvider`: AI-recognized entities (singleton)
+- `authUserProvider`: Authenticated user
+- `projectServiceProvider`: Platform-aware service (switches between local/cloud)
 
 ### Service Layer
-- **ProjectService** (`lib/services/project_service.dart`): High-level operations for projects, chapters, and knowledge items. Orchestrates state updates and persistence.
-- **StorageService** (`lib/services/storage_service.dart`): Low-level file I/O. Handles reading/writing JSON files.
-- **FolderPickerService** (`lib/services/folder_picker_service.dart`): File system browsing for custom project locations.
+
+- **ProjectService** / **WebProjectService**: High-level project CRUD via `BaseProjectService` interface
+- **BackendProjectService**: REST API client for cloud operations
+- **StorageService**: Local file I/O (desktop only)
+- **AIService**: Entity extraction, consistency checking, foreshadowing suggestions
+- **AIEntityRecognizer**: Debounced AI entity recognition in editor content
+- **BillingService**: User credits and usage tracking
+- **GoogleAuthService** / **WebAuthService**: Platform-specific OAuth
 
 ### Data Flow
+
 1. User interacts with UI widget
-2. Widget calls method on ProjectService (via provider)
-3. ProjectService updates state (via StateNotifier)
-4. ProjectService persists changes (via StorageService)
+2. Widget calls method on `BaseProjectService` (via provider)
+3. Service updates StateNotifier providers
+4. Service persists changes (local files or cloud API)
 5. UI rebuilds automatically (Riverpod reactivity)
 
 ## Project Storage
 
-Projects use a file-based storage system where content is separated from metadata:
-
+**Desktop (local files)**:
 ```
 {project_path}/
-├── project.json      # Project metadata (id, name, timestamps)
-├── chapters.json     # Chapter metadata only (id, title, order, timestamps)
-├── chapters/         # Chapter content directory
-│   ├── chapter_{id}.txt   # Individual chapter content files
-│   └── ...
-└── knowledge.json    # Array of knowledge base items
+├── project.json      # Project metadata
+├── chapters.json     # Chapter metadata only (not content)
+├── chapters/
+│   └── chapter_{id}.txt   # Individual chapter content
+├── knowledge.json    # Knowledge base items
+└── entities.json     # AI-recognized entities
 ```
 
-**Key design decisions**:
-- Chapter content is stored in separate `.txt` files to avoid large JSON files
-- `chapters.json` contains only metadata (title, order, timestamps), not content
-- Each chapter file is named `chapter_{id}.txt` in the `chapters/` subdirectory
-
-**Default location**: `~/Documents/PlotEngine/{project_id}/`
-
-**Custom locations**: Users can save projects anywhere via file picker.
+**Web**: All data stored in cloud backend via REST API.
 
 ## Key Models
 
-### Chapter
-- `id`: Unique identifier (timestamp-based)
-- `title`: Chapter title
-- `content`: Plain text content from super_editor (stored in separate file)
-- `order`: Sort order (integer)
-- `createdAt`, `updatedAt`: Timestamps
-
-**Serialization methods**:
-- `toMetadataJson()`: Saves metadata only (for chapters.json)
-- `fromMetadataJson(json, content)`: Loads metadata and content separately
-- `toJson()/fromJson()`: Full serialization (backward compatibility)
-
-### KnowledgeItem
-- `id`: Unique identifier
-- `name`: Item name
-- `type`: One of: 'character', 'location', 'object', 'event'
-- `description`: Item description
-- `appearances`: List of chapter IDs (for future AI tracking)
-
-### Project
-- `id`: Unique identifier (timestamp-based)
-- `name`: Project name
-- `path`: Absolute file system path to project directory
-- `createdAt`, `updatedAt`: Timestamps
+Located in `lib/models/`:
+- **Project**: id, name, path, timestamps
+- **Chapter**: id, title, content, order, timestamps
+- **EntityMetadata**: id, name, type (character/location/object/event), description, aliases, attributes
+- **KnowledgeItem**: Manually created story elements
+- **AuthUser**: OAuth user info and tokens
+- **BillingModels**: Credits, usage, and billing status
 
 ## UI Layout
 
-The app has a three-panel layout (defined in `lib/main.dart`):
-1. **Editor Panel** (60% width): Rich text editor using `super_editor` package
-2. **Sidebar Comments** (20% width): Placeholder for AI comments (not yet implemented)
-3. **Knowledge Panel** (20% width): Tab-based interface for managing knowledge items
+Three-panel layout in `lib/main.dart`:
+1. **Editor Panel** (60%): Multi-tab `super_editor` with entity highlighting
+2. **Sidebar Comments** (20%): Entity details and AI comments
+3. **Knowledge Panel** (20%): Entity/knowledge management
 
-**Toolbar** (`lib/ui/toolbar/app_toolbar.dart`): Global actions for New Project, Open Project, Save, New Chapter, etc.
+**Tab System** (`lib/state/tab_state.dart`):
+- Preview tabs (italicized) auto-replace when clicking another item
+- Tabs become permanent when user starts editing
+- Supports both chapter and entity tabs via `TabContentType`
+
+## Localization
+
+Custom i18n system in `lib/l10n/`:
+- `app_localizations.dart`: `L10n` class and `localeProvider`
+- `translations/en.dart`, `zh.dart`, `fr.dart`: Translation maps
+
+Usage in widgets:
+```dart
+ref.tr('key_name')  // Via LocalizationExtension
+```
 
 ## Important Patterns
 
-### Creating New Features with State
-When adding features that need state:
-1. Add data model in `lib/models/` with `toJson`/`fromJson`
-2. Create StateNotifier in `lib/state/app_state.dart`
-3. Add methods to ProjectService for business logic
-4. Update StorageService if persistence is needed
-5. Build UI that consumes the provider
+### Adding Platform-Aware Features
 
-### Service Injection
-Services use Riverpod's dependency injection:
-```dart
-final projectServiceProvider = Provider<ProjectService>((ref) {
-  return ProjectService(ref);
-});
-```
+1. Define interface in `BaseProjectService` if it involves project data
+2. Implement in both `ProjectService` (desktop) and `WebProjectService` (web)
+3. Access via `ref.read(projectServiceProvider)` - correct implementation auto-selected
 
-Access in widgets via:
-```dart
-final projectService = ref.read(projectServiceProvider);
-```
+### Entity Recognition Flow
+
+1. `AIEntityRecognizer` watches editor content with debouncing
+2. Calls `AIService.extractEntities()` API
+3. Results stored in `EntityStore` (singleton)
+4. `entityStoreVersionProvider` triggers UI rebuilds when entities change
 
 ### Auto-save
-The editor panel implements auto-save with a 5-second debounce timer. When modifying auto-save behavior, update the timer in `lib/ui/editor/editor_panel.dart`.
 
-## Dependencies
+Editor implements 5-second debounce auto-save. Centralized save logic in `SaveService` (`lib/services/save_service.dart`).
 
-Key packages:
-- `super_editor: ^0.3.0-dev.40` - Rich text editing
-- `flutter_riverpod: ^2.6.1` - State management
-- `web_socket_channel: ^3.0.1` - WebSocket for future AI features
-- `http: ^1.2.2` - HTTP client
-- `sqflite: ^2.4.1` - Local database (not currently used)
-- `file_picker: ^8.1.6` - File/folder picker dialogs
+### Adding New State
+
+1. Add model in `lib/models/` with `toJson`/`fromJson`
+2. Create StateNotifier in `lib/state/app_state.dart`
+3. Add service methods for business logic
+4. For persistent data, update `StorageService` and/or `BackendProjectService`
+
+## Environment Configuration
+
+`.env` file required with:
+- `API_BASE_URL`: Backend API endpoint
+- Auth credentials for OAuth
+
+Configuration loaded via `EnvConfig` in `lib/config/env_config.dart`.
 
 ## Platform Support
 
-Currently supports **macOS** only. The `macos/` directory contains macOS-specific configuration. To add other platforms, use `flutter create` to generate platform directories.
-
-## Future AI Integration
-
-The architecture is prepared for AI features:
-- WebSocket service (to be implemented in `lib/services/`)
-- AI comments sidebar (UI placeholder exists)
-- Character tracking via `appearances` field in KnowledgeItem
-- Real-time feedback and suggestions
-
-The state management structure supports adding AI-generated data without major refactoring.
+- **macOS**: Primary desktop platform
+- **Web**: Cloud-backed version with Google OAuth
+- Android/iOS/Windows/Linux: Generated directories exist but untested
