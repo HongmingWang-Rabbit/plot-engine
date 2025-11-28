@@ -7,6 +7,7 @@ import '../../models/entity_metadata.dart';
 import '../../models/entity_type.dart';
 import '../../state/app_state.dart';
 import '../../state/tab_state.dart';
+import '../../state/status_state.dart';
 import '../../core/utils/icon_mapper.dart';
 import '../../core/widgets/chapter_card.dart';
 import '../dialogs/entity_metadata_dialog.dart';
@@ -562,6 +563,9 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     );
 
     if (entity != null && mounted) {
+      final statusNotifier = ref.read(statusProvider.notifier);
+      statusNotifier.showLoading('Creating ${entity.name}...');
+
       try {
         final entityStore = ref.read(entityStoreProvider);
         // If custom tab, set customType to tab.id
@@ -577,17 +581,9 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
         // Save only this entity to backend
         await ref.read(projectServiceProvider).saveEntity(entityToSave);
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${entity.name} added successfully')),
-          );
-        }
+        statusNotifier.showSuccess('${entity.name} created');
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error adding item: $e')),
-          );
-        }
+        statusNotifier.showError('Error creating ${entity.name}: $e');
       }
     }
   }
@@ -728,23 +724,14 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     );
 
     if (title != null && mounted) {
+      final statusNotifier = ref.read(statusProvider.notifier);
+      statusNotifier.showLoading('Creating chapter "$title"...');
+
       try {
         await ref.read(projectServiceProvider).createChapter(title);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Chapter "$title" created')),
-          );
-        }
+        statusNotifier.showSuccess('Chapter "$title" created');
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error creating chapter: $e'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-        }
+        statusNotifier.showError('Error creating chapter: $e');
       }
     }
   }

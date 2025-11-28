@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/app_state.dart';
+import '../../state/status_state.dart';
 import '../../services/base_project_service.dart';
 import '../dialogs/new_project_dialog.dart';
 import '../dialogs/open_project_dialog.dart';
@@ -194,25 +195,16 @@ class AppToolbar extends ConsumerWidget {
       final name = result['name'] as String;
       final customPath = result['path'] as String?;
 
-      // Show loading state
+      final statusNotifier = ref.read(statusProvider.notifier);
+      statusNotifier.showLoading('Creating project "$name"...');
       ref.read(projectLoadingProvider.notifier).setLoading(true);
 
       try {
         await service.createProject(name, customPath: customPath);
-
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Project "$name" created successfully')),
-          );
-        }
+        statusNotifier.showSuccess('Project "$name" created');
       } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error creating project: $e')));
-        }
+        statusNotifier.showError('Error creating project: $e');
       } finally {
-        // Hide loading state
         ref.read(projectLoadingProvider.notifier).setLoading(false);
       }
     }
@@ -255,28 +247,19 @@ class AppToolbar extends ConsumerWidget {
       );
 
       if (selectedPath != null && context.mounted) {
+        final statusNotifier = ref.read(statusProvider.notifier);
+        statusNotifier.showLoading('Opening project...');
+
         final success = await service.openProject(selectedPath);
-        if (context.mounted) {
-          if (success) {
-            final project = ref.read(projectProvider);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Project "${project?.name ?? 'Project'}" opened'),
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Error opening project')),
-            );
-          }
+        if (success) {
+          final project = ref.read(projectProvider);
+          statusNotifier.showSuccess('Project "${project?.name ?? 'Project'}" opened');
+        } else {
+          statusNotifier.showError('Error opening project');
         }
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+      ref.read(statusProvider.notifier).showError('Error: $e');
     }
   }
 
@@ -312,27 +295,16 @@ class AppToolbar extends ConsumerWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      // Show loading state
+      final statusNotifier = ref.read(statusProvider.notifier);
+      statusNotifier.showLoading('Creating template project...');
       ref.read(projectLoadingProvider.notifier).setLoading(true);
 
       try {
         await service.createTemplateProject();
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Template project created! Explore the sample chapters to learn about entity features.'),
-              duration: Duration(seconds: 4),
-            ),
-          );
-        }
+        statusNotifier.showSuccess('Template project created');
       } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error creating template project: $e')),
-          );
-        }
+        statusNotifier.showError('Error creating template project: $e');
       } finally {
-        // Hide loading state
         ref.read(projectLoadingProvider.notifier).setLoading(false);
       }
     }
