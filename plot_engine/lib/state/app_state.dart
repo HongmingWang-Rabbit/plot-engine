@@ -159,6 +159,19 @@ final entityStoreProvider = Provider<EntityStore>((ref) {
   return EntityStore();
 });
 
+// Entity store version provider - increment this to force UI rebuild when entities change
+class EntityStoreVersionNotifier extends StateNotifier<int> {
+  EntityStoreVersionNotifier() : super(0);
+
+  void increment() {
+    state++;
+  }
+}
+
+final entityStoreVersionProvider = StateNotifierProvider<EntityStoreVersionNotifier, int>((ref) {
+  return EntityStoreVersionNotifier();
+});
+
 // AI entity recognizer provider (with debounced API calls)
 final aiEntityRecognizerProvider = Provider<AIEntityRecognizer>((ref) {
   final store = ref.watch(entityStoreProvider);

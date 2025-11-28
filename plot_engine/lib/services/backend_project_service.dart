@@ -68,6 +68,19 @@ class BackendProjectService {
     return entitiesList.map((e) => _entityFromBackend(e)).toList();
   }
 
+  /// Fetch entities from dedicated endpoint (fallback if not in project response)
+  Future<List<EntityMetadata>> getEntities(String projectId) async {
+    try {
+      final response = await _apiClient.get('/projects/$projectId/entities');
+      final entitiesList = response['entities'] as List?;
+      if (entitiesList == null) return [];
+      return entitiesList.map((e) => _entityFromBackend(e)).toList();
+    } catch (e) {
+      print('[BackendProjectService] Error fetching entities: $e');
+      return [];
+    }
+  }
+
   /// Update a project
   Future<Project> updateProject(
     String projectId, {

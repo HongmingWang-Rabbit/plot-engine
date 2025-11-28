@@ -1,6 +1,7 @@
 import '../models/project.dart';
 import '../models/chapter.dart';
 import '../models/knowledge_item.dart';
+import '../models/entity_metadata.dart';
 
 /// Base interface for project services (local and cloud)
 abstract class BaseProjectService {
@@ -23,6 +24,10 @@ abstract class BaseProjectService {
   Future<void> addKnowledgeItem(KnowledgeItem item);
   Future<void> updateKnowledgeItem(KnowledgeItem item);
   Future<void> deleteKnowledgeItem(String itemId);
+
+  // Entity operations
+  Future<void> saveEntity(EntityMetadata entity);
+  Future<void> deleteEntity(String entityId);
 
   // Template project
   Future<Project> createTemplateProject({String? customPath});

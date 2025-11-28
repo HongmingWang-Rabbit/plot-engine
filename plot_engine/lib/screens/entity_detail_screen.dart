@@ -12,14 +12,13 @@ class EntityDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<EntityDetailScreen> createState() => _EntityDetailScreenState();
+  State<EntityDetailScreen> createState() => EntityDetailScreenState();
 }
 
-class _EntityDetailScreenState extends State<EntityDetailScreen> {
+class EntityDetailScreenState extends State<EntityDetailScreen> {
   late TextEditingController _nameController;
   late TextEditingController _summaryController;
   late TextEditingController _descriptionController;
-  bool _isEditing = false;
 
   @override
   void initState() {
@@ -37,8 +36,6 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
       _nameController.text = widget.metadata.name;
       _summaryController.text = widget.metadata.summary;
       _descriptionController.text = widget.metadata.description;
-      // Reset editing state when switching entities
-      _isEditing = false;
     }
   }
 
@@ -50,76 +47,63 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
     super.dispose();
   }
 
-  void _save() {
-    final updatedMetadata = widget.metadata.copyWith(
+  /// Get current edited metadata (called by parent via GlobalKey or save service)
+  EntityMetadata getEditedMetadata() {
+    return widget.metadata.copyWith(
       name: _nameController.text,
       summary: _summaryController.text,
       description: _descriptionController.text,
     );
+  }
 
-    widget.onSave?.call(updatedMetadata);
-    setState(() {
-      _isEditing = false;
-    });
+  /// Check if content has changed
+  bool hasChanges() {
+    return _nameController.text != widget.metadata.name ||
+        _summaryController.text != widget.metadata.summary ||
+        _descriptionController.text != widget.metadata.description;
+  }
+
+  /// Save changes (called externally via toolbar)
+  void save() {
+    if (hasChanges()) {
+      widget.onSave?.call(getEditedMetadata());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Entity' : 'Entity Details'),
-        actions: [
-          if (_isEditing)
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: _save,
-              tooltip: 'Save',
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                setState(() {
-                  _isEditing = true;
-                });
-              },
-              tooltip: 'Edit',
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildEditableField(
+              'Name',
+              _nameController,
+              1,
             ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildInfoCard(
-                'Name',
-                _nameController,
-                1,
-              ),
-              const SizedBox(height: 16),
-              _buildTypeChip(),
-              const SizedBox(height: 24),
-              _buildInfoCard(
-                'Summary',
-                _summaryController,
-                3,
-              ),
-              const SizedBox(height: 24),
-              _buildInfoCard(
-                'Description',
-                _descriptionController,
-                10,
-              ),
-            ],
-          ),
+            const SizedBox(height: 16),
+            _buildTypeChip(),
+            const SizedBox(height: 24),
+            _buildEditableField(
+              'Summary',
+              _summaryController,
+              3,
+            ),
+            const SizedBox(height: 24),
+            _buildEditableField(
+              'Description',
+              _descriptionController,
+              10,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoCard(String label, TextEditingController controller, int maxLines) {
+  Widget _buildEditableField(String label, TextEditingController controller, int maxLines) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -134,19 +118,13 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
                   ),
             ),
             const SizedBox(height: 8),
-            if (_isEditing)
-              TextField(
-                controller: controller,
-                maxLines: maxLines,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
-              )
-            else
-              Text(
-                controller.text.isEmpty ? 'No ${label.toLowerCase()} provided' : controller.text,
-                style: Theme.of(context).textTheme.bodyLarge,
+            TextField(
+              controller: controller,
+              maxLines: maxLines,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
               ),
+            ),
           ],
         ),
       ),

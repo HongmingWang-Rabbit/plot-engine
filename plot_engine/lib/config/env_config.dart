@@ -1,55 +1,44 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 
 /// Environment configuration for the app
-/// Supports both compile-time (--dart-define) and runtime (.env file) configuration
-/// Compile-time values take precedence over .env file values
+/// Loads from config.json at runtime (editable without rebuilding)
+///
+/// Config file location: web/config.json
 class EnvConfig {
-  // Compile-time constants from --dart-define
-  static const String _apiBaseUrlDefine = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: '',
-  );
-  static const String _appBaseUrlDefine = String.fromEnvironment(
-    'APP_BASE_URL',
-    defaultValue: '',
-  );
-  static const bool _enableDebugLoggingDefine = bool.fromEnvironment(
-    'ENABLE_DEBUG_LOGGING',
-    defaultValue: false,
-  );
+  static Map<String, dynamic> _config = {};
+
+  // Defaults
+  static const String _defaultApiBaseUrl = 'https://api.plot-engine.com';
+  static const String _defaultAppBaseUrl = 'https://plot-engine.com';
 
   /// API base URL for backend communication
-  /// Priority: --dart-define > .env > default
-  static String get apiBaseUrl {
-    if (_apiBaseUrlDefine.isNotEmpty) return _apiBaseUrlDefine;
-    return dotenv.env['API_BASE_URL'] ?? 'https://api.plot-engine.com';
-  }
+  static String get apiBaseUrl =>
+      _config['apiBaseUrl'] as String? ?? _defaultApiBaseUrl;
 
   /// App base URL (used for OAuth redirects, etc.)
-  /// Priority: --dart-define > .env > default
-  static String get appBaseUrl {
-    if (_appBaseUrlDefine.isNotEmpty) return _appBaseUrlDefine;
-    return dotenv.env['APP_BASE_URL'] ?? 'https://plot-engine.com';
-  }
+  static String get appBaseUrl =>
+      _config['appBaseUrl'] as String? ?? _defaultAppBaseUrl;
 
   /// Whether debug logging is enabled
-  static bool get enableDebugLogging {
-    if (_enableDebugLoggingDefine) return true;
-    return dotenv.env['ENABLE_DEBUG_LOGGING']?.toLowerCase() == 'true';
-  }
+  static bool get enableDebugLogging =>
+      _config['enableDebugLogging'] as bool? ?? false;
 
   /// Whether running in production mode
   static bool get isProduction => kReleaseMode;
 
-  /// Initialize environment configuration
-  /// Call this before runApp() in main.dart
+  /// Initialize configuration from config.json
   static Future<void> init() async {
     try {
-      await dotenv.load(fileName: '.env');
+      // For web, config.json is in the web root
+      final response = await http.get(Uri.parse('config.json'));
+      if (response.statusCode == 200) {
+        _config = json.decode(response.body) as Map<String, dynamic>;
+      }
     } catch (e) {
-      // .env file may not exist in production builds using --dart-define
-      debugPrint('[EnvConfig] .env file not found, using compile-time values');
+      // Config file not found or invalid - use defaults silently
+      _config = {};
     }
   }
 }

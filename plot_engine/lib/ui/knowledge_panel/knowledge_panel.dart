@@ -26,6 +26,8 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
   Widget build(BuildContext context) {
     final project = ref.watch(projectProvider);
     final tabs = project?.knowledgeTabs ?? KnowledgeTab.defaultTabs();
+    // Watch entity store version to rebuild when entities change
+    ref.watch(entityStoreVersionProvider);
 
     // Ensure selected tab exists
     if (!tabs.any((t) => t.id == _selectedTabId)) {
@@ -254,6 +256,8 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
   Widget _buildKnowledgeList(KnowledgeTab tab) {
     final project = ref.watch(projectProvider);
     final entityStore = ref.watch(entityStoreProvider);
+    // Watch version to rebuild when entities are loaded/changed
+    ref.watch(entityStoreVersionProvider);
 
     // Map tab ID to EntityType
     final entityType = _tabIdToEntityType(tab.id);
@@ -491,6 +495,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
       // Delete all entities in this tab
       final entityType = _tabIdToEntityType(tab.id);
       final entityStore = ref.read(entityStoreProvider);
+      final projectService = ref.read(projectServiceProvider);
       final List<EntityMetadata> tabItems;
 
       if (entityType != null) {
@@ -502,8 +507,16 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
       }
 
       for (final entity in tabItems) {
+        final entityId = entity.id;
         entityStore.delete(entity.name);
+        // Close tab if open
+        ref.read(tabStateProvider.notifier).closeTab(entityId);
+        // Delete from backend
+        await projectService.deleteEntity(entityId);
       }
+
+      // Trigger UI rebuild
+      ref.read(entityStoreVersionProvider.notifier).increment();
 
       // Remove tab
       final updatedTabs = project.knowledgeTabs.where((t) => t.id != tab.id).toList();
@@ -513,7 +526,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
       );
 
       ref.read(projectProvider.notifier).updateProject(updatedProject);
-      await ref.read(projectServiceProvider).saveProject();
+      await projectService.saveProject();
 
       // Switch to chapters tab
       setState(() {
@@ -536,7 +549,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     final entity = await showDialog<EntityMetadata>(
       context: context,
       builder: (context) => EntityMetadataDialog(
-        type: isCustomTab ? EntityType.custom : entityType!,
+        type: isCustomTab ? EntityType.custom : entityType,
       ),
     );
 
@@ -547,13 +560,14 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
         final entityToSave = isCustomTab
             ? entity.copyWith(customType: tab.id)
             : entity;
+
         entityStore.save(entityToSave);
 
-        // Save to disk
-        await ref.read(projectServiceProvider).saveProject();
+        // Trigger UI rebuild
+        ref.read(entityStoreVersionProvider.notifier).increment();
 
-        // Trigger rebuild to show new item immediately
-        setState(() {});
+        // Save only this entity to backend
+        await ref.read(projectServiceProvider).saveEntity(entityToSave);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -578,7 +592,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     final updatedEntity = await showDialog<EntityMetadata>(
       context: context,
       builder: (context) => EntityMetadataDialog(
-        type: isCustomTab ? EntityType.custom : entityType!,
+        type: isCustomTab ? EntityType.custom : entityType,
         entity: entity,
       ),
     );
@@ -595,12 +609,11 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
             ? updatedEntity.copyWith(customType: tab.id)
             : updatedEntity;
         entityStore.save(entityToSave);
+        // Trigger UI rebuild
+        ref.read(entityStoreVersionProvider.notifier).increment();
 
-        // Save to disk
-        await ref.read(projectServiceProvider).saveProject();
-
-        // Trigger rebuild to show updated item immediately
-        setState(() {});
+        // Save only this entity to backend
+        await ref.read(projectServiceProvider).saveEntity(entityToSave);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -642,13 +655,16 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     if (confirmed == true && mounted) {
       try {
         final entityStore = ref.read(entityStoreProvider);
+        final entityId = entity.id;
         entityStore.delete(entity.name);
+        // Trigger UI rebuild
+        ref.read(entityStoreVersionProvider.notifier).increment();
 
-        // Save to disk
-        await ref.read(projectServiceProvider).saveProject();
+        // Close tab if open
+        ref.read(tabStateProvider.notifier).closeTab(entityId);
 
-        // Trigger rebuild to show list without deleted item immediately
-        setState(() {});
+        // Delete from backend
+        await ref.read(projectServiceProvider).deleteEntity(entityId);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

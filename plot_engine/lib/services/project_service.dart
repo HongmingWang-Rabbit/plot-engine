@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/project.dart';
 import '../models/chapter.dart';
 import '../models/knowledge_item.dart';
+import '../models/entity_metadata.dart';
 import '../state/app_state.dart';
 import '../state/tab_state.dart';
 import '../core/utils/logger.dart';
@@ -17,7 +18,7 @@ class ProjectService implements BaseProjectService {
 
   ProjectService(this.ref);
 
-  // Create a new project
+  @override
   Future<Project> createProject(String name, {String? customPath}) async {
     return await ErrorHandler.handleAsync(
       () async {
@@ -37,7 +38,7 @@ class ProjectService implements BaseProjectService {
     ) ?? (throw Exception('Failed to create project'));
   }
 
-  // Open an existing project
+  @override
   Future<bool> openProject(String projectPath) async {
     return await ErrorHandler.handleAsync(
       () async {
@@ -73,7 +74,7 @@ class ProjectService implements BaseProjectService {
     ) ?? false;
   }
 
-  // Get recent projects
+  @override
   Future<List<Project>> getRecentProjects() async {
     final recentPaths = await _recentProjects.getRecentProjects();
     final projects = <Project>[];
@@ -91,12 +92,12 @@ class ProjectService implements BaseProjectService {
     return projects;
   }
 
-  // Get last opened project path
+  @override
   Future<String?> getLastProjectPath() async {
     return await _recentProjects.getLastProjectPath();
   }
 
-  // Save current project
+  @override
   Future<void> saveProject() async {
     final project = ref.read(projectProvider);
     if (project == null) return;
@@ -114,17 +115,17 @@ class ProjectService implements BaseProjectService {
     await _storage.saveEntities(project.path, entities);
   }
 
-  // List all projects
+  @override
   Future<List<Project>> listProjects() async {
     return await _storage.listProjects();
   }
 
-  // Delete project
+  @override
   Future<void> deleteProject(String projectPath) async {
     await _storage.deleteProject(projectPath);
   }
 
-  // Create a new chapter
+  @override
   Future<Chapter> createChapter(String title) async {
     final project = ref.read(projectProvider);
     if (project == null) {
@@ -150,7 +151,7 @@ class ProjectService implements BaseProjectService {
     return chapter;
   }
 
-  // Update chapter
+  @override
   Future<void> updateChapter(Chapter chapter) async {
     ref.read(chaptersProvider.notifier).updateChapter(chapter);
 
@@ -163,7 +164,7 @@ class ProjectService implements BaseProjectService {
     await saveProject();
   }
 
-  // Delete chapter
+  @override
   Future<void> deleteChapter(String chapterId) async {
     ref.read(chaptersProvider.notifier).deleteChapter(chapterId);
 
@@ -179,30 +180,50 @@ class ProjectService implements BaseProjectService {
     await saveProject();
   }
 
-  // Set current chapter
+  @override
   void setCurrentChapter(Chapter chapter) {
     ref.read(currentChapterProvider.notifier).setCurrentChapter(chapter);
   }
 
-  // Add knowledge item
+  @override
   Future<void> addKnowledgeItem(KnowledgeItem item) async {
     ref.read(knowledgeBaseProvider.notifier).addItem(item);
     await saveProject();
   }
 
-  // Update knowledge item
+  @override
   Future<void> updateKnowledgeItem(KnowledgeItem item) async {
     ref.read(knowledgeBaseProvider.notifier).updateItem(item);
     await saveProject();
   }
 
-  // Delete knowledge item
+  @override
   Future<void> deleteKnowledgeItem(String itemId) async {
     ref.read(knowledgeBaseProvider.notifier).deleteItem(itemId);
     await saveProject();
   }
 
-  // Create template project with sample content
+  @override
+  Future<void> saveEntity(EntityMetadata entity) async {
+    final project = ref.read(projectProvider);
+    if (project == null) return;
+
+    // For local storage, save all entities (simpler than tracking individual changes)
+    final entityStore = ref.read(entityStoreProvider);
+    await _storage.saveEntities(project.path, entityStore.getAll());
+  }
+
+  @override
+  Future<void> deleteEntity(String entityId) async {
+    final project = ref.read(projectProvider);
+    if (project == null) return;
+
+    // For local storage, save all entities after deletion from store
+    final entityStore = ref.read(entityStoreProvider);
+    await _storage.saveEntities(project.path, entityStore.getAll());
+  }
+
+  @override
   Future<Project> createTemplateProject({String? customPath}) async {
     return await ErrorHandler.handleAsync(
       () async {
@@ -252,5 +273,3 @@ class ProjectService implements BaseProjectService {
     ) ?? (throw Exception('Failed to create template project'));
   }
 }
-
-// Note: projectServiceProvider moved to app_state.dart for platform detection

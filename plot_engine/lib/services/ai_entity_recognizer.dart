@@ -53,7 +53,6 @@ class AIEntityRecognizer implements EntityRecognizer {
       return;
     }
 
-    print('[AIEntityRecognizer] New document detected, length: ${fullText.length}');
     _currentDocumentText = fullText;
     _currentDocumentHash = newHash;
     // Schedule extraction for the full document
@@ -79,9 +78,6 @@ class AIEntityRecognizer implements EntityRecognizer {
       // Use document-level extracted entities to find matches in this paragraph
       final docEntities = _cache[_currentDocumentHash]!;
       final combined = _combineWithCachedEntities(text, localEntities, docEntities);
-      if (combined.length > localEntities.length) {
-        print('[AIEntityRecognizer] Found ${combined.length - localEntities.length} AI entities in paragraph from doc cache');
-      }
       return combined;
     }
 
@@ -171,19 +167,16 @@ class AIEntityRecognizer implements EntityRecognizer {
     // Skip placeholder/empty text
     final trimmedText = text.trim();
     if (_ignoredTexts.contains(trimmedText)) {
-      print('[AIEntityRecognizer] Skipped: ignored text');
       return;
     }
 
     // Skip if text is too short (minimum 200 chars for meaningful extraction)
     if (text.length < 200) {
-      print('[AIEntityRecognizer] Skipped: text too short (${text.length} chars)');
       return;
     }
 
     // Skip UI/instructional text
     if (_uiPhrasePattern.hasMatch(text)) {
-      print('[AIEntityRecognizer] Skipped: UI phrase detected');
       return;
     }
 
@@ -194,17 +187,13 @@ class AIEntityRecognizer implements EntityRecognizer {
 
     // Skip if already cached (don't notify - just use cache silently)
     if (_cache.containsKey(textHash)) {
-      print('[AIEntityRecognizer] Skipped: already cached (hash: $textHash)');
       return;
     }
 
     // Skip if same text already being processed
     if (textHash == _lastTextHash && _isProcessing) {
-      print('[AIEntityRecognizer] Skipped: already processing');
       return;
     }
-
-    print('[AIEntityRecognizer] Scheduling AI extraction in ${_debounceDuration.inMilliseconds}ms');
     // Schedule new extraction
     _debounceTimer = Timer(_debounceDuration, () {
       _runAIExtraction(text, textHash);
@@ -214,11 +203,9 @@ class AIEntityRecognizer implements EntityRecognizer {
   /// Run AI extraction
   Future<void> _runAIExtraction(String text, int textHash) async {
     if (_isProcessing) {
-      print('[AIEntityRecognizer] _runAIExtraction: already processing, skipping');
       return;
     }
 
-    print('[AIEntityRecognizer] Starting AI extraction for ${text.length} chars...');
     _isProcessing = true;
     _lastTextHash = textHash;
 
@@ -232,20 +219,12 @@ class AIEntityRecognizer implements EntityRecognizer {
         ...extracted.objects,
       ];
 
-      print('[AIEntityRecognizer] Extracted ${allExtracted.length} entities');
-
       // Cache the result
       _cache[textHash] = allExtracted;
 
       // Limit cache size
       if (_cache.length > 20) {
         _cache.remove(_cache.keys.first);
-      }
-
-      // Log extracted entity names for debugging
-      for (final entity in allExtracted) {
-        final positions = _findAllOccurrences(text, entity.name);
-        print('[AIEntityRecognizer] Entity "${entity.name}" found ${positions.length} times in text');
       }
 
       // Notify with results
@@ -354,7 +333,6 @@ class AIEntityRecognizer implements EntityRecognizer {
     _lastTextHash = null;
     _currentDocumentText = null;
     _currentDocumentHash = null;
-    print('[AIEntityRecognizer] Cache cleared');
   }
 }
 

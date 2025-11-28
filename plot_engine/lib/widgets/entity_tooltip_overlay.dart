@@ -241,8 +241,16 @@ class _EntityTooltipOverlayState extends State<EntityTooltipOverlay> {
           builder: (context) => EntityCreationDialog(
             entityName: entity.name,
             onSave: (metadata) {
-              // Save new entity to store
-              widget.ref.read(entityStoreProvider).save(metadata);
+              // Save new entity to local store
+              final entityStore = widget.ref.read(entityStoreProvider);
+              entityStore.save(metadata);
+
+              // Trigger UI rebuild for entity lists (knowledge panel)
+              widget.ref.read(entityStoreVersionProvider.notifier).increment();
+
+              // Save to backend (only this entity)
+              widget.ref.read(projectServiceProvider).saveEntity(metadata);
+
               // Open the newly created entity in a tab
               widget.ref.read(tabStateProvider.notifier).openEntityPreview(metadata);
             },

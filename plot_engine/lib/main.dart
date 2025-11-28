@@ -123,6 +123,8 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
 
   @override
   Widget build(BuildContext context) {
+    final isProjectLoading = ref.watch(projectLoadingProvider);
+
     return Shortcuts(
       shortcuts: {
         LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyS):
@@ -141,41 +143,73 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
               children: [
                 const AppToolbar(),
                 Expanded(
-                  child: Row(
+                  child: Stack(
                     children: [
-                      // Main Editor Panel (60% width)
-                      Expanded(
-                        flex: 6,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              right: BorderSide(
-                                color: Theme.of(context).dividerColor,
+                      // Main content
+                      Row(
+                        children: [
+                          // Main Editor Panel (60% width)
+                          Expanded(
+                            flex: 6,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  right: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                  ),
+                                ),
                               ),
+                              child: const EditorPanel(),
                             ),
                           ),
-                          child: const EditorPanel(),
-                        ),
-                      ),
-                      // AI Comments Sidebar (20% width)
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              right: BorderSide(
-                                color: Theme.of(context).dividerColor,
+                          // AI Comments Sidebar (20% width)
+                          Expanded(
+                            flex: 2,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  right: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                  ),
+                                ),
                               ),
+                              child: const SidebarComments(),
                             ),
                           ),
-                          child: const SidebarComments(),
+                          // Knowledge Base Panel (20% width)
+                          const Expanded(
+                            flex: 2,
+                            child: KnowledgePanel(),
+                          ),
+                        ],
+                      ),
+                      // Loading overlay
+                      if (isProjectLoading)
+                        Container(
+                          color: Theme.of(context).colorScheme.surface,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const CircularProgressIndicator(),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'Loading project...',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'This may take a moment',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                      // Knowledge Base Panel (20% width)
-                      const Expanded(
-                        flex: 2,
-                        child: KnowledgePanel(),
-                      ),
                     ],
                   ),
                 ),

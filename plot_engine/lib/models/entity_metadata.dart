@@ -18,6 +18,7 @@ class EntityMetadata {
   }) : id = id ?? '${DateTime.now().millisecondsSinceEpoch}';
 
   EntityMetadata copyWith({
+    String? id,
     String? name,
     EntityType? type,
     String? customType,
@@ -25,7 +26,7 @@ class EntityMetadata {
     String? description,
   }) {
     return EntityMetadata(
-      id: id,
+      id: id ?? this.id,
       name: name ?? this.name,
       type: type ?? this.type,
       customType: customType ?? this.customType,

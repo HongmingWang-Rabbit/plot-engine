@@ -26,6 +26,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
   String? _currentChapterId;
   Timer? _autoSaveTimer;
   Timer? _attributionTimer;
+  final GlobalKey<EntityDetailScreenState> _entityDetailKey = GlobalKey<EntityDetailScreenState>();
 
   @override
   void initState() {
@@ -134,7 +135,15 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
   }
 
   Future<void> _saveCurrentTab() async {
-    // Use centralized save service
+    final tabState = ref.read(tabStateProvider);
+    final activeTab = tabState.activeTab;
+
+    // Handle entity tab saves via the GlobalKey
+    if (activeTab?.type == TabContentType.entity && _entityDetailKey.currentState != null) {
+      _entityDetailKey.currentState!.save();
+    }
+
+    // Use centralized save service for chapter saves
     await ref.read(saveServiceProvider).saveCurrentTab();
   }
 
@@ -153,36 +162,6 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     final activeTab = tabState.activeTab;
     final highlightsEnabled = ref.watch(entityHighlightProvider);
     final hoveredEntityName = ref.watch(hoveredEntityProvider);
-    final isProjectLoading = ref.watch(projectLoadingProvider);
-
-    // Show loading screen when loading/creating project
-    if (isProjectLoading) {
-      return Container(
-        color: Theme.of(context).colorScheme.surface,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 24),
-              Text(
-                'Loading project...',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'This may take a moment',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
 
     // Update editor when active chapter tab changes
     if (activeTab?.type == TabContentType.chapter) {
@@ -223,29 +202,12 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
             child: Row(
               children: [
                 const Spacer(),
-                if (activeTab != null) ...[
-                  IconButton(
-                    icon: const Icon(Icons.format_bold, size: 20),
-                    onPressed: () {},
-                    tooltip: 'Bold (Coming soon)',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.format_italic, size: 20),
-                    onPressed: () {},
-                    tooltip: 'Italic (Coming soon)',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.format_underlined, size: 20),
-                    onPressed: () {},
-                    tooltip: 'Underline (Coming soon)',
-                  ),
-                  const SizedBox(width: 8),
+                if (activeTab != null)
                   TextButton.icon(
                     onPressed: () => _saveCurrentTab(),
                     icon: const Icon(Icons.save, size: 18),
                     label: const Text('Save'),
                   ),
-                ],
               ],
             ),
           ),
@@ -288,12 +250,17 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
                   )
                 : activeTab.type == TabContentType.entity && activeTab.entity != null
                     ? EntityDetailScreen(
+                        key: _entityDetailKey,
                         metadata: activeTab.entity!,
                         onSave: (updatedEntity) {
                           // Update entity in store
                           ref.read(entityStoreProvider).save(updatedEntity);
+                          // Trigger UI rebuild for entity lists
+                          ref.read(entityStoreVersionProvider.notifier).increment();
                           // Update tab
                           ref.read(tabStateProvider.notifier).updateTabEntity(updatedEntity);
+                          // Save only this entity to backend
+                          ref.read(projectServiceProvider).saveEntity(updatedEntity);
                         },
                       )
                     : Padding(
