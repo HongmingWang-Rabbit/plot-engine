@@ -118,6 +118,14 @@ class ProjectService implements BaseProjectService {
   }
 
   @override
+  Future<void> updateProjectMetadata() async {
+    final project = ref.read(projectProvider);
+    if (project == null) return;
+
+    await _storage.saveProject(project);
+  }
+
+  @override
   Future<void> saveProject() async {
     final project = ref.read(projectProvider);
     if (project == null) return;

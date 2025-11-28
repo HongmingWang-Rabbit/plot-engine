@@ -15,6 +15,7 @@ class AppToolbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final project = ref.watch(projectProvider);
+    print('[AppToolbar] build: project.name = ${project?.name}');
     final projectService = ref.read(projectServiceProvider);
     final entityHighlightEnabled = ref.watch(entityHighlightProvider);
     final authUser = ref.watch(authUserProvider);
@@ -357,7 +358,7 @@ class AppToolbar extends ConsumerWidget {
           updatedAt: DateTime.now(),
         );
         ref.read(projectProvider.notifier).updateProject(updatedProject);
-        await ref.read(projectServiceProvider).saveProject();
+        await ref.read(projectServiceProvider).updateProjectMetadata();
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

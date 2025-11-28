@@ -11,6 +11,7 @@ abstract class BaseProjectService {
   Future<List<Project>> getRecentProjects();
   Future<String?> getLastProjectPath();
   Future<void> saveProject();
+  Future<void> updateProjectMetadata(); // Just update project name/metadata, not chapters
   Future<List<Project>> listProjects();
   Future<void> deleteProject(String projectPath);
 

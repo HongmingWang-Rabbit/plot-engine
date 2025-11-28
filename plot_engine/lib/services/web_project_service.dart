@@ -131,23 +131,44 @@ class WebProjectService implements BaseProjectService {
   }
 
   @override
+  Future<void> updateProjectMetadata() async {
+    final project = ref.read(projectProvider);
+    if (project == null) return;
+
+    AppLogger.info('Updating project metadata', 'id=${project.id}, name=${project.name}');
+    final updatedProject = await _backend.updateProject(project.id, title: project.name);
+    AppLogger.info('Backend returned', 'name=${updatedProject.name}');
+  }
+
+  @override
   Future<void> saveProject() async {
     final project = ref.read(projectProvider);
     if (project == null) return;
 
-    await _backend.updateProject(project.id, title: project.name);
+    // Update project metadata
+    await updateProjectMetadata();
 
+    // Update chapters
     final chapters = ref.read(chaptersProvider);
     for (final chapter in chapters) {
-      await _backend.updateChapter(
-        projectId: project.id,
-        chapterId: chapter.id,
-        title: chapter.title,
-        content: chapter.content,
-        orderIndex: chapter.order,
-      );
+      try {
+        if (_isClientGeneratedId(chapter.id)) {
+          await _syncChapterToBackend(project.id, chapter);
+        } else {
+          await _backend.updateChapter(
+            projectId: project.id,
+            chapterId: chapter.id,
+            title: chapter.title,
+            content: chapter.content,
+            orderIndex: chapter.order,
+          );
+        }
+      } catch (e) {
+        AppLogger.warn('Failed to sync chapter', '${chapter.title}: $e');
+      }
     }
 
+    // Update entities
     final entityStore = ref.read(entityStoreProvider);
     for (final entity in entityStore.getAll()) {
       await _syncEntityToBackend(project.id, entity);

@@ -26,6 +26,7 @@ class ProjectNotifier extends StateNotifier<Project?> {
   ProjectNotifier() : super(null);
 
   void setProject(Project project) {
+    print('[ProjectNotifier] setProject: ${project.name}');
     state = project;
   }
 
@@ -34,6 +35,7 @@ class ProjectNotifier extends StateNotifier<Project?> {
   }
 
   void updateProject(Project project) {
+    print('[ProjectNotifier] updateProject: ${project.name} (was: ${state?.name})');
     state = project;
   }
 }
