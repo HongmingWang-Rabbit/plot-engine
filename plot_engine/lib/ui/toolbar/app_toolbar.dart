@@ -15,7 +15,6 @@ class AppToolbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final project = ref.watch(projectProvider);
-    print('[AppToolbar] build: project.name = ${project?.name}');
     final projectService = ref.read(projectServiceProvider);
     final entityHighlightEnabled = ref.watch(entityHighlightProvider);
     final authUser = ref.watch(authUserProvider);

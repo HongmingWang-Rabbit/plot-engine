@@ -135,9 +135,8 @@ class WebProjectService implements BaseProjectService {
     final project = ref.read(projectProvider);
     if (project == null) return;
 
-    AppLogger.info('Updating project metadata', 'id=${project.id}, name=${project.name}');
-    final updatedProject = await _backend.updateProject(project.id, title: project.name);
-    AppLogger.info('Backend returned', 'name=${updatedProject.name}');
+    await _backend.updateProject(project.id, title: project.name);
+    AppLogger.info('Updated project metadata', project.name);
   }
 
   @override
