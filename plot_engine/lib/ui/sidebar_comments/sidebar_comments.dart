@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/ai_models.dart';
 import '../../state/app_state.dart';
+import '../../state/settings_state.dart';
 import '../../services/ai_suggestion_service.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -48,10 +49,11 @@ class SidebarComments extends ConsumerWidget {
     AISuggestionQueueState suggestionState,
   ) {
     final selectedSuggestion = ref.watch(selectedSuggestionProvider);
+    final aiAnalysisEnabled = ref.watch(aiBackgroundAnalysisProvider);
 
     return Container(
       height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
         border: Border(
@@ -94,21 +96,41 @@ class SidebarComments extends ConsumerWidget {
             ),
           // Unread badge
           if (suggestionState.unreadCount > 0 && selectedEntity == null && selectedSuggestion == null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '${suggestionState.unreadCount}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  fontWeight: FontWeight.bold,
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${suggestionState.unreadCount}',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
-          // Close button
+          // AI analysis toggle (only show when not viewing entity/suggestion)
+          if (selectedEntity == null && selectedSuggestion == null)
+            Tooltip(
+              message: aiAnalysisEnabled ? 'Disable AI analysis' : 'Enable AI analysis',
+              child: IconButton(
+                icon: Icon(
+                  aiAnalysisEnabled ? Icons.psychology : Icons.psychology_outlined,
+                  size: 20,
+                  color: aiAnalysisEnabled
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                onPressed: () => ref.read(aiBackgroundAnalysisProvider.notifier).toggle(),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+            ),
+          // Close button for entity/suggestion view
           if (selectedEntity != null || selectedSuggestion != null)
             IconButton(
               icon: const Icon(Icons.close, size: 18),
@@ -122,8 +144,16 @@ class SidebarComments extends ConsumerWidget {
               },
               tooltip: ref.tr('close'),
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
+          // Collapse button
+          IconButton(
+            icon: const Icon(Icons.chevron_right, size: 20),
+            onPressed: () => ref.read(aiSidebarVisibleProvider.notifier).toggle(),
+            tooltip: 'Collapse panel',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
         ],
       ),
     );

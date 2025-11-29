@@ -8,6 +8,7 @@ import '../../models/entity_type.dart';
 import '../../state/app_state.dart';
 import '../../state/tab_state.dart';
 import '../../state/status_state.dart';
+import '../../state/settings_state.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/utils/icon_mapper.dart';
 import '../../core/widgets/chapter_card.dart';
@@ -78,7 +79,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                 // Header
                 Container(
                   height: 48,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surfaceContainer,
                     border: Border(
@@ -104,7 +105,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                           onPressed: () => _handleEditTab(selectedTab),
                           tooltip: ref.tr('edit_tab'),
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                         ),
                       if (project != null && selectedTab.id == 'chapters')
                         IconButton(
@@ -112,7 +113,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                           onPressed: () => _handleAddChapter(),
                           tooltip: ref.tr('add_chapter'),
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                         ),
                       if (project != null && selectedTab.id != 'chapters')
                         IconButton(
@@ -120,8 +121,16 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
                           onPressed: () => _handleAddItem(selectedTab),
                           tooltip: ref.tr('add_item'),
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                         ),
+                      // Collapse button
+                      IconButton(
+                        icon: const Icon(Icons.chevron_right, size: 20),
+                        onPressed: () => ref.read(knowledgePanelVisibleProvider.notifier).toggle(),
+                        tooltip: 'Collapse panel',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      ),
                     ],
                   ),
                 ),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/ai_models.dart';
 import '../state/app_state.dart';
+import '../state/settings_state.dart';
 import '../l10n/app_localizations.dart';
 import 'ai_service.dart';
 
@@ -23,6 +24,9 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
 
   AISuggestionNotifier(this._aiService, this._ref) : super(const AISuggestionQueueState());
 
+  /// Check if background AI analysis is enabled
+  bool get _isAnalysisEnabled => _ref.read(aiBackgroundAnalysisProvider);
+
   /// Called when content changes - checks if we should trigger analysis
   void onContentChanged(String content, String chapterId, String projectId) {
     // Reset if chapter changed
@@ -39,12 +43,17 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
         suggestions: state.suggestions.where((s) => s.chapterId == chapterId).toList(),
       );
 
-      // Schedule analysis for newly opened file after 10 seconds
-      print('[AI Suggestion] New file opened, scheduling initial analysis in ${_newFileAnalysisDelay.inSeconds}s...');
-      _newFileTimer = Timer(_newFileAnalysisDelay, () {
-        print('[AI Suggestion] New file timer fired, running initial analysis...');
-        _runAnalysis(content, chapterId, projectId);
-      });
+      // Only schedule analysis if enabled
+      if (_isAnalysisEnabled) {
+        // Schedule analysis for newly opened file after 10 seconds
+        print('[AI Suggestion] New file opened, scheduling initial analysis in ${_newFileAnalysisDelay.inSeconds}s...');
+        _newFileTimer = Timer(_newFileAnalysisDelay, () {
+          print('[AI Suggestion] New file timer fired, running initial analysis...');
+          _runAnalysis(content, chapterId, projectId);
+        });
+      } else {
+        print('[AI Suggestion] Background analysis disabled, skipping auto-analysis');
+      }
 
       return; // Don't check for content length on first open
     }
@@ -53,6 +62,11 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
     if (_newFileTimer?.isActive == true) {
       print('[AI Suggestion] User typing detected, cancelling new file timer');
       _newFileTimer?.cancel();
+    }
+
+    // Skip if analysis is disabled
+    if (!_isAnalysisEnabled) {
+      return;
     }
 
     // Cancel any pending content-based analysis

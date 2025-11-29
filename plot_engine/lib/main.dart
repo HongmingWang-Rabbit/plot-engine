@@ -11,7 +11,7 @@ import 'ui/auth/login_screen.dart';
 import 'ui/auth/auth_success_screen.dart';
 import 'ui/auth/auth_error_screen.dart';
 import 'services/save_service.dart';
-import 'state/settings_state.dart';
+import 'state/settings_state.dart'; // includes panel visibility & AI analysis toggle providers
 import 'state/app_state.dart';
 import 'config/env_config.dart';
 import 'utils/web_url_helper.dart' if (dart.library.io) 'utils/web_url_helper_stub.dart';
@@ -169,7 +169,7 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
                       // Main content
                       Row(
                         children: [
-                          // Main Editor Panel (60% width)
+                          // Main Editor Panel (expands to fill available space)
                           Expanded(
                             flex: 6,
                             child: Container(
@@ -183,25 +183,41 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
                               child: const EditorPanel(),
                             ),
                           ),
-                          // AI Comments Sidebar (20% width)
-                          Expanded(
-                            flex: 2,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    color: Theme.of(context).dividerColor,
+                          // AI Comments Sidebar (collapsible)
+                          if (ref.watch(aiSidebarVisibleProvider))
+                            Expanded(
+                              flex: 2,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                      color: Theme.of(context).dividerColor,
+                                    ),
                                   ),
                                 ),
+                                child: const SidebarComments(),
                               ),
-                              child: const SidebarComments(),
+                            )
+                          else
+                            // Collapsed AI sidebar button
+                            _CollapsedPanelButton(
+                              icon: Icons.auto_awesome,
+                              tooltip: 'AI Assistant',
+                              onPressed: () => ref.read(aiSidebarVisibleProvider.notifier).toggle(),
                             ),
-                          ),
-                          // Knowledge Base Panel (20% width)
-                          const Expanded(
-                            flex: 2,
-                            child: KnowledgePanel(),
-                          ),
+                          // Knowledge Base Panel (collapsible)
+                          if (ref.watch(knowledgePanelVisibleProvider))
+                            const Expanded(
+                              flex: 2,
+                              child: KnowledgePanel(),
+                            )
+                          else
+                            // Collapsed knowledge panel button
+                            _CollapsedPanelButton(
+                              icon: Icons.library_books,
+                              tooltip: 'Knowledge Base',
+                              onPressed: () => ref.read(knowledgePanelVisibleProvider.notifier).toggle(),
+                            ),
                         ],
                       ),
                       // Loading overlay
@@ -255,4 +271,79 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
 // Intent for save action
 class SaveIntent extends Intent {
   const SaveIntent();
+}
+
+/// Collapsed panel expand button
+class _CollapsedPanelButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  const _CollapsedPanelButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        border: Border(
+          right: BorderSide(color: Theme.of(context).dividerColor),
+        ),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          Tooltip(
+            message: tooltip,
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.chevron_left,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          RotatedBox(
+            quarterTurns: 1,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    tooltip,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
