@@ -208,6 +208,20 @@ const Map<String, String> en = {
   'earlier': 'Earlier',
   'suggestion_label': 'Suggestion',
 
+  // AI Writing Panel
+  'ai_prompt_hint': 'Enter instructions for the AI...',
+  'ask_ai': 'Ask AI',
+  'continue_writing': 'Continue',
+  'modify_chapter': 'Modify',
+  'modify_selection': 'Modify Selection',
+  'selection_mode': 'Selection',
+  'ai_response': 'AI Response',
+  'error': 'Error',
+  'insert': 'Insert',
+  'thinking': 'Thinking...',
+  'writing': 'Writing...',
+  'revising': 'Revising...',
+
   // Icons
   'icon_default': 'Default',
   'icon_person': 'Person',

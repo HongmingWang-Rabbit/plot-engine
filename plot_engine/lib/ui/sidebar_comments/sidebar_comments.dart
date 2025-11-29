@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/ai_models.dart';
 import '../../state/app_state.dart';
-import '../../services/ai_service.dart';
+import '../../services/ai_suggestion_service.dart';
 import '../../l10n/app_localizations.dart';
 
 class SidebarComments extends ConsumerWidget {
@@ -13,82 +13,128 @@ class SidebarComments extends ConsumerWidget {
     final selectedEntity = ref.watch(selectedEntityProvider);
     final project = ref.watch(projectProvider);
     final currentChapter = ref.watch(currentChapterProvider);
-    final isLoading = ref.watch(aiLoadingProvider);
-    final aiError = ref.watch(aiErrorProvider);
-    final consistencyIssues = ref.watch(consistencyIssuesProvider);
-    final foreshadowing = ref.watch(foreshadowingSuggestionsProvider);
+    final suggestionState = ref.watch(aiSuggestionProvider);
+    final selectedSuggestion = ref.watch(selectedSuggestionProvider);
 
     return Container(
       color: Theme.of(context).colorScheme.surface,
       child: Column(
         children: [
           // Header
-          Container(
-            height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  selectedEntity != null ? Icons.info_outline : Icons.auto_awesome,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    selectedEntity != null ? ref.tr('entity_details') : ref.tr('ai_assistant'),
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ),
-                if (selectedEntity != null)
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    onPressed: () {
-                      ref.read(selectedEntityProvider.notifier).clearSelection();
-                    },
-                    tooltip: ref.tr('close'),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-              ],
-            ),
-          ),
+          _buildHeader(context, ref, selectedEntity, suggestionState),
           // Content
           Expanded(
             child: selectedEntity != null
                 ? _buildEntityDetails(context, ref, selectedEntity)
-                : _buildAIAssistant(
-                    context,
-                    ref,
-                    project,
-                    currentChapter,
-                    isLoading,
-                    aiError,
-                    consistencyIssues,
-                    foreshadowing,
-                  ),
+                : selectedSuggestion != null
+                    ? _buildSuggestionDetail(context, ref, selectedSuggestion)
+                    : _buildMessageQueue(
+                        context,
+                        ref,
+                        project,
+                        currentChapter,
+                        suggestionState,
+                      ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAIAssistant(
+  Widget _buildHeader(
     BuildContext context,
     WidgetRef ref,
-    project,
-    currentChapter,
-    bool isLoading,
-    String? aiError,
-    List<ConsistencyIssue> consistencyIssues,
-    ForeshadowingSuggestions? foreshadowing,
+    dynamic selectedEntity,
+    AISuggestionQueueState suggestionState,
+  ) {
+    final selectedSuggestion = ref.watch(selectedSuggestionProvider);
+
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            selectedEntity != null
+                ? Icons.info_outline
+                : selectedSuggestion != null
+                    ? Icons.lightbulb
+                    : Icons.auto_awesome,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              selectedEntity != null
+                  ? ref.tr('entity_details')
+                  : selectedSuggestion != null
+                      ? selectedSuggestion.typeLabel
+                      : ref.tr('ai_assistant'),
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+          // Analyzing indicator
+          if (suggestionState.isAnalyzing && selectedEntity == null && selectedSuggestion == null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
+          // Unread badge
+          if (suggestionState.unreadCount > 0 && selectedEntity == null && selectedSuggestion == null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${suggestionState.unreadCount}',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          // Close button
+          if (selectedEntity != null || selectedSuggestion != null)
+            IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              onPressed: () {
+                if (selectedEntity != null) {
+                  ref.read(selectedEntityProvider.notifier).clearSelection();
+                }
+                if (selectedSuggestion != null) {
+                  ref.read(selectedSuggestionProvider.notifier).state = null;
+                }
+              },
+              tooltip: ref.tr('close'),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageQueue(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic project,
+    dynamic currentChapter,
+    AISuggestionQueueState suggestionState,
   ) {
     if (project == null) {
       return _buildEmptyState(
@@ -106,419 +152,250 @@ class SidebarComments extends ConsumerWidget {
       );
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // AI Action Buttons
-          _buildActionButtons(context, ref, project, currentChapter, isLoading),
-          const SizedBox(height: 16),
+    final activeSuggestions = suggestionState.activeSuggestions
+        .where((s) => s.chapterId == currentChapter.id)
+        .toList();
 
-          // Error message
-          if (aiError != null) ...[
-            _buildErrorCard(context, aiError),
-            const SizedBox(height: 16),
-          ],
+    if (activeSuggestions.isEmpty) {
+      return _buildEmptyState(
+        context,
+        suggestionState.isAnalyzing
+            ? 'Analyzing your writing...'
+            : 'AI will suggest improvements\nas you write',
+        Icons.psychology,
+      );
+    }
 
-          // Loading indicator
-          if (isLoading) ...[
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 12),
-                    Text('Analyzing...'),
-                  ],
-                ),
-              ),
-            ),
-          ] else ...[
-            // Consistency Issues
-            if (consistencyIssues.isNotEmpty) ...[
-              _buildSectionHeader(context, 'Consistency Issues', Icons.warning_amber),
-              const SizedBox(height: 8),
-              ...consistencyIssues.map((issue) => _buildConsistencyCard(context, issue)),
-              const SizedBox(height: 16),
-            ],
-
-            // Foreshadowing Suggestions
-            if (foreshadowing != null && foreshadowing.totalCount > 0) ...[
-              _buildSectionHeader(context, 'Foreshadowing', Icons.lightbulb_outline),
-              const SizedBox(height: 8),
-              ...foreshadowing.callbacks.map((c) => _buildCallbackCard(context, c)),
-              ...foreshadowing.foreshadowing.map((f) => _buildForeshadowCard(context, f)),
-              ...foreshadowing.thematicResonances.map((t) => _buildThemeCard(context, t)),
-            ],
-
-            // Empty state if no results
-            if (consistencyIssues.isEmpty && (foreshadowing == null || foreshadowing.totalCount == 0))
-              _buildEmptyState(
-                context,
-                'Click an action above to analyze\nyour chapter with AI',
-                Icons.psychology,
-              ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(
-    BuildContext context,
-    WidgetRef ref,
-    project,
-    currentChapter,
-    bool isLoading,
-  ) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Check Consistency Button
-        _ActionButton(
-          icon: Icons.fact_check,
-          label: 'Check Consistency',
-          subtitle: 'Find plot holes & contradictions',
-          onPressed: isLoading
-              ? null
-              : () => _runConsistencyCheck(ref, project.id, currentChapter.id),
-        ),
-        const SizedBox(height: 8),
-        // Get Foreshadowing Button
-        _ActionButton(
-          icon: Icons.lightbulb_outline,
-          label: 'Foreshadowing Ideas',
-          subtitle: 'Get narrative suggestions',
-          onPressed: isLoading
-              ? null
-              : () => _runForeshadowing(ref, project.id, currentChapter.id),
-        ),
-        const SizedBox(height: 8),
-        // Extract Entities Button
-        _ActionButton(
-          icon: Icons.person_search,
-          label: 'Extract Entities',
-          subtitle: 'Find characters, places, objects',
-          onPressed: isLoading
-              ? null
-              : () => _runEntityExtraction(ref, currentChapter.content),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _runConsistencyCheck(WidgetRef ref, String projectId, String chapterId) async {
-    ref.read(aiLoadingProvider.notifier).state = true;
-    ref.read(aiErrorProvider.notifier).state = null;
-
-    try {
-      final aiService = ref.read(aiServiceProvider);
-      final issues = await aiService.checkConsistency(
-        projectId: projectId,
-        chapterId: chapterId,
-      );
-      ref.read(consistencyIssuesProvider.notifier).state = issues;
-    } catch (e) {
-      ref.read(aiErrorProvider.notifier).state = 'Failed to check consistency: $e';
-    } finally {
-      ref.read(aiLoadingProvider.notifier).state = false;
-    }
-  }
-
-  Future<void> _runForeshadowing(WidgetRef ref, String projectId, String chapterId) async {
-    ref.read(aiLoadingProvider.notifier).state = true;
-    ref.read(aiErrorProvider.notifier).state = null;
-
-    try {
-      final aiService = ref.read(aiServiceProvider);
-      final suggestions = await aiService.getForeshadowingSuggestions(
-        projectId: projectId,
-        chapterId: chapterId,
-      );
-      ref.read(foreshadowingSuggestionsProvider.notifier).state = suggestions;
-    } catch (e) {
-      ref.read(aiErrorProvider.notifier).state = 'Failed to get suggestions: $e';
-    } finally {
-      ref.read(aiLoadingProvider.notifier).state = false;
-    }
-  }
-
-  Future<void> _runEntityExtraction(WidgetRef ref, String content) async {
-    ref.read(aiLoadingProvider.notifier).state = true;
-    ref.read(aiErrorProvider.notifier).state = null;
-
-    try {
-      final aiService = ref.read(aiServiceProvider);
-      final entities = await aiService.extractEntities(text: content);
-      ref.read(extractedEntitiesProvider.notifier).state = entities;
-
-      // Show results in a different way - for now just update the provider
-      // The entities can be imported to the knowledge base
-    } catch (e) {
-      ref.read(aiErrorProvider.notifier).state = 'Failed to extract entities: $e';
-    } finally {
-      ref.read(aiLoadingProvider.notifier).state = false;
-    }
-  }
-
-  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
+        // Clear all button
+        if (activeSuggestions.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: () => ref.read(aiSuggestionProvider.notifier).clearAll(),
+                  icon: const Icon(Icons.clear_all, size: 16),
+                  label: const Text('Clear all'),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, 32),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        // Message list
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            itemCount: activeSuggestions.length,
+            itemBuilder: (context, index) {
+              final suggestion = activeSuggestions[index];
+              return _SuggestionCard(
+                suggestion: suggestion,
+                onTap: () {
+                  ref.read(aiSuggestionProvider.notifier).markAsRead(suggestion.id);
+                  ref.read(selectedSuggestionProvider.notifier).state = suggestion;
+                },
+                onDismiss: () {
+                  ref.read(aiSuggestionProvider.notifier).dismiss(suggestion.id);
+                },
+              );
+            },
           ),
         ),
       ],
     );
   }
 
-  Widget _buildConsistencyCard(BuildContext context, ConsistencyIssue issue) {
-    final severityColor = _getSeverityColor(issue.severity);
+  Widget _buildSuggestionDetail(
+    BuildContext context,
+    WidgetRef ref,
+    AISuggestion suggestion,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: severityColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    issue.severity.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: severityColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    issue.type,
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              issue.description,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            if (issue.suggestion.isNotEmpty) ...[
-              const SizedBox(height: 8),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Type and priority badges
+          Row(
+            children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(4),
+                  color: _getTypeColor(suggestion.type).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.tips_and_updates,
+                      _getTypeIcon(suggestion.type),
                       size: 14,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: _getTypeColor(suggestion.type),
                     ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        issue.suggestion,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                    const SizedBox(width: 4),
+                    Text(
+                      suggestion.typeLabel,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: _getTypeColor(suggestion.type),
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCallbackCard(BuildContext context, ForeshadowingCallback callback) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.replay, size: 16, color: Colors.blue),
-                const SizedBox(width: 6),
-                Text(
-                  'Callback to Ch. ${callback.referenceChapter}',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _getPriorityColor(suggestion.priority).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  suggestion.priority.name.toUpperCase(),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: _getPriorityColor(suggestion.priority),
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue,
                   ),
                 ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Title
+          Text(
+            suggestion.title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Summary/Description
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              suggestion.summary,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+
+          // Details (if available)
+          if (suggestion.details != null && suggestion.details!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text(
+              'Details',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              callback.element,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontStyle: FontStyle.italic,
-              ),
+              suggestion.details!,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 4),
-            Text(
-              callback.suggestion,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            if (callback.location.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Location: ${callback.location}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
           ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildForeshadowCard(BuildContext context, ForeshadowingSuggestion foreshadow) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.auto_awesome, size: 16, color: Colors.purple),
-                const SizedBox(width: 6),
-                Text(
-                  foreshadow.type.toUpperCase(),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.purple,
-                  ),
+          // Suggestion (if available)
+          if (suggestion.suggestion != null && suggestion.suggestion!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
                 ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: _getSubtletyColor(foreshadow.subtlety).withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.tips_and_updates,
+                        size: 16,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Suggestion',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    foreshadow.subtlety,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: _getSubtletyColor(foreshadow.subtlety),
+                  const SizedBox(height: 8),
+                  Text(
+                    suggestion.suggestion!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              foreshadow.suggestion,
-              style: Theme.of(context).textTheme.bodySmall,
+                ],
+              ),
             ),
           ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildThemeCard(BuildContext context, ThematicResonance theme) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      color: Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          // Location (if available)
+          if (suggestion.location != null && suggestion.location!.isNotEmpty) ...[
+            const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.sync_alt, size: 16, color: Colors.teal),
-                const SizedBox(width: 6),
+                Icon(
+                  Icons.location_on,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    theme.theme,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.teal,
+                    suggestion.location!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Earlier: ${theme.earlierOccurrence}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Suggestion: ${theme.suggestedEcho}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
           ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildErrorCard(BuildContext context, String error) {
-    return Card(
-      color: Theme.of(context).colorScheme.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: Theme.of(context).colorScheme.onErrorContainer,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                error,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onErrorContainer,
+          const SizedBox(height: 24),
+
+          // Actions
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    ref.read(aiSuggestionProvider.notifier).dismiss(suggestion.id);
+                    ref.read(selectedSuggestionProvider.notifier).state = null;
+                  },
+                  icon: const Icon(Icons.close, size: 18),
+                  label: const Text('Dismiss'),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -555,28 +432,25 @@ class SidebarComments extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Name
           Text(
             metadata.name,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8),
-          // Type chip
           Chip(
             label: Text(metadata.type.displayName),
             backgroundColor: _getEntityTypeColor(metadata.type.toJson()),
             padding: const EdgeInsets.symmetric(horizontal: 8),
           ),
           const SizedBox(height: 24),
-          // Summary section
           if (metadata.summary.isNotEmpty) ...[
             Text(
               'Summary',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Container(
@@ -593,13 +467,12 @@ class SidebarComments extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
           ],
-          // Description section
           if (metadata.description.isNotEmpty) ...[
             Text(
               'Description',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Container(
@@ -616,12 +489,10 @@ class SidebarComments extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: 24),
-          // Edit button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () {
-                // Open edit dialog or navigate to Knowledge Panel
                 ref.read(selectedEntityProvider.notifier).clearSelection();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -639,29 +510,52 @@ class SidebarComments extends ConsumerWidget {
     );
   }
 
-  Color _getSeverityColor(String severity) {
-    switch (severity.toLowerCase()) {
-      case 'high':
-        return Colors.red;
-      case 'medium':
+  Color _getTypeColor(AISuggestionType type) {
+    switch (type) {
+      case AISuggestionType.consistency:
         return Colors.orange;
-      case 'low':
-        return Colors.yellow.shade700;
-      default:
+      case AISuggestionType.foreshadowing:
+        return Colors.purple;
+      case AISuggestionType.characterDevelopment:
+        return Colors.blue;
+      case AISuggestionType.plotHole:
+        return Colors.red;
+      case AISuggestionType.pacing:
+        return Colors.teal;
+      case AISuggestionType.dialogue:
+        return Colors.green;
+      case AISuggestionType.general:
         return Colors.grey;
     }
   }
 
-  Color _getSubtletyColor(String subtlety) {
-    switch (subtlety.toLowerCase()) {
-      case 'high':
-        return Colors.green;
-      case 'medium':
-        return Colors.blue;
-      case 'low':
+  IconData _getTypeIcon(AISuggestionType type) {
+    switch (type) {
+      case AISuggestionType.consistency:
+        return Icons.warning_amber;
+      case AISuggestionType.foreshadowing:
+        return Icons.lightbulb_outline;
+      case AISuggestionType.characterDevelopment:
+        return Icons.person;
+      case AISuggestionType.plotHole:
+        return Icons.error_outline;
+      case AISuggestionType.pacing:
+        return Icons.speed;
+      case AISuggestionType.dialogue:
+        return Icons.chat_bubble_outline;
+      case AISuggestionType.general:
+        return Icons.auto_awesome;
+    }
+  }
+
+  Color _getPriorityColor(AISuggestionPriority priority) {
+    switch (priority) {
+      case AISuggestionPriority.high:
+        return Colors.red;
+      case AISuggestionPriority.medium:
         return Colors.orange;
-      default:
-        return Colors.grey;
+      case AISuggestionPriority.low:
+        return Colors.green;
     }
   }
 
@@ -681,71 +575,148 @@ class SidebarComments extends ConsumerWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String subtitle;
-  final VoidCallback? onPressed;
+/// Card widget for displaying a suggestion in the queue
+class _SuggestionCard extends StatelessWidget {
+  final AISuggestion suggestion;
+  final VoidCallback onTap;
+  final VoidCallback onDismiss;
 
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.subtitle,
-    this.onPressed,
+  const _SuggestionCard({
+    required this.suggestion,
+    required this.onTap,
+    required this.onDismiss,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    final colorScheme = Theme.of(context).colorScheme;
+    final isUnread = !suggestion.isRead;
+
+    return Dismissible(
+      key: Key(suggestion.id),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => onDismiss(),
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          color: colorScheme.errorContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          Icons.delete_outline,
+          color: colorScheme.onErrorContainer,
+        ),
+      ),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        elevation: isUnread ? 2 : 0,
+        color: isUnread
+            ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+            : colorScheme.surfaceContainerHighest,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: isUnread
+              ? BorderSide(color: colorScheme.primary.withValues(alpha: 0.5))
+              : BorderSide.none,
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      label,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: _getTypeColor(suggestion.type).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        _getTypeIcon(suggestion.type),
+                        size: 16,
+                        color: _getTypeColor(suggestion.type),
                       ),
                     ),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            suggestion.title,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: isUnread ? FontWeight.bold : FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            suggestion.summary,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ],
                 ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Color _getTypeColor(AISuggestionType type) {
+    switch (type) {
+      case AISuggestionType.consistency:
+        return Colors.orange;
+      case AISuggestionType.foreshadowing:
+        return Colors.purple;
+      case AISuggestionType.characterDevelopment:
+        return Colors.blue;
+      case AISuggestionType.plotHole:
+        return Colors.red;
+      case AISuggestionType.pacing:
+        return Colors.teal;
+      case AISuggestionType.dialogue:
+        return Colors.green;
+      case AISuggestionType.general:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getTypeIcon(AISuggestionType type) {
+    switch (type) {
+      case AISuggestionType.consistency:
+        return Icons.warning_amber;
+      case AISuggestionType.foreshadowing:
+        return Icons.lightbulb_outline;
+      case AISuggestionType.characterDevelopment:
+        return Icons.person;
+      case AISuggestionType.plotHole:
+        return Icons.error_outline;
+      case AISuggestionType.pacing:
+        return Icons.speed;
+      case AISuggestionType.dialogue:
+        return Icons.chat_bubble_outline;
+      case AISuggestionType.general:
+        return Icons.auto_awesome;
+    }
   }
 }

@@ -96,18 +96,32 @@ class AppToolbar extends ConsumerWidget {
           // User Profile Button
           if (authUser != null)
             PopupMenuButton<String>(
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundImage: authUser.photoUrl != null
-                      ? NetworkImage(authUser.photoUrl!)
-                      : null,
-                  child: authUser.photoUrl == null
-                      ? const Icon(Icons.person, size: 20)
-                      : null,
-                ),
-              ),
+              tooltip: authUser.displayName ?? 'User Profile',
+              onSelected: (value) async {
+                if (value == 'signout') {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(ref.tr('sign_out')),
+                      content: Text(ref.tr('sign_out_confirm')),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: Text(ref.tr('cancel')),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: Text(ref.tr('sign_out')),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirmed == true && context.mounted) {
+                    await ref.read(authUserProvider.notifier).signOut();
+                  }
+                }
+              },
               itemBuilder: (context) => [
                 PopupMenuItem<String>(
                   enabled: false,
@@ -142,32 +156,18 @@ class AppToolbar extends ConsumerWidget {
                   ),
                 ),
               ],
-              onSelected: (value) async {
-                if (value == 'signout') {
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text(ref.tr('sign_out')),
-                      content: Text(ref.tr('sign_out_confirm')),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: Text(ref.tr('cancel')),
-                        ),
-                        ElevatedButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: Text(ref.tr('sign_out')),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  if (confirmed == true && context.mounted) {
-                    await ref.read(authUserProvider.notifier).signOut();
-                  }
-                }
-              },
-              tooltip: authUser.displayName ?? 'User Profile',
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundImage: authUser.photoUrl != null
+                      ? NetworkImage(authUser.photoUrl!)
+                      : null,
+                  child: authUser.photoUrl == null
+                      ? const Icon(Icons.person, size: 20)
+                      : null,
+                ),
+              ),
             ),
           const SizedBox(width: 8),
           // Settings Button

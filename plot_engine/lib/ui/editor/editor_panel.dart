@@ -7,12 +7,14 @@ import '../../state/tab_state.dart';
 import '../../state/app_state.dart';
 import '../../services/save_service.dart';
 import '../../services/entity_attribution_service.dart';
+import '../../services/ai_suggestion_service.dart';
 import '../../core/services/chapter_coordinator.dart';
 import '../../widgets/entity_tooltip_overlay.dart';
 import '../../screens/entity_detail_screen.dart';
 import '../../l10n/app_localizations.dart';
 import 'editor_tab_bar.dart';
 import 'editor_config.dart';
+import 'ai_input_bar.dart';
 
 class EditorPanel extends ConsumerStatefulWidget {
   const EditorPanel({super.key});
@@ -112,10 +114,21 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     if (activeTab.type == TabContentType.chapter && activeTab.chapter != null) {
       final content = _getDocumentContent();
       if (content != activeTab.chapter!.content) {
+        print('[Editor] Content changed, auto-saving...');
         if (activeTab.isPreview) {
           ref.read(tabStateProvider.notifier).makeTabPermanent(activeTab.chapter!.id);
         }
         ref.read(chapterCoordinatorProvider).updateContent(activeTab.chapter!.id, content);
+
+        // Trigger AI suggestion analysis in background
+        final project = ref.read(projectProvider);
+        if (project != null) {
+          ref.read(aiSuggestionProvider.notifier).onContentChanged(
+            content,
+            activeTab.chapter!.id,
+            project.id,
+          );
+        }
       }
     }
   }
@@ -154,11 +167,36 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
             _composer.dispose();
             _initializeEditor(content: chapter.content);
           });
+
+          // Trigger AI suggestion for newly opened chapter
+          final project = ref.read(projectProvider);
+          if (project != null) {
+            print('[Editor] Chapter opened: ${chapter.id}, triggering AI suggestion...');
+            ref.read(aiSuggestionProvider.notifier).onContentChanged(
+              chapter.content,
+              chapter.id,
+              project.id,
+            );
+          }
         }
       });
     } else if (chapter.id != _currentChapterId) {
       _currentChapterId = chapter.id;
     }
+  }
+
+  /// Append content to the end of the document
+  void _appendContent(String content) {
+    final lines = content.split('\n');
+    for (final line in lines) {
+      final newNode = ParagraphNode(
+        id: Editor.createNodeId(),
+        text: AttributedText(line),
+      );
+      _document.insertNodeAt(_document.nodeCount, newNode);
+    }
+    setState(() {});
+    _autoSave();
   }
 
   @override
@@ -168,6 +206,8 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
 
     _handleChapterChange(activeTab);
 
+    final isChapterTab = activeTab?.type == TabContentType.chapter;
+
     return Container(
       color: Theme.of(context).colorScheme.surface,
       child: Column(
@@ -175,6 +215,9 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
           const EditorTabBar(),
           _EditorToolbar(activeTab: activeTab, onSave: _saveCurrentTab),
           Expanded(child: _buildContent(context, activeTab)),
+          // AI Input bar for user-initiated AI actions
+          if (isChapterTab)
+            AIInputBar(onContentGenerated: _appendContent),
         ],
       ),
     );

@@ -1,4 +1,4 @@
-/// Models for AI API responses
+// Models for AI API responses
 
 // ===== Consistency Check Models =====
 
@@ -278,4 +278,274 @@ class ForeshadowingOpportunity {
       suggestion: json['suggestion'] as String? ?? '',
     );
   }
+}
+
+// ===== AI Writing Models =====
+
+/// Token usage information from AI responses
+class AIUsage {
+  final int inputTokens;
+  final int outputTokens;
+
+  AIUsage({
+    required this.inputTokens,
+    required this.outputTokens,
+  });
+
+  factory AIUsage.fromJson(Map<String, dynamic> json) {
+    return AIUsage(
+      inputTokens: json['input_tokens'] as int? ?? 0,
+      outputTokens: json['output_tokens'] as int? ?? 0,
+    );
+  }
+}
+
+/// Response from the Ask AI endpoint
+class AskAIResponse {
+  final String answer;
+  final String provider;
+  final String model;
+  final AIUsage usage;
+
+  AskAIResponse({
+    required this.answer,
+    required this.provider,
+    required this.model,
+    required this.usage,
+  });
+
+  factory AskAIResponse.fromJson(Map<String, dynamic> json) {
+    return AskAIResponse(
+      answer: json['answer'] as String? ?? '',
+      provider: json['provider'] as String? ?? 'anthropic',
+      model: json['model'] as String? ?? '',
+      usage: AIUsage.fromJson(json['usage'] as Map<String, dynamic>? ?? {}),
+    );
+  }
+}
+
+/// Context level for Ask AI requests
+enum AskContext {
+  project,
+  chapter,
+  selection;
+
+  String toJson() => name;
+}
+
+/// Response from the Continue Writing endpoint
+class ContinueWritingResponse {
+  final String content;
+  final String provider;
+  final String model;
+  final AIUsage usage;
+
+  ContinueWritingResponse({
+    required this.content,
+    required this.provider,
+    required this.model,
+    required this.usage,
+  });
+
+  factory ContinueWritingResponse.fromJson(Map<String, dynamic> json) {
+    return ContinueWritingResponse(
+      content: json['content'] as String? ?? '',
+      provider: json['provider'] as String? ?? 'anthropic',
+      model: json['model'] as String? ?? '',
+      usage: AIUsage.fromJson(json['usage'] as Map<String, dynamic>? ?? {}),
+    );
+  }
+}
+
+/// Response from the Modify Chapter endpoint
+class ModifyChapterResponse {
+  final String content;
+  final bool isFullChapter;
+  final String provider;
+  final String model;
+  final AIUsage usage;
+
+  ModifyChapterResponse({
+    required this.content,
+    required this.isFullChapter,
+    required this.provider,
+    required this.model,
+    required this.usage,
+  });
+
+  factory ModifyChapterResponse.fromJson(Map<String, dynamic> json) {
+    return ModifyChapterResponse(
+      content: json['content'] as String? ?? '',
+      isFullChapter: json['isFullChapter'] as bool? ?? false,
+      provider: json['provider'] as String? ?? 'anthropic',
+      model: json['model'] as String? ?? '',
+      usage: AIUsage.fromJson(json['usage'] as Map<String, dynamic>? ?? {}),
+    );
+  }
+}
+
+/// State for AI writing operations
+class AIWritingState {
+  final bool isLoading;
+  final String? error;
+  final String? lastResponse;
+  final AIWritingAction? lastAction;
+
+  const AIWritingState({
+    this.isLoading = false,
+    this.error,
+    this.lastResponse,
+    this.lastAction,
+  });
+
+  AIWritingState copyWith({
+    bool? isLoading,
+    String? error,
+    String? lastResponse,
+    AIWritingAction? lastAction,
+  }) {
+    return AIWritingState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+      lastResponse: lastResponse ?? this.lastResponse,
+      lastAction: lastAction ?? this.lastAction,
+    );
+  }
+}
+
+/// Type of AI writing action
+enum AIWritingAction {
+  ask,
+  continueWriting,
+  modify,
+}
+
+// ===== AI Suggestion Message Models =====
+
+/// Type of AI suggestion
+enum AISuggestionType {
+  consistency,
+  foreshadowing,
+  characterDevelopment,
+  plotHole,
+  pacing,
+  dialogue,
+  general,
+}
+
+/// Priority/severity of the suggestion
+enum AISuggestionPriority {
+  high,
+  medium,
+  low,
+}
+
+/// A single AI suggestion message
+class AISuggestion {
+  final String id;
+  final AISuggestionType type;
+  final AISuggestionPriority priority;
+  final String title;
+  final String summary;
+  final String? details;
+  final String? suggestion;
+  final String? location; // Where in the text this applies
+  final String chapterId;
+  final DateTime createdAt;
+  final bool isRead;
+  final bool isDismissed;
+
+  const AISuggestion({
+    required this.id,
+    required this.type,
+    required this.priority,
+    required this.title,
+    required this.summary,
+    this.details,
+    this.suggestion,
+    this.location,
+    required this.chapterId,
+    required this.createdAt,
+    this.isRead = false,
+    this.isDismissed = false,
+  });
+
+  AISuggestion copyWith({
+    bool? isRead,
+    bool? isDismissed,
+  }) {
+    return AISuggestion(
+      id: id,
+      type: type,
+      priority: priority,
+      title: title,
+      summary: summary,
+      details: details,
+      suggestion: suggestion,
+      location: location,
+      chapterId: chapterId,
+      createdAt: createdAt,
+      isRead: isRead ?? this.isRead,
+      isDismissed: isDismissed ?? this.isDismissed,
+    );
+  }
+
+  String get typeLabel {
+    switch (type) {
+      case AISuggestionType.consistency:
+        return 'Consistency';
+      case AISuggestionType.foreshadowing:
+        return 'Foreshadowing';
+      case AISuggestionType.characterDevelopment:
+        return 'Character';
+      case AISuggestionType.plotHole:
+        return 'Plot Hole';
+      case AISuggestionType.pacing:
+        return 'Pacing';
+      case AISuggestionType.dialogue:
+        return 'Dialogue';
+      case AISuggestionType.general:
+        return 'Suggestion';
+    }
+  }
+}
+
+/// State for the AI suggestion queue
+class AISuggestionQueueState {
+  final List<AISuggestion> suggestions;
+  final bool isAnalyzing;
+  final String? currentChapterId;
+  final int lastAnalyzedLength;
+
+  const AISuggestionQueueState({
+    this.suggestions = const [],
+    this.isAnalyzing = false,
+    this.currentChapterId,
+    this.lastAnalyzedLength = 0,
+  });
+
+  AISuggestionQueueState copyWith({
+    List<AISuggestion>? suggestions,
+    bool? isAnalyzing,
+    String? currentChapterId,
+    int? lastAnalyzedLength,
+  }) {
+    return AISuggestionQueueState(
+      suggestions: suggestions ?? this.suggestions,
+      isAnalyzing: isAnalyzing ?? this.isAnalyzing,
+      currentChapterId: currentChapterId ?? this.currentChapterId,
+      lastAnalyzedLength: lastAnalyzedLength ?? this.lastAnalyzedLength,
+    );
+  }
+
+  /// Get unread suggestions for current chapter
+  List<AISuggestion> get unreadSuggestions =>
+      suggestions.where((s) => !s.isRead && !s.isDismissed).toList();
+
+  /// Get all active (not dismissed) suggestions for current chapter
+  List<AISuggestion> get activeSuggestions =>
+      suggestions.where((s) => !s.isDismissed).toList();
+
+  /// Count of unread suggestions
+  int get unreadCount => unreadSuggestions.length;
 }
