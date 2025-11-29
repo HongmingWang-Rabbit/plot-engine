@@ -293,12 +293,18 @@ class WebProjectService implements BaseProjectService {
       ref.read(currentChapterProvider.notifier).setCurrentChapter(chapter);
     }
 
-    await _backend.updateChapter(
-      projectId: project.id,
-      chapterId: chapter.id,
-      title: chapter.title,
-      content: chapter.content,
-    );
+    // If chapter has a client-generated ID, sync it to backend first (POST)
+    // Otherwise update it (PATCH)
+    if (_isClientGeneratedId(chapter.id)) {
+      await _syncChapterToBackend(project.id, chapter);
+    } else {
+      await _backend.updateChapter(
+        projectId: project.id,
+        chapterId: chapter.id,
+        title: chapter.title,
+        content: chapter.content,
+      );
+    }
   }
 
   @override
