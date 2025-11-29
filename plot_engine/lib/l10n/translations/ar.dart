@@ -230,4 +230,17 @@ const Map<String, String> ar = {
   'icon_timeline': 'الخط الزمني',
   'icon_inventory': 'المخزون',
   'icon_magic': 'سحر',
+
+  // AI Suggestion Titles
+  'suggestion_callback_to_chapter': 'مرجع إلى الفصل',
+  'suggestion_foreshadowing': 'تمهيد',
+  'suggestion_theme': 'الموضوع',
+  'suggestion_timeline_issue': 'مشكلة في الخط الزمني',
+  'suggestion_chapters_involved': 'الفصول المعنية',
+  'suggestion_consistency_issue': 'مشكلة في الاتساق',
+  'suggestion_plot_hole': 'ثغرة محتملة في الحبكة',
+  'suggestion_character_issue': 'مشكلة في الشخصية',
+  'suggestion_pacing': 'اقتراح للإيقاع',
+  'suggestion_dialogue': 'ملاحظة حوار',
+  'suggestion_writing': 'اقتراح كتابة',
 };

@@ -216,4 +216,17 @@ const Map<String, String> zh = {
   'icon_timeline': '时间线',
   'icon_inventory': '物品栏',
   'icon_magic': '魔法',
+
+  // AI Suggestion Titles
+  'suggestion_callback_to_chapter': '回溯到第',
+  'suggestion_foreshadowing': '伏笔',
+  'suggestion_theme': '主题',
+  'suggestion_timeline_issue': '时间线问题',
+  'suggestion_chapters_involved': '涉及章节',
+  'suggestion_consistency_issue': '一致性问题',
+  'suggestion_plot_hole': '潜在剧情漏洞',
+  'suggestion_character_issue': '角色问题',
+  'suggestion_pacing': '节奏建议',
+  'suggestion_dialogue': '对话提示',
+  'suggestion_writing': '写作建议',
 };

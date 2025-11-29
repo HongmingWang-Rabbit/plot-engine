@@ -209,6 +209,20 @@ const Map<String, String> fr = {
   'earlier': 'Auparavant',
   'suggestion_label': 'Suggestion',
 
+  // AI Writing Panel
+  'ai_prompt_hint': 'Entrez les instructions pour l\'IA...',
+  'ask_ai': 'Demander à l\'IA',
+  'continue_writing': 'Continuer',
+  'modify_chapter': 'Modifier',
+  'modify_selection': 'Modifier la sélection',
+  'selection_mode': 'Sélection',
+  'ai_response': 'Réponse de l\'IA',
+  'error': 'Erreur',
+  'insert': 'Insérer',
+  'thinking': 'Réflexion...',
+  'writing': 'Écriture...',
+  'revising': 'Révision...',
+
   // Icons
   'icon_default': 'Défaut',
   'icon_person': 'Personne',
@@ -219,4 +233,17 @@ const Map<String, String> fr = {
   'icon_timeline': 'Chronologie',
   'icon_inventory': 'Inventaire',
   'icon_magic': 'Magie',
+
+  // AI Suggestion Titles
+  'suggestion_callback_to_chapter': 'Référence au Chapitre',
+  'suggestion_foreshadowing': 'Présage',
+  'suggestion_theme': 'Thème',
+  'suggestion_timeline_issue': 'Problème de Chronologie',
+  'suggestion_chapters_involved': 'Chapitres concernés',
+  'suggestion_consistency_issue': 'Problème de Cohérence',
+  'suggestion_plot_hole': 'Incohérence Potentielle',
+  'suggestion_character_issue': 'Problème de Personnage',
+  'suggestion_pacing': 'Suggestion de Rythme',
+  'suggestion_dialogue': 'Note de Dialogue',
+  'suggestion_writing': 'Suggestion d\'Écriture',
 };

@@ -230,4 +230,17 @@ const Map<String, String> ja = {
   'icon_timeline': 'タイムライン',
   'icon_inventory': 'インベントリ',
   'icon_magic': '魔法',
+
+  // AI Suggestion Titles
+  'suggestion_callback_to_chapter': '第',
+  'suggestion_foreshadowing': '伏線',
+  'suggestion_theme': 'テーマ',
+  'suggestion_timeline_issue': 'タイムラインの問題',
+  'suggestion_chapters_involved': '関連する章',
+  'suggestion_consistency_issue': '一貫性の問題',
+  'suggestion_plot_hole': 'プロットホールの可能性',
+  'suggestion_character_issue': 'キャラクターの問題',
+  'suggestion_pacing': 'ペースの提案',
+  'suggestion_dialogue': '対話のメモ',
+  'suggestion_writing': '執筆の提案',
 };

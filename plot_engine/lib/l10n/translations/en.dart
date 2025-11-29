@@ -232,4 +232,17 @@ const Map<String, String> en = {
   'icon_timeline': 'Timeline',
   'icon_inventory': 'Inventory',
   'icon_magic': 'Magic',
+
+  // AI Suggestion Titles
+  'suggestion_callback_to_chapter': 'Callback to Chapter',
+  'suggestion_foreshadowing': 'Foreshadowing',
+  'suggestion_theme': 'Theme',
+  'suggestion_timeline_issue': 'Timeline Issue',
+  'suggestion_chapters_involved': 'Chapters involved',
+  'suggestion_consistency_issue': 'Consistency Issue',
+  'suggestion_plot_hole': 'Potential Plot Hole',
+  'suggestion_character_issue': 'Character Issue',
+  'suggestion_pacing': 'Pacing Suggestion',
+  'suggestion_dialogue': 'Dialogue Note',
+  'suggestion_writing': 'Writing Suggestion',
 };

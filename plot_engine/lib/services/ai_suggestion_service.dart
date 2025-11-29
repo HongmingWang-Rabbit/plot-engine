@@ -90,6 +90,9 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
   /// Get current locale code for API calls
   String get _locale => _ref.read(localeProvider).apiLocaleCode;
 
+  /// Get translation for a key
+  String _tr(String key) => L10n.get(_ref.read(localeProvider), key);
+
   /// Run AI analysis on the content
   Future<void> _runAnalysis(String content, String chapterId, String projectId) async {
     if (state.isAnalyzing) {
@@ -145,7 +148,7 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
           id: 'callback_${DateTime.now().millisecondsSinceEpoch}_${newSuggestions.length}',
           type: AISuggestionType.foreshadowing,
           priority: AISuggestionPriority.medium,
-          title: 'Callback to Chapter ${callback.referenceChapter}',
+          title: '${_tr('suggestion_callback_to_chapter')} ${callback.referenceChapter}',
           summary: callback.element,
           suggestion: callback.suggestion,
           location: callback.location,
@@ -160,7 +163,7 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
           id: 'foreshadow_${DateTime.now().millisecondsSinceEpoch}_${newSuggestions.length}',
           type: AISuggestionType.foreshadowing,
           priority: _mapSubtlety(fs.subtlety),
-          title: 'Foreshadowing: ${fs.type}',
+          title: '${_tr('suggestion_foreshadowing')}: ${fs.type}',
           summary: fs.suggestion,
           chapterId: chapterId,
           createdAt: DateTime.now(),
@@ -173,7 +176,7 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
           id: 'theme_${DateTime.now().millisecondsSinceEpoch}_${newSuggestions.length}',
           type: AISuggestionType.foreshadowing,
           priority: AISuggestionPriority.low,
-          title: 'Theme: ${theme.theme}',
+          title: '${_tr('suggestion_theme')}: ${theme.theme}',
           summary: theme.earlierOccurrence,
           suggestion: theme.suggestedEcho,
           chapterId: chapterId,
@@ -198,10 +201,10 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
           id: 'timeline_${DateTime.now().millisecondsSinceEpoch}_${newSuggestions.length}',
           type: AISuggestionType.consistency,
           priority: AISuggestionPriority.medium,
-          title: 'Timeline Issue',
+          title: _tr('suggestion_timeline_issue'),
           summary: issue.description,
           suggestion: issue.suggestion,
-          details: 'Chapters involved: ${issue.chapters.join(", ")}',
+          details: '${_tr('suggestion_chapters_involved')}: ${issue.chapters.join(", ")}',
           chapterId: chapterId,
           createdAt: DateTime.now(),
         ));
@@ -328,18 +331,18 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
     switch (type.toLowerCase()) {
       case 'consistency':
       case 'contradiction':
-        return 'Consistency Issue';
+        return _tr('suggestion_consistency_issue');
       case 'plot_hole':
       case 'plothole':
-        return 'Potential Plot Hole';
+        return _tr('suggestion_plot_hole');
       case 'character':
-        return 'Character Issue';
+        return _tr('suggestion_character_issue');
       case 'pacing':
-        return 'Pacing Suggestion';
+        return _tr('suggestion_pacing');
       case 'dialogue':
-        return 'Dialogue Note';
+        return _tr('suggestion_dialogue');
       default:
-        return 'Writing Suggestion';
+        return _tr('suggestion_writing');
     }
   }
 

@@ -230,4 +230,17 @@ const Map<String, String> ru = {
   'icon_timeline': 'Хронология',
   'icon_inventory': 'Инвентарь',
   'icon_magic': 'Магия',
+
+  // AI Suggestion Titles
+  'suggestion_callback_to_chapter': 'Ссылка на главу',
+  'suggestion_foreshadowing': 'Предвестие',
+  'suggestion_theme': 'Тема',
+  'suggestion_timeline_issue': 'Проблема хронологии',
+  'suggestion_chapters_involved': 'Затронутые главы',
+  'suggestion_consistency_issue': 'Проблема последовательности',
+  'suggestion_plot_hole': 'Возможная сюжетная дыра',
+  'suggestion_character_issue': 'Проблема персонажа',
+  'suggestion_pacing': 'Предложение по темпу',
+  'suggestion_dialogue': 'Заметка о диалоге',
+  'suggestion_writing': 'Предложение по написанию',
 };

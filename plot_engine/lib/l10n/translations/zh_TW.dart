@@ -230,4 +230,17 @@ const Map<String, String> zhTW = {
   'icon_timeline': '時間軸',
   'icon_inventory': '物品欄',
   'icon_magic': '魔法',
+
+  // AI Suggestion Titles
+  'suggestion_callback_to_chapter': '回溯到第',
+  'suggestion_foreshadowing': '伏筆',
+  'suggestion_theme': '主題',
+  'suggestion_timeline_issue': '時間軸問題',
+  'suggestion_chapters_involved': '涉及章節',
+  'suggestion_consistency_issue': '一致性問題',
+  'suggestion_plot_hole': '潛在劇情漏洞',
+  'suggestion_character_issue': '角色問題',
+  'suggestion_pacing': '節奏建議',
+  'suggestion_dialogue': '對話提示',
+  'suggestion_writing': '寫作建議',
 };

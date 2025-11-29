@@ -230,4 +230,17 @@ const Map<String, String> ko = {
   'icon_timeline': '타임라인',
   'icon_inventory': '인벤토리',
   'icon_magic': '마법',
+
+  // AI Suggestion Titles
+  'suggestion_callback_to_chapter': '챕터 참조',
+  'suggestion_foreshadowing': '복선',
+  'suggestion_theme': '테마',
+  'suggestion_timeline_issue': '타임라인 문제',
+  'suggestion_chapters_involved': '관련 챕터',
+  'suggestion_consistency_issue': '일관성 문제',
+  'suggestion_plot_hole': '잠재적 플롯 구멍',
+  'suggestion_character_issue': '캐릭터 문제',
+  'suggestion_pacing': '페이싱 제안',
+  'suggestion_dialogue': '대화 노트',
+  'suggestion_writing': '글쓰기 제안',
 };

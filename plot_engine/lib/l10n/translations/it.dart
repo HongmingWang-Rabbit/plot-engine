@@ -230,4 +230,17 @@ const Map<String, String> it = {
   'icon_timeline': 'Linea Temporale',
   'icon_inventory': 'Inventario',
   'icon_magic': 'Magia',
+
+  // AI Suggestion Titles
+  'suggestion_callback_to_chapter': 'Riferimento al Capitolo',
+  'suggestion_foreshadowing': 'Presagio',
+  'suggestion_theme': 'Tema',
+  'suggestion_timeline_issue': 'Problema di Cronologia',
+  'suggestion_chapters_involved': 'Capitoli coinvolti',
+  'suggestion_consistency_issue': 'Problema di Coerenza',
+  'suggestion_plot_hole': 'Possibile Buco nella Trama',
+  'suggestion_character_issue': 'Problema di Personaggio',
+  'suggestion_pacing': 'Suggerimento di Ritmo',
+  'suggestion_dialogue': 'Nota di Dialogo',
+  'suggestion_writing': 'Suggerimento di Scrittura',
 };
