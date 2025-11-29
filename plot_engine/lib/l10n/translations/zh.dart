@@ -229,4 +229,17 @@ const Map<String, String> zh = {
   'suggestion_pacing': '节奏建议',
   'suggestion_dialogue': '对话提示',
   'suggestion_writing': '写作建议',
+  'suggestion_entity_update': '实体更新',
+
+  // Entity Update Suggestions
+  'entity_updates_available': '个实体可更新',
+  'no_entity_updates_found': '未发现实体更新',
+  'entity_updates_description': '所有实体已与当前章节内容同步。',
+  'check_entity_updates': '检查实体更新',
+  'suggested_update': '建议更新',
+  'relevant_quotes': '相关引用',
+  'accept': '接受',
+  'dismiss': '忽略',
+  'entity_updated': '实体已更新',
+  'analyzing_chapter': '正在分析章节以查找实体更新...',
 };

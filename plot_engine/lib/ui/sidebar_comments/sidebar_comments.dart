@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/ai_models.dart';
+import '../../models/entity_update_suggestion.dart';
 import '../../state/app_state.dart';
 import '../../state/settings_state.dart';
 import '../../services/ai_suggestion_service.dart';
+import '../../services/entity_update_service.dart';
 import '../../l10n/app_localizations.dart';
 
 class SidebarComments extends ConsumerWidget {
@@ -411,22 +413,36 @@ class SidebarComments extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Actions
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    ref.read(aiSuggestionProvider.notifier).dismiss(suggestion.id);
-                    ref.read(selectedSuggestionProvider.notifier).state = null;
-                  },
-                  icon: const Icon(Icons.close, size: 18),
-                  label: const Text('Dismiss'),
-                ),
-              ),
-            ],
-          ),
+          _buildSuggestionActions(context, ref, suggestion),
         ],
       ),
+    );
+  }
+
+  Widget _buildSuggestionActions(
+    BuildContext context,
+    WidgetRef ref,
+    AISuggestion suggestion,
+  ) {
+    // For entity updates, show Accept button
+    if (suggestion.type == AISuggestionType.entityUpdate) {
+      return _EntityUpdateActions(suggestion: suggestion);
+    }
+
+    // Default: just show Dismiss button
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () {
+              ref.read(aiSuggestionProvider.notifier).dismiss(suggestion.id);
+              ref.read(selectedSuggestionProvider.notifier).state = null;
+            },
+            icon: const Icon(Icons.close, size: 18),
+            label: Text(ref.tr('dismiss')),
+          ),
+        ),
+      ],
     );
   }
 
@@ -554,6 +570,8 @@ class SidebarComments extends ConsumerWidget {
         return Colors.teal;
       case AISuggestionType.dialogue:
         return Colors.green;
+      case AISuggestionType.entityUpdate:
+        return Colors.indigo;
       case AISuggestionType.general:
         return Colors.grey;
     }
@@ -573,6 +591,8 @@ class SidebarComments extends ConsumerWidget {
         return Icons.speed;
       case AISuggestionType.dialogue:
         return Icons.chat_bubble_outline;
+      case AISuggestionType.entityUpdate:
+        return Icons.sync;
       case AISuggestionType.general:
         return Icons.auto_awesome;
     }
@@ -726,6 +746,8 @@ class _SuggestionCard extends StatelessWidget {
         return Colors.teal;
       case AISuggestionType.dialogue:
         return Colors.green;
+      case AISuggestionType.entityUpdate:
+        return Colors.indigo;
       case AISuggestionType.general:
         return Colors.grey;
     }
@@ -745,8 +767,127 @@ class _SuggestionCard extends StatelessWidget {
         return Icons.speed;
       case AISuggestionType.dialogue:
         return Icons.chat_bubble_outline;
+      case AISuggestionType.entityUpdate:
+        return Icons.sync;
       case AISuggestionType.general:
         return Icons.auto_awesome;
     }
+  }
+}
+
+/// Widget for entity update suggestion actions (Accept/Dismiss)
+class _EntityUpdateActions extends ConsumerStatefulWidget {
+  final AISuggestion suggestion;
+
+  const _EntityUpdateActions({required this.suggestion});
+
+  @override
+  ConsumerState<_EntityUpdateActions> createState() => _EntityUpdateActionsState();
+}
+
+class _EntityUpdateActionsState extends ConsumerState<_EntityUpdateActions> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // Dismiss button
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: _isLoading ? null : _handleDismiss,
+            icon: const Icon(Icons.close, size: 18),
+            label: Text(ref.tr('dismiss')),
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Accept button
+        Expanded(
+          child: FilledButton.icon(
+            onPressed: _isLoading ? null : _handleAccept,
+            icon: _isLoading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.check, size: 18),
+            label: Text(ref.tr('accept')),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleDismiss() {
+    ref.read(aiSuggestionProvider.notifier).dismiss(widget.suggestion.id);
+    ref.read(selectedSuggestionProvider.notifier).state = null;
+  }
+
+  Future<void> _handleAccept() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Find the matching EntityUpdateSuggestion from the provider
+      final entityUpdateState = ref.read(entityUpdateProvider);
+      final matchingSuggestion = _findMatchingSuggestion(entityUpdateState.suggestions);
+
+      if (matchingSuggestion == null) {
+        throw Exception('Could not find entity update details');
+      }
+
+      // Accept the suggestion using the service
+      final service = ref.read(entityUpdateServiceProvider);
+      await service.acceptSuggestion(suggestion: matchingSuggestion);
+
+      // Remove from both providers
+      ref.read(aiSuggestionProvider.notifier).dismiss(widget.suggestion.id);
+      ref.read(entityUpdateProvider.notifier).removeSuggestion(matchingSuggestion.entityId);
+      ref.read(selectedSuggestionProvider.notifier).state = null;
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${matchingSuggestion.entityName} ${ref.tr('entity_updated')}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update entity: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  /// Find the EntityUpdateSuggestion that matches this AISuggestion
+  EntityUpdateSuggestion? _findMatchingSuggestion(List<EntityUpdateSuggestion> suggestions) {
+    // Match by summary (newInformation) which should be unique
+    for (final s in suggestions) {
+      if (s.newInformation == widget.suggestion.summary) {
+        return s;
+      }
+    }
+    // Fallback: match by entity name in title
+    final title = widget.suggestion.title;
+    for (final s in suggestions) {
+      if (title.contains(s.entityName)) {
+        return s;
+      }
+    }
+    return null;
   }
 }

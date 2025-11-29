@@ -430,6 +430,7 @@ enum AISuggestionType {
   plotHole,
   pacing,
   dialogue,
+  entityUpdate,
   general,
 }
 
@@ -504,6 +505,8 @@ class AISuggestion {
         return 'Pacing';
       case AISuggestionType.dialogue:
         return 'Dialogue';
+      case AISuggestionType.entityUpdate:
+        return 'Entity Update';
       case AISuggestionType.general:
         return 'Suggestion';
     }

@@ -2,6 +2,7 @@ import '../models/project.dart';
 import '../models/chapter.dart';
 import '../models/entity_metadata.dart';
 import '../models/entity_type.dart';
+import '../models/entity_update_suggestion.dart';
 import '../core/utils/logger.dart';
 import 'api_client.dart';
 
@@ -267,6 +268,46 @@ class BackendProjectService {
     });
 
     return response['suggestions'] as Map<String, dynamic>;
+  }
+
+  // ===== Entity Update Operations =====
+
+  /// Analyze chapter content and suggest updates for existing entities
+  /// Returns suggestions for entities that have new information in the chapter
+  Future<SuggestUpdatesResponse> suggestEntityUpdates({
+    required String projectId,
+    required String chapterContent,
+    String? provider,
+    String? locale,
+  }) async {
+    final response = await _apiClient.post('/ai/entities/suggest-updates', {
+      'projectId': projectId,
+      'chapterContent': chapterContent,
+      if (provider != null) 'provider': provider,
+      if (locale != null) 'locale': locale,
+    });
+
+    return SuggestUpdatesResponse.fromJson(response);
+  }
+
+  /// Merge new information into an entity's description and summary
+  /// Returns the merged description and summary for the entity
+  Future<MergeEntityResponse> mergeEntityUpdate({
+    required String projectId,
+    required String entityId,
+    required String newInformation,
+    String? provider,
+    String? locale,
+  }) async {
+    final response = await _apiClient.post('/ai/entities/merge', {
+      'projectId': projectId,
+      'entityId': entityId,
+      'newInformation': newInformation,
+      if (provider != null) 'provider': provider,
+      if (locale != null) 'locale': locale,
+    });
+
+    return MergeEntityResponse.fromJson(response);
   }
 
   // ===== Helper Methods =====

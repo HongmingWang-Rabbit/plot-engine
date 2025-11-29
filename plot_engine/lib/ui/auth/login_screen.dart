@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/app_state.dart';
+import '../legal/privacy_policy_screen.dart';
+import '../legal/terms_of_service_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -283,6 +285,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             child: _buildSignInCard(),
                           ),
                         ),
+
+                        const SizedBox(height: 24),
+
+                        // Legal links
+                        FadeTransition(
+                          opacity: _buttonFade,
+                          child: _buildLegalLinks(),
+                        ),
                       ],
                     );
                   },
@@ -292,6 +302,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLegalLinks() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        TextButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PrivacyPolicyScreen(),
+              ),
+            );
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.grey[600],
+            textStyle: const TextStyle(fontSize: 12),
+          ),
+          child: const Text('Privacy Policy'),
+        ),
+        Text(
+          '•',
+          style: TextStyle(color: Colors.grey[400]),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const TermsOfServiceScreen(),
+              ),
+            );
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.grey[600],
+            textStyle: const TextStyle(fontSize: 12),
+          ),
+          child: const Text('Terms of Service'),
+        ),
+      ],
     );
   }
 

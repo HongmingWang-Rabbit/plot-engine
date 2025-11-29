@@ -6,6 +6,7 @@ import '../models/knowledge_item.dart';
 import '../models/entity_metadata.dart';
 import '../models/auth_user.dart';
 import '../models/billing_models.dart';
+import '../models/entity_update_suggestion.dart';
 import '../services/entity_store.dart';
 import '../services/ai_entity_recognizer.dart';
 import '../services/ai_service.dart';
@@ -372,4 +373,89 @@ final creditsBalanceNotifierProvider =
     StateNotifierProvider<CreditsBalanceNotifier, double?>((ref) {
   final billingService = ref.watch(billingServiceProvider);
   return CreditsBalanceNotifier(billingService);
+});
+
+// ===== Entity Update Suggestion Providers =====
+
+/// State for entity update suggestions
+class EntityUpdateState {
+  final List<EntityUpdateSuggestion> suggestions;
+  final Set<String> dismissedIds;
+  final bool isLoading;
+  final String? error;
+
+  const EntityUpdateState({
+    this.suggestions = const [],
+    this.dismissedIds = const {},
+    this.isLoading = false,
+    this.error,
+  });
+
+  EntityUpdateState copyWith({
+    List<EntityUpdateSuggestion>? suggestions,
+    Set<String>? dismissedIds,
+    bool? isLoading,
+    String? error,
+  }) {
+    return EntityUpdateState(
+      suggestions: suggestions ?? this.suggestions,
+      dismissedIds: dismissedIds ?? this.dismissedIds,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  /// Get suggestions that haven't been dismissed
+  List<EntityUpdateSuggestion> get visibleSuggestions {
+    return suggestions.where((s) => !dismissedIds.contains(s.entityId)).toList();
+  }
+
+  /// Check if there are any visible suggestions
+  bool get hasSuggestions => visibleSuggestions.isNotEmpty;
+}
+
+/// Notifier for managing entity update suggestions
+class EntityUpdateNotifier extends StateNotifier<EntityUpdateState> {
+  EntityUpdateNotifier() : super(const EntityUpdateState());
+
+  void setLoading(bool loading) {
+    state = state.copyWith(isLoading: loading, error: null);
+  }
+
+  void setSuggestions(List<EntityUpdateSuggestion> suggestions) {
+    state = state.copyWith(
+      suggestions: suggestions,
+      isLoading: false,
+      error: null,
+    );
+  }
+
+  void setError(String error) {
+    state = state.copyWith(isLoading: false, error: error);
+  }
+
+  void dismissSuggestion(String entityId) {
+    state = state.copyWith(
+      dismissedIds: {...state.dismissedIds, entityId},
+    );
+  }
+
+  void removeSuggestion(String entityId) {
+    state = state.copyWith(
+      suggestions: state.suggestions.where((s) => s.entityId != entityId).toList(),
+    );
+  }
+
+  void clearSuggestions() {
+    state = const EntityUpdateState();
+  }
+
+  void clearDismissed() {
+    state = state.copyWith(dismissedIds: {});
+  }
+}
+
+final entityUpdateProvider =
+    StateNotifierProvider<EntityUpdateNotifier, EntityUpdateState>((ref) {
+  return EntityUpdateNotifier();
 });

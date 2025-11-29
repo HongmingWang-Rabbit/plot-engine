@@ -245,4 +245,17 @@ const Map<String, String> en = {
   'suggestion_pacing': 'Pacing Suggestion',
   'suggestion_dialogue': 'Dialogue Note',
   'suggestion_writing': 'Writing Suggestion',
+  'suggestion_entity_update': 'Entity Update',
+
+  // Entity Update Suggestions
+  'entity_updates_available': 'entity updates available',
+  'no_entity_updates_found': 'No entity updates found',
+  'entity_updates_description': 'All your entities are up to date with the current chapter content.',
+  'check_entity_updates': 'Check Entity Updates',
+  'suggested_update': 'Suggested Update',
+  'relevant_quotes': 'Relevant Quotes',
+  'accept': 'Accept',
+  'dismiss': 'Dismiss',
+  'entity_updated': 'Entity updated',
+  'analyzing_chapter': 'Analyzing chapter for entity updates...',
 };

@@ -13,7 +13,7 @@ const int _minNewContentLength = 200;
 const Duration _debounceDuration = Duration(seconds: 3);
 
 /// Delay before analyzing a newly opened file
-const Duration _newFileAnalysisDelay = Duration(seconds: 10);
+const Duration _newFileAnalysisDelay = Duration(seconds: 5);
 
 /// Service that watches content changes and automatically triggers AI analysis
 class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
@@ -211,6 +211,39 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
       }
     } catch (e) {
       print('[AI Suggestion] ✗ Timeline check failed: $e');
+    }
+
+    // 4. Run entity update suggestions
+    try {
+      print('[AI Suggestion] Calling /ai/entities/suggest-updates...');
+      final backend = _ref.read(backendProjectServiceProvider);
+      final entityUpdates = await backend.suggestEntityUpdates(
+        projectId: projectId,
+        chapterContent: content,
+        locale: locale,
+      );
+      print('[AI Suggestion] ✓ Entity Updates: ${entityUpdates.suggestions.length} suggestions');
+
+      for (final suggestion in entityUpdates.suggestions) {
+        newSuggestions.add(AISuggestion(
+          id: 'entity_${DateTime.now().millisecondsSinceEpoch}_${newSuggestions.length}',
+          type: AISuggestionType.entityUpdate,
+          priority: AISuggestionPriority.medium,
+          title: '${_tr('suggestion_entity_update')}: ${suggestion.entityName}',
+          summary: suggestion.newInformation,
+          suggestion: suggestion.suggestedAppendText,
+          details: suggestion.relevantQuotes.isNotEmpty
+              ? '${_tr('relevant_quotes')}: "${suggestion.relevantQuotes.first}"'
+              : null,
+          chapterId: chapterId,
+          createdAt: DateTime.now(),
+        ));
+      }
+
+      // Also update the entity update provider state for the dedicated UI
+      _ref.read(entityUpdateProvider.notifier).setSuggestions(entityUpdates.suggestions);
+    } catch (e) {
+      print('[AI Suggestion] ✗ Entity update check failed: $e');
     }
 
     // Add new suggestions to the queue (avoid duplicates based on summary)
