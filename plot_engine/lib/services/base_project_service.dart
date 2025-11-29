@@ -19,6 +19,7 @@ abstract class BaseProjectService {
   Future<Chapter> createChapter(String title);
   Future<void> updateChapter(Chapter chapter);
   Future<void> deleteChapter(String chapterId);
+  Future<void> reorderChapters(int oldIndex, int newIndex);
   void setCurrentChapter(Chapter chapter);
 
   // Knowledge base operations

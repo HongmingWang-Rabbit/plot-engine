@@ -92,7 +92,8 @@ class WebProjectService implements BaseProjectService {
 
           final chaptersData = projectData['chapters'] as List? ?? [];
           final chapters = chaptersData.map((c) => _chapterFromBackend(c)).toList();
-          chapters.sort((a, b) => a.order.compareTo(b.order));
+          // Sort chapters by order (descending - newest/highest order at top)
+          chapters.sort((a, b) => b.order.compareTo(a.order));
 
           var entities = _backend.getEntitiesFromProject(projectData);
           if (entities.isEmpty) {
@@ -323,6 +324,46 @@ class WebProjectService implements BaseProjectService {
     }
 
     await _backend.deleteChapter(projectId: project.id, chapterId: chapterId);
+  }
+
+  @override
+  Future<void> reorderChapters(int oldIndex, int newIndex) async {
+    final project = ref.read(projectProvider);
+    if (project == null) return;
+
+    final chapters = ref.read(chaptersProvider).toList();
+    if (oldIndex < 0 || oldIndex >= chapters.length ||
+        newIndex < 0 || newIndex >= chapters.length) {
+      return;
+    }
+
+    // Remove and insert at new position
+    final chapter = chapters.removeAt(oldIndex);
+    chapters.insert(newIndex, chapter);
+
+    // Update order field (descending - top item gets highest order)
+    final updatedChapters = <Chapter>[];
+    for (int i = 0; i < chapters.length; i++) {
+      updatedChapters.add(chapters[i].copyWith(order: chapters.length - 1 - i));
+    }
+
+    // Update UI immediately (optimistic update)
+    ref.read(chaptersProvider.notifier).setChapters(updatedChapters);
+
+    // Sync to backend
+    final chapterOrder = updatedChapters
+        .map((c) => {'id': c.id, 'order_index': c.order})
+        .toList();
+
+    try {
+      await _backend.reorderChapters(
+        projectId: project.id,
+        chapterOrder: chapterOrder,
+      );
+      AppLogger.info('Reordered chapters on cloud', 'moved from $oldIndex to $newIndex');
+    } catch (e) {
+      AppLogger.warn('Failed to sync chapter order to cloud', e.toString());
+    }
   }
 
   @override

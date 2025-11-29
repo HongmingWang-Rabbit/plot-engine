@@ -8,6 +8,7 @@ class ChapterCard extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final int? index; // For ReorderableDragStartListener
 
   const ChapterCard({
     super.key,
@@ -16,6 +17,7 @@ class ChapterCard extends StatefulWidget {
     required this.onTap,
     this.onEdit,
     this.onDelete,
+    this.index,
   });
 
   @override
@@ -41,6 +43,24 @@ class _ChapterCardState extends State<ChapterCard> {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
+                // Drag handle (shows on hover)
+                if (widget.index != null && (_isHovered || widget.isSelected))
+                  ReorderableDragStartListener(
+                    index: widget.index!,
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.grab,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Icon(
+                          Icons.drag_indicator,
+                          size: 18,
+                          color: widget.isSelected
+                              ? Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.7)
+                              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ),
+                  ),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

@@ -250,15 +250,39 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
       return _buildEmptyState(ref.tr('no_chapters'), Icons.menu_book);
     }
 
-    return ListView.builder(
+    return ReorderableListView.builder(
       padding: const EdgeInsets.all(8),
       itemCount: chapters.length,
+      buildDefaultDragHandles: false,
+      onReorder: (oldIndex, newIndex) {
+        // ReorderableListView uses different index convention when moving down
+        if (newIndex > oldIndex) {
+          newIndex -= 1;
+        }
+        ref.read(projectServiceProvider).reorderChapters(oldIndex, newIndex);
+      },
+      proxyDecorator: (child, index, animation) {
+        return AnimatedBuilder(
+          animation: animation,
+          builder: (context, child) {
+            final elevation = Tween<double>(begin: 0, end: 6).evaluate(animation);
+            return Material(
+              elevation: elevation,
+              borderRadius: BorderRadius.circular(8),
+              child: child,
+            );
+          },
+          child: child,
+        );
+      },
       itemBuilder: (context, index) {
         final chapter = chapters[index];
         final isSelected = currentChapter?.id == chapter.id;
         return ChapterCard(
+          key: ValueKey(chapter.id),
           chapter: chapter,
           isSelected: isSelected,
+          index: index,
           onTap: () {
             // Open chapter in preview mode
             ref.read(tabStateProvider.notifier).openPreview(chapter);

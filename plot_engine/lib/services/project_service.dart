@@ -68,6 +68,8 @@ class ProjectService implements BaseProjectService {
         }
 
         final chapters = await _storage.loadChapters(projectPath);
+        // Sort chapters by order (descending - newest/highest order at top)
+        chapters.sort((a, b) => b.order.compareTo(a.order));
         final knowledgeItems = await _storage.loadKnowledgeBase(projectPath);
         final entities = await _storage.loadEntities(projectPath);
 
@@ -206,6 +208,30 @@ class ProjectService implements BaseProjectService {
     }
 
     await saveProject();
+  }
+
+  @override
+  Future<void> reorderChapters(int oldIndex, int newIndex) async {
+    final chapters = ref.read(chaptersProvider).toList();
+    if (oldIndex < 0 || oldIndex >= chapters.length ||
+        newIndex < 0 || newIndex >= chapters.length) {
+      return;
+    }
+
+    // Remove and insert at new position
+    final chapter = chapters.removeAt(oldIndex);
+    chapters.insert(newIndex, chapter);
+
+    // Update order field (descending - top item gets highest order)
+    final updatedChapters = <Chapter>[];
+    for (int i = 0; i < chapters.length; i++) {
+      updatedChapters.add(chapters[i].copyWith(order: chapters.length - 1 - i));
+    }
+
+    ref.read(chaptersProvider.notifier).setChapters(updatedChapters);
+    await saveProject();
+
+    AppLogger.info('Reordered chapters', 'moved from $oldIndex to $newIndex');
   }
 
   @override
