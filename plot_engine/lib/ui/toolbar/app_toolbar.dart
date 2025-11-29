@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/app_state.dart';
 import '../../state/status_state.dart';
+import '../../state/settings_state.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/base_project_service.dart';
+import '../../utils/responsive.dart';
 import '../dialogs/new_project_dialog.dart';
 import '../dialogs/open_project_dialog.dart';
 import '../dialogs/settings_dialog.dart';
@@ -14,6 +16,243 @@ class AppToolbar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final viewport = Responsive.getViewportSize(context);
+
+    if (viewport.isMobile) {
+      return _buildMobileToolbar(context, ref);
+    } else if (viewport.isTablet) {
+      return _buildTabletToolbar(context, ref);
+    } else {
+      return _buildDesktopToolbar(context, ref);
+    }
+  }
+
+  /// Mobile toolbar: Compact with menu
+  Widget _buildMobileToolbar(BuildContext context, WidgetRef ref) {
+    final project = ref.watch(projectProvider);
+    final projectService = ref.read(projectServiceProvider);
+    final authUser = ref.watch(authUserProvider);
+
+    return Container(
+      height: 50,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 8),
+          // Menu button
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.menu),
+            tooltip: 'Menu',
+            onSelected: (value) => _handleMenuSelection(context, ref, value, projectService),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'new',
+                child: Row(
+                  children: [
+                    const Icon(Icons.create_new_folder, size: 18),
+                    const SizedBox(width: 12),
+                    Text(ref.tr('new_project')),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'template',
+                child: Row(
+                  children: [
+                    const Icon(Icons.auto_awesome, size: 18),
+                    const SizedBox(width: 12),
+                    Text(ref.tr('try_template')),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'open',
+                child: Row(
+                  children: [
+                    const Icon(Icons.folder_open, size: 18),
+                    const SizedBox(width: 12),
+                    Text(ref.tr('open_project')),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'highlight',
+                child: Row(
+                  children: [
+                    Icon(
+                      ref.watch(entityHighlightProvider) ? Icons.highlight : Icons.highlight_off,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(ref.watch(entityHighlightProvider)
+                        ? ref.tr('hide_highlights')
+                        : ref.tr('show_highlights')),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          // Project name or app title
+          Expanded(
+            child: Text(
+              project?.name ?? ref.tr('app_title'),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          // User actions
+          if (authUser != null) ...[
+            _CreditsDisplay(compact: true),
+            const SizedBox(width: 4),
+          ],
+          IconButton(
+            icon: const Icon(Icons.settings, size: 20),
+            onPressed: () => _handleSettings(context),
+            tooltip: ref.tr('settings'),
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
+    );
+  }
+
+  /// Tablet toolbar: Icon buttons without labels
+  Widget _buildTabletToolbar(BuildContext context, WidgetRef ref) {
+    final project = ref.watch(projectProvider);
+    final projectService = ref.read(projectServiceProvider);
+    final entityHighlightEnabled = ref.watch(entityHighlightProvider);
+    final authUser = ref.watch(authUserProvider);
+    final aiVisible = ref.watch(aiSidebarVisibleProvider);
+    final knowledgeVisible = ref.watch(knowledgePanelVisibleProvider);
+
+    return Container(
+      height: 50,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 12),
+          // App Title (shorter)
+          Text(
+            'PE',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Icon-only buttons
+          IconButton(
+            icon: const Icon(Icons.create_new_folder, size: 20),
+            onPressed: () => _handleNewProject(context, projectService, ref),
+            tooltip: ref.tr('new_project'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.auto_awesome, size: 20),
+            onPressed: () => _handleTemplateProject(context, projectService, ref),
+            tooltip: ref.tr('try_template'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.folder_open, size: 20),
+            onPressed: () => _handleOpenProject(context, projectService, ref),
+            tooltip: ref.tr('open_project'),
+          ),
+          const SizedBox(width: 8),
+          // Divider
+          Container(
+            width: 1,
+            height: 24,
+            color: Theme.of(context).dividerColor,
+          ),
+          const SizedBox(width: 8),
+          // Highlight toggle
+          IconButton(
+            icon: Icon(
+              entityHighlightEnabled ? Icons.highlight : Icons.highlight_off,
+              size: 20,
+            ),
+            onPressed: () => ref.read(entityHighlightProvider.notifier).toggle(),
+            tooltip: entityHighlightEnabled ? ref.tr('hide_highlights') : ref.tr('show_highlights'),
+            style: entityHighlightEnabled
+                ? IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  )
+                : null,
+          ),
+          // Panel toggles for tablet
+          IconButton(
+            icon: const Icon(Icons.auto_awesome, size: 20),
+            onPressed: () {
+              ref.read(aiSidebarVisibleProvider.notifier).setVisibility(!aiVisible);
+              if (!aiVisible) {
+                ref.read(knowledgePanelVisibleProvider.notifier).setVisibility(false);
+              }
+            },
+            tooltip: 'AI Assistant',
+            style: aiVisible
+                ? IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  )
+                : null,
+          ),
+          IconButton(
+            icon: const Icon(Icons.library_books, size: 20),
+            onPressed: () {
+              ref.read(knowledgePanelVisibleProvider.notifier).setVisibility(!knowledgeVisible);
+              if (!knowledgeVisible) {
+                ref.read(aiSidebarVisibleProvider.notifier).setVisibility(false);
+              }
+            },
+            tooltip: 'Knowledge Base',
+            style: knowledgeVisible
+                ? IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  )
+                : null,
+          ),
+          const Spacer(),
+          // Project name
+          if (project != null)
+            Flexible(
+              child: Text(
+                project.name,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          const SizedBox(width: 8),
+          if (authUser != null) ...[
+            _CreditsDisplay(compact: true),
+            const SizedBox(width: 4),
+            _buildUserMenu(context, ref, authUser, compact: true),
+          ],
+          IconButton(
+            icon: const Icon(Icons.settings, size: 20),
+            onPressed: () => _handleSettings(context),
+            tooltip: ref.tr('settings'),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+    );
+  }
+
+  /// Desktop toolbar: Full layout with labels
+  Widget _buildDesktopToolbar(BuildContext context, WidgetRef ref) {
     final project = ref.watch(projectProvider);
     final projectService = ref.read(projectServiceProvider);
     final entityHighlightEnabled = ref.watch(entityHighlightProvider);
@@ -94,81 +333,7 @@ class AppToolbar extends ConsumerWidget {
           if (authUser != null) _CreditsDisplay(),
           const SizedBox(width: 8),
           // User Profile Button
-          if (authUser != null)
-            PopupMenuButton<String>(
-              tooltip: authUser.displayName ?? 'User Profile',
-              onSelected: (value) async {
-                if (value == 'signout') {
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text(ref.tr('sign_out')),
-                      content: Text(ref.tr('sign_out_confirm')),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: Text(ref.tr('cancel')),
-                        ),
-                        ElevatedButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: Text(ref.tr('sign_out')),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  if (confirmed == true && context.mounted) {
-                    await ref.read(authUserProvider.notifier).signOut();
-                  }
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem<String>(
-                  enabled: false,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        authUser.displayName ?? ref.tr('user'),
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        authUser.email ?? '',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem<String>(
-                  value: 'signout',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.logout, size: 18),
-                      const SizedBox(width: 8),
-                      Text(ref.tr('sign_out')),
-                    ],
-                  ),
-                ),
-              ],
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundImage: authUser.photoUrl != null
-                      ? NetworkImage(authUser.photoUrl!)
-                      : null,
-                  child: authUser.photoUrl == null
-                      ? const Icon(Icons.person, size: 20)
-                      : null,
-                ),
-              ),
-            ),
+          if (authUser != null) _buildUserMenu(context, ref, authUser),
           const SizedBox(width: 8),
           // Settings Button
           IconButton(
@@ -180,6 +345,105 @@ class AppToolbar extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildUserMenu(BuildContext context, WidgetRef ref, dynamic authUser, {bool compact = false}) {
+    return PopupMenuButton<String>(
+      tooltip: authUser.displayName ?? 'User Profile',
+      onSelected: (value) async {
+        if (value == 'signout') {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(ref.tr('sign_out')),
+              content: Text(ref.tr('sign_out_confirm')),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(ref.tr('cancel')),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text(ref.tr('sign_out')),
+                ),
+              ],
+            ),
+          );
+
+          if (confirmed == true && context.mounted) {
+            await ref.read(authUserProvider.notifier).signOut();
+          }
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                authUser.displayName ?? ref.tr('user'),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                authUser.email ?? '',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          value: 'signout',
+          child: Row(
+            children: [
+              const Icon(Icons.logout, size: 18),
+              const SizedBox(width: 8),
+              Text(ref.tr('sign_out')),
+            ],
+          ),
+        ),
+      ],
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: CircleAvatar(
+          radius: compact ? 14 : 16,
+          backgroundImage: authUser.photoUrl != null
+              ? NetworkImage(authUser.photoUrl!)
+              : null,
+          child: authUser.photoUrl == null
+              ? Icon(Icons.person, size: compact ? 16 : 20)
+              : null,
+        ),
+      ),
+    );
+  }
+
+  void _handleMenuSelection(
+    BuildContext context,
+    WidgetRef ref,
+    String value,
+    BaseProjectService projectService,
+  ) {
+    switch (value) {
+      case 'new':
+        _handleNewProject(context, projectService, ref);
+        break;
+      case 'template':
+        _handleTemplateProject(context, projectService, ref);
+        break;
+      case 'open':
+        _handleOpenProject(context, projectService, ref);
+        break;
+      case 'highlight':
+        ref.read(entityHighlightProvider.notifier).toggle();
+        break;
+    }
   }
 
   Future<void> _handleNewProject(
@@ -435,14 +699,18 @@ class _ToolbarToggleButton extends StatelessWidget {
 }
 
 class _CreditsDisplay extends ConsumerWidget {
+  final bool compact;
+
+  const _CreditsDisplay({this.compact = false});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final creditsAsync = ref.watch(creditsBalanceNotifierProvider);
 
     if (creditsAsync == null) {
-      return const SizedBox(
-        width: 80,
-        child: Center(
+      return SizedBox(
+        width: compact ? 50 : 80,
+        child: const Center(
           child: SizedBox(
             width: 16,
             height: 16,
@@ -459,7 +727,10 @@ class _CreditsDisplay extends ConsumerWidget {
       onTap: () => _showBillingDialog(context, ref),
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 8 : 12,
+          vertical: compact ? 4 : 6,
+        ),
         decoration: BoxDecoration(
           color: isLow
               ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.5)
@@ -471,22 +742,23 @@ class _CreditsDisplay extends ConsumerWidget {
           children: [
             Icon(
               Icons.account_balance_wallet,
-              size: 16,
+              size: compact ? 14 : 16,
               color: isLow
                   ? Theme.of(context).colorScheme.error
                   : Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             Text(
-              '\$${balance.toStringAsFixed(2)}',
+              '\$${balance.toStringAsFixed(compact ? 0 : 2)}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.bold,
+                fontSize: compact ? 11 : null,
                 color: isLow
                     ? Theme.of(context).colorScheme.error
                     : Theme.of(context).colorScheme.primary,
               ),
             ),
-            if (isLow) ...[
+            if (isLow && !compact) ...[
               const SizedBox(width: 4),
               Icon(
                 Icons.warning_amber,

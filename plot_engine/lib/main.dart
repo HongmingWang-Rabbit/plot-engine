@@ -15,6 +15,7 @@ import 'state/settings_state.dart'; // includes panel visibility & AI analysis t
 import 'state/app_state.dart';
 import 'config/env_config.dart';
 import 'utils/web_url_helper.dart' if (dart.library.io) 'utils/web_url_helper_stub.dart';
+import 'utils/responsive.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -145,6 +146,12 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
   @override
   Widget build(BuildContext context) {
     final isProjectLoading = ref.watch(projectLoadingProvider);
+    final viewport = Responsive.getViewportSize(context);
+
+    // Update viewport provider for other widgets to use
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(viewportProvider.notifier).update(viewport);
+    });
 
     return Shortcuts(
       shortcuts: {
@@ -166,60 +173,8 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
                 Expanded(
                   child: Stack(
                     children: [
-                      // Main content
-                      Row(
-                        children: [
-                          // Main Editor Panel (expands to fill available space)
-                          Expanded(
-                            flex: 6,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    color: Theme.of(context).dividerColor,
-                                  ),
-                                ),
-                              ),
-                              child: const EditorPanel(),
-                            ),
-                          ),
-                          // AI Comments Sidebar (collapsible)
-                          if (ref.watch(aiSidebarVisibleProvider))
-                            Expanded(
-                              flex: 2,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    right: BorderSide(
-                                      color: Theme.of(context).dividerColor,
-                                    ),
-                                  ),
-                                ),
-                                child: const SidebarComments(),
-                              ),
-                            )
-                          else
-                            // Collapsed AI sidebar button
-                            _CollapsedPanelButton(
-                              icon: Icons.auto_awesome,
-                              tooltip: 'AI Assistant',
-                              onPressed: () => ref.read(aiSidebarVisibleProvider.notifier).toggle(),
-                            ),
-                          // Knowledge Base Panel (collapsible)
-                          if (ref.watch(knowledgePanelVisibleProvider))
-                            const Expanded(
-                              flex: 2,
-                              child: KnowledgePanel(),
-                            )
-                          else
-                            // Collapsed knowledge panel button
-                            _CollapsedPanelButton(
-                              icon: Icons.library_books,
-                              tooltip: 'Knowledge Base',
-                              onPressed: () => ref.read(knowledgePanelVisibleProvider.notifier).toggle(),
-                            ),
-                        ],
-                      ),
+                      // Responsive main content
+                      _buildResponsiveContent(context, viewport),
                       // Loading overlay
                       if (isProjectLoading)
                         Container(
@@ -250,9 +205,194 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
                     ],
                   ),
                 ),
-                const AppFooter(),
+                // Show footer on tablet and desktop, bottom nav on mobile
+                if (viewport.isMobile)
+                  _buildMobileBottomNav(context)
+                else
+                  const AppFooter(),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResponsiveContent(BuildContext context, ViewportSize viewport) {
+    if (viewport.isMobile) {
+      return _buildMobileLayout(context);
+    } else if (viewport.isTablet) {
+      return _buildTabletLayout(context);
+    } else {
+      return _buildDesktopLayout(context);
+    }
+  }
+
+  /// Mobile layout: Single panel with bottom navigation
+  Widget _buildMobileLayout(BuildContext context) {
+    final activePanel = ref.watch(mobilePanelProvider);
+
+    return switch (activePanel) {
+      MobilePanel.editor => const EditorPanel(),
+      MobilePanel.aiSidebar => const SidebarComments(),
+      MobilePanel.knowledge => const KnowledgePanel(),
+    };
+  }
+
+  /// Tablet layout: Editor + one sidebar (toggle between AI and Knowledge)
+  Widget _buildTabletLayout(BuildContext context) {
+    final aiVisible = ref.watch(aiSidebarVisibleProvider);
+    final knowledgeVisible = ref.watch(knowledgePanelVisibleProvider);
+
+    return Row(
+      children: [
+        // Editor panel always visible
+        Expanded(
+          flex: 7,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                right: BorderSide(color: Theme.of(context).dividerColor),
+              ),
+            ),
+            child: const EditorPanel(),
+          ),
+        ),
+        // Show one sidebar at a time on tablet
+        if (aiVisible)
+          Expanded(
+            flex: 3,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  right: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+              ),
+              child: const SidebarComments(),
+            ),
+          )
+        else if (knowledgeVisible)
+          const Expanded(
+            flex: 3,
+            child: KnowledgePanel(),
+          )
+        else
+          // Collapsed buttons
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _CollapsedPanelButton(
+                icon: Icons.auto_awesome,
+                tooltip: 'AI Assistant',
+                onPressed: () {
+                  ref.read(aiSidebarVisibleProvider.notifier).setVisibility(true);
+                  ref.read(knowledgePanelVisibleProvider.notifier).setVisibility(false);
+                },
+              ),
+              _CollapsedPanelButton(
+                icon: Icons.library_books,
+                tooltip: 'Knowledge Base',
+                onPressed: () {
+                  ref.read(knowledgePanelVisibleProvider.notifier).setVisibility(true);
+                  ref.read(aiSidebarVisibleProvider.notifier).setVisibility(false);
+                },
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  /// Desktop layout: Full 3-panel layout
+  Widget _buildDesktopLayout(BuildContext context) {
+    return Row(
+      children: [
+        // Main Editor Panel
+        Expanded(
+          flex: 6,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                right: BorderSide(color: Theme.of(context).dividerColor),
+              ),
+            ),
+            child: const EditorPanel(),
+          ),
+        ),
+        // AI Comments Sidebar
+        if (ref.watch(aiSidebarVisibleProvider))
+          Expanded(
+            flex: 2,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  right: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+              ),
+              child: const SidebarComments(),
+            ),
+          )
+        else
+          _CollapsedPanelButton(
+            icon: Icons.auto_awesome,
+            tooltip: 'AI Assistant',
+            onPressed: () => ref.read(aiSidebarVisibleProvider.notifier).toggle(),
+          ),
+        // Knowledge Base Panel
+        if (ref.watch(knowledgePanelVisibleProvider))
+          const Expanded(
+            flex: 2,
+            child: KnowledgePanel(),
+          )
+        else
+          _CollapsedPanelButton(
+            icon: Icons.library_books,
+            tooltip: 'Knowledge Base',
+            onPressed: () => ref.read(knowledgePanelVisibleProvider.notifier).toggle(),
+          ),
+      ],
+    );
+  }
+
+  /// Mobile bottom navigation bar
+  Widget _buildMobileBottomNav(BuildContext context) {
+    final activePanel = ref.watch(mobilePanelProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          top: BorderSide(color: Theme.of(context).dividerColor),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 52,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _MobileNavItem(
+                icon: Icons.edit_document,
+                label: 'Editor',
+                isActive: activePanel == MobilePanel.editor,
+                onTap: () => ref.read(mobilePanelProvider.notifier).setPanel(MobilePanel.editor),
+              ),
+              _MobileNavItem(
+                icon: Icons.auto_awesome,
+                label: 'AI',
+                isActive: activePanel == MobilePanel.aiSidebar,
+                onTap: () => ref.read(mobilePanelProvider.notifier).setPanel(MobilePanel.aiSidebar),
+              ),
+              _MobileNavItem(
+                icon: Icons.library_books,
+                label: 'Knowledge',
+                isActive: activePanel == MobilePanel.knowledge,
+                onTap: () => ref.read(mobilePanelProvider.notifier).setPanel(MobilePanel.knowledge),
+              ),
+            ],
           ),
         ),
       ),
@@ -343,6 +483,56 @@ class _CollapsedPanelButton extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Mobile bottom navigation item
+class _MobileNavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _MobileNavItem({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final activeColor = colorScheme.primary;
+    final inactiveColor = colorScheme.onSurfaceVariant;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: isActive ? activeColor : inactiveColor,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: isActive ? activeColor : inactiveColor,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

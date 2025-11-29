@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/responsive.dart';
 
 // Theme mode state
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
@@ -115,4 +116,34 @@ class AIAnalysisToggleNotifier extends StateNotifier<bool> {
 
 final aiBackgroundAnalysisProvider = StateNotifierProvider<AIAnalysisToggleNotifier, bool>((ref) {
   return AIAnalysisToggleNotifier();
+});
+
+// Current viewport size provider - updated via ResponsiveWrapper
+class ViewportNotifier extends StateNotifier<ViewportSize> {
+  ViewportNotifier() : super(ViewportSize.desktop);
+
+  void update(ViewportSize size) {
+    if (state != size) {
+      state = size;
+    }
+  }
+}
+
+final viewportProvider = StateNotifierProvider<ViewportNotifier, ViewportSize>((ref) {
+  return ViewportNotifier();
+});
+
+// Active mobile panel for mobile navigation
+enum MobilePanel { editor, aiSidebar, knowledge }
+
+class MobilePanelNotifier extends StateNotifier<MobilePanel> {
+  MobilePanelNotifier() : super(MobilePanel.editor);
+
+  void setPanel(MobilePanel panel) {
+    state = panel;
+  }
+}
+
+final mobilePanelProvider = StateNotifierProvider<MobilePanelNotifier, MobilePanel>((ref) {
+  return MobilePanelNotifier();
 });
