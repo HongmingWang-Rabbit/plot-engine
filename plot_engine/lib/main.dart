@@ -10,6 +10,8 @@ import 'ui/footer/app_footer.dart';
 import 'ui/auth/login_screen.dart';
 import 'ui/auth/auth_success_screen.dart';
 import 'ui/auth/auth_error_screen.dart';
+import 'ui/legal/privacy_policy_screen.dart';
+import 'ui/legal/terms_of_service_screen.dart';
 import 'services/save_service.dart';
 import 'state/settings_state.dart'; // includes panel visibility & AI analysis toggle providers
 import 'state/app_state.dart';
@@ -68,6 +70,10 @@ class PlotEngineApp extends ConsumerWidget {
         final error = currentUrl?.queryParameters['error'];
         final message = currentUrl?.queryParameters['message'];
         initialScreen = AuthErrorScreen(error: error, message: message);
+      } else if (currentUrl?.path == '/privacy') {
+        initialScreen = const PrivacyPolicyScreen();
+      } else if (currentUrl?.path == '/terms') {
+        initialScreen = const TermsOfServiceScreen();
       } else {
         initialScreen = authUser == null ? const LoginScreen() : const PlotEngineHome();
         debugPrint('initialScreen: ${authUser == null ? "LoginScreen" : "PlotEngineHome"}');
