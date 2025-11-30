@@ -10,5 +10,9 @@ Uri? getCurrentUrl() {
 }
 
 void reloadPage() {
+  html.window.location.href = '/app';
+}
+
+void goToLandingPage() {
   html.window.location.href = '/';
 }

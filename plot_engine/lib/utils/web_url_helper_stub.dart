@@ -6,3 +6,7 @@ Uri? getCurrentUrl() {
 void reloadPage() {
   // No-op for non-web platforms
 }
+
+void goToLandingPage() {
+  // No-op for non-web platforms
+}

@@ -60,19 +60,26 @@ class PlotEngineApp extends ConsumerWidget {
       final currentUrl = getCurrentUrl();
       debugPrint('currentUrl: $currentUrl');
 
+      // Normalize path - remove /app prefix if present
+      String path = currentUrl?.path ?? '';
+      if (path.startsWith('/app')) {
+        path = path.substring(4); // Remove '/app'
+        if (path.isEmpty) path = '/';
+      }
+
       // Check for token in query params (backend may redirect to /?token=... or /auth/success?token=...)
       final token = currentUrl?.queryParameters['token'];
 
-      if (currentUrl?.path == '/auth/success' || (token != null && token.isNotEmpty)) {
+      if (path == '/auth/success' || (token != null && token.isNotEmpty)) {
         debugPrint('Found token, showing AuthSuccessScreen');
         initialScreen = AuthSuccessScreen(token: token);
-      } else if (currentUrl?.path == '/auth/error') {
+      } else if (path == '/auth/error') {
         final error = currentUrl?.queryParameters['error'];
         final message = currentUrl?.queryParameters['message'];
         initialScreen = AuthErrorScreen(error: error, message: message);
-      } else if (currentUrl?.path == '/privacy') {
+      } else if (path == '/privacy') {
         initialScreen = const PrivacyPolicyScreen();
-      } else if (currentUrl?.path == '/terms') {
+      } else if (path == '/terms') {
         initialScreen = const TermsOfServiceScreen();
       } else {
         initialScreen = authUser == null ? const LoginScreen() : const PlotEngineHome();

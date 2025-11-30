@@ -15,6 +15,12 @@
       ]
     },
     {
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }
+      ]
+    },
+    {
       "source": "/robots.txt",
       "headers": [
         { "key": "Content-Type", "value": "text/plain" },
@@ -32,6 +38,9 @@
   "rewrites": [
     { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/privacy", "destination": "/app/index.html" },
+    { "source": "/terms", "destination": "/app/index.html" },
+    { "source": "/app", "destination": "/app/index.html" },
+    { "source": "/app/(.*)", "destination": "/app/index.html" }
   ]
 }

@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+
+  <!-- Primary Meta Tags -->
+  <title>PlotEngine - AI-Powered Creative Writing Tool for Novelists & Screenwriters</title>
+  <meta name="title" content="PlotEngine - AI-Powered Creative Writing Tool for Novelists & Screenwriters">
+  <meta name="description" content="Write better stories with PlotEngine. AI-powered creative writing tool with automatic entity recognition, knowledge base management, and story consistency checking. Perfect for novelists, screenwriters, and storytellers.">
+  <meta name="keywords" content="creative writing, AI writing assistant, story writing, novel writing, screenwriting, character tracking, worldbuilding, plot development, writing software, story editor, fiction writing, narrative tools">
+  <meta name="author" content="PlotEngine">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://plot-engine.com/">
+
+  <!-- Alternate Languages -->
+  <link rel="alternate" hreflang="en" href="https://plot-engine.com/">
+  <link rel="alternate" hreflang="zh" href="https://plot-engine.com/?lang=zh">
+  <link rel="alternate" hreflang="fr" href="https://plot-engine.com/?lang=fr">
+  <link rel="alternate" hreflang="x-default" href="https://plot-engine.com/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://plot-engine.com/">
+  <meta property="og:title" content="PlotEngine - AI-Powered Creative Writing Tool">
+  <meta property="og:description" content="Write better stories with PlotEngine. AI-powered creative writing tool with entity recognition, knowledge base management, and intelligent story assistance.">
+  <meta property="og:image" content="https://plot-engine.com/icons/Icon-512.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:site_name" content="PlotEngine">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://plot-engine.com/">
+  <meta name="twitter:title" content="PlotEngine - AI-Powered Creative Writing Tool">
+  <meta name="twitter:description" content="Write better stories with PlotEngine. AI-powered creative writing tool with entity recognition, knowledge base management, and intelligent story assistance.">
+  <meta name="twitter:image" content="https://plot-engine.com/icons/Icon-512.png">
+
+  <!-- Theme -->
+  <meta name="theme-color" content="#3949ab">
+  <meta name="msapplication-TileColor" content="#3949ab">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/icons/Icon-192.png">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "PlotEngine",
+    "description": "AI-powered creative writing tool with entity recognition, knowledge base management, and intelligent story assistance for novelists and screenwriters.",
+    "url": "https://plot-engine.com",
+    "applicationCategory": "WritingSoftware",
+    "operatingSystem": "Web, macOS",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "AI-powered entity recognition",
+      "Knowledge base management",
+      "Character tracking",
+      "Location tracking",
+      "Rich text editor",
+      "Multi-chapter support",
+      "Story consistency checking",
+      "Worldbuilding tools"
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "PlotEngine",
+    "applicationCategory": "Productivity",
+    "operatingSystem": "Web Browser, macOS",
+    "description": "AI-powered creative writing tool for novelists, screenwriters, and storytellers",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #3949ab;
+      --primary-light: #5c6bc0;
+      --primary-dark: #303f9f;
+      --text-primary: #1a1a2e;
+      --text-secondary: #4a5568;
+      --text-muted: #718096;
+      --bg-light: #f7fafc;
+      --bg-card: #ffffff;
+      --border: #e2e8f0;
+      --gradient-start: #667eea;
+      --gradient-end: #764ba2;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    }
+
+    .hero-logo {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 32px;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+    }
+
+    .hero-logo svg {
+      width: 56px;
+      height: 56px;
+      fill: white;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    .cta-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 32px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      border: none;
+      border-radius: 12px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+    }
+
+    .cta-button svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    /* Features Section */
+    .features {
+      padding: 80px 24px;
+      background: var(--bg-light);
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 48px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid var(--border);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: var(--primary);
+    }
+
+    .feature-card h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    /* Use Cases Section */
+    .use-cases {
+      padding: 80px 24px;
+      background: white;
+    }
+
+    .use-cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .use-case-card {
+      text-align: center;
+      padding: 32px 24px;
+      background: var(--bg-light);
+      border-radius: 16px;
+      transition: transform 0.2s;
+    }
+
+    .use-case-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .use-case-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .use-case-icon svg {
+      width: 32px;
+      height: 32px;
+      fill: white;
+    }
+
+    .use-case-card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .use-case-card p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* How It Works */
+    .how-it-works {
+      padding: 80px 24px;
+      background: var(--bg-light);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 32px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .step {
+      text-align: center;
+      position: relative;
+    }
+
+    .step-number {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .step h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .step p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      padding: 80px 24px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      color: white;
+    }
+
+    .cta-section h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .cta-section p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 500px;
+      margin: 0 auto 32px;
+    }
+
+    .cta-button-light {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 32px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: white;
+      border: none;
+      border-radius: 12px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .cta-button-light:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Footer */
+    footer {
+      padding: 40px 24px;
+      background: var(--text-primary);
+      color: white;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    .copyright {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.85rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero {
+        padding: 60px 24px 40px;
+      }
+
+      .features, .use-cases, .how-it-works, .cta-section {
+        padding: 60px 24px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-logo">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+        </svg>
+      </div>
+      <h1>PlotEngine</h1>
+      <p class="hero-subtitle">Your AI-powered writing companion. Craft compelling stories with intelligent entity recognition, knowledge management, and story consistency tools.</p>
+      <a href="/app" class="cta-button">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+        Start Writing Free
+      </a>
+    </div>
+  </header>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="container">
+      <h2 class="section-title">Powerful Features for Writers</h2>
+      <p class="section-subtitle">Everything you need to craft compelling, consistent stories from start to finish.</p>
+
+      <div class="features-grid">
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5z"/></svg>
+          </div>
+          <h3>AI Entity Recognition</h3>
+          <p>Automatically detect and track characters, locations, objects, and events as you write. PlotEngine intelligently identifies story elements and highlights them in your text for easy reference.</p>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+          </div>
+          <h3>Knowledge Base Management</h3>
+          <p>Build a comprehensive database of your story world. Store character profiles, location details, important objects, and plot events all in one organized, searchable place.</p>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-10 5h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          </div>
+          <h3>Story Consistency Checking</h3>
+          <p>AI-powered analysis helps identify plot holes, timeline inconsistencies, and character discrepancies. Keep your narrative coherent across hundreds of pages.</p>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          </div>
+          <h3>Rich Text Editor</h3>
+          <p>Write in a beautiful, distraction-free editor designed for long-form content. Multi-chapter support with automatic saving ensures you never lose your work.</p>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          </div>
+          <h3>Character Tracking</h3>
+          <p>Maintain detailed character profiles including physical descriptions, personality traits, relationships, aliases, and appearance history throughout your story.</p>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          </div>
+          <h3>Worldbuilding Tools</h3>
+          <p>Create rich, detailed settings with location databases, cultural notes, and environmental details. Build immersive worlds that feel authentic and consistent.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases Section -->
+  <section class="use-cases">
+    <div class="container">
+      <h2 class="section-title">Built for Storytellers</h2>
+      <p class="section-subtitle">Whether you're writing your first novel or your tenth screenplay, PlotEngine adapts to your creative process.</p>
+
+      <div class="use-cases-grid">
+        <article class="use-case-card">
+          <div class="use-case-icon">
+            <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+          </div>
+          <h3>Novelists</h3>
+          <p>Manage complex multi-character narratives with detailed character arcs and plot threads</p>
+        </article>
+
+        <article class="use-case-card">
+          <div class="use-case-icon">
+            <svg viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+          </div>
+          <h3>Screenwriters</h3>
+          <p>Track characters, scenes, and plot points across acts with visual organization</p>
+        </article>
+
+        <article class="use-case-card">
+          <div class="use-case-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+          </div>
+          <h3>Game Writers</h3>
+          <p>Organize branching narratives, dialogue trees, and extensive world lore</p>
+        </article>
+
+        <article class="use-case-card">
+          <div class="use-case-icon">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+          </div>
+          <h3>Content Creators</h3>
+          <p>Build consistent story universes for serialized content and ongoing series</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <div class="container">
+      <h2 class="section-title">How PlotEngine Works</h2>
+      <p class="section-subtitle">Get started in minutes and let AI enhance your writing process.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Create Your Project</h3>
+          <p>Start a new project or import existing work. Organize your story into chapters and sections.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Write Your Story</h3>
+          <p>Use the distraction-free editor. AI automatically identifies and highlights entities as you type.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Build Your World</h3>
+          <p>Add details to characters, locations, and events. Create a rich knowledge base for your story.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <h2>Ready to Write Smarter?</h2>
+      <p>Join writers who are using AI to enhance their creative process and craft better stories.</p>
+      <a href="/app" class="cta-button-light">
+        Get Started Free
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <nav class="footer-links">
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="/app">Launch App</a>
+    </nav>
+    <p class="copyright">&copy; 2025 PlotEngine. AI-powered creative writing software.</p>
+  </footer>
+</body>
+</html>
