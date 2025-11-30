@@ -9,6 +9,7 @@ class ChapterCard extends StatefulWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final int? index; // For ReorderableDragStartListener
+  final int suggestionCount; // Number of AI suggestions for this chapter
 
   const ChapterCard({
     super.key,
@@ -18,6 +19,7 @@ class ChapterCard extends StatefulWidget {
     this.onEdit,
     this.onDelete,
     this.index,
+    this.suggestionCount = 0,
   });
 
   @override
@@ -61,6 +63,29 @@ class _ChapterCardState extends State<ChapterCard> {
                       ),
                     ),
                   ),
+                // Chapter number badge
+                Container(
+                  width: 28,
+                  height: 28,
+                  margin: const EdgeInsets.only(right: 10),
+                  decoration: BoxDecoration(
+                    color: widget.isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${widget.chapter.order + 1}',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: widget.isSelected
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ),
+                ),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,6 +117,34 @@ class _ChapterCardState extends State<ChapterCard> {
                     ],
                   ),
                 ),
+                // AI suggestion count badge
+                if (widget.suggestionCount > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.lightbulb_outline,
+                          size: 14,
+                          color: Colors.orange.shade700,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${widget.suggestionCount}',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange.shade700,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
                 // Edit button (shows on hover)
                 if (widget.onEdit != null && (_isHovered || widget.isSelected))
                   IconButton(

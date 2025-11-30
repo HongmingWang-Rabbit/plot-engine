@@ -37,6 +37,7 @@ const Map<String, String> en = {
   'error_creating_template': 'Error creating template project',
 
   // Chapters
+  'chapter': 'Chapter',
   'chapters': 'Chapters',
   'new_chapter': 'New Chapter',
   'chapter_title': 'Chapter Title',
@@ -246,6 +247,21 @@ const Map<String, String> en = {
   'suggestion_dialogue': 'Dialogue Note',
   'suggestion_writing': 'Writing Suggestion',
   'suggestion_entity_update': 'Entity Update',
+
+  // Suggestion Type Labels (for badges)
+  'suggestion_type_consistency': 'Consistency',
+  'suggestion_type_foreshadowing': 'Foreshadowing',
+  'suggestion_type_character': 'Character',
+  'suggestion_type_plot_hole': 'Plot Hole',
+  'suggestion_type_pacing': 'Pacing',
+  'suggestion_type_dialogue': 'Dialogue',
+  'suggestion_type_entity_update': 'Entity Update',
+  'suggestion_type_general': 'Suggestion',
+
+  // Priority Labels
+  'priority_high': 'HIGH',
+  'priority_medium': 'MEDIUM',
+  'priority_low': 'LOW',
 
   // Entity Update Suggestions
   'entity_updates_available': 'entity updates available',

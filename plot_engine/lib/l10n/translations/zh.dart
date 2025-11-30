@@ -37,6 +37,7 @@ const Map<String, String> zh = {
   'error_creating_template': '创建模板项目失败',
 
   // Chapters
+  'chapter': '章节',
   'chapters': '章节',
   'new_chapter': '新建章节',
   'chapter_title': '章节标题',
@@ -205,6 +206,7 @@ const Map<String, String> zh = {
   'location_label': '位置',
   'earlier': '之前',
   'suggestion_label': '建议',
+  'ai_prompt_hint': '输入AI指令...',
 
   // Icons
   'icon_default': '默认',
@@ -230,6 +232,21 @@ const Map<String, String> zh = {
   'suggestion_dialogue': '对话提示',
   'suggestion_writing': '写作建议',
   'suggestion_entity_update': '实体更新',
+
+  // Suggestion Type Labels (for badges)
+  'suggestion_type_consistency': '一致性',
+  'suggestion_type_foreshadowing': '伏笔',
+  'suggestion_type_character': '角色',
+  'suggestion_type_plot_hole': '剧情漏洞',
+  'suggestion_type_pacing': '节奏',
+  'suggestion_type_dialogue': '对话',
+  'suggestion_type_entity_update': '实体更新',
+  'suggestion_type_general': '建议',
+
+  // Priority Labels
+  'priority_high': '高',
+  'priority_medium': '中',
+  'priority_low': '低',
 
   // Entity Update Suggestions
   'entity_updates_available': '个实体可更新',

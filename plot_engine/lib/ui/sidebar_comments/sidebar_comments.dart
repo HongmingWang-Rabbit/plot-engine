@@ -8,6 +8,95 @@ import '../../services/ai_suggestion_service.dart';
 import '../../services/entity_update_service.dart';
 import '../../l10n/app_localizations.dart';
 
+// ===== Shared UI helpers for AI suggestions =====
+
+Color _getSuggestionTypeColor(AISuggestionType type) {
+  switch (type) {
+    case AISuggestionType.consistency:
+      return Colors.orange;
+    case AISuggestionType.foreshadowing:
+      return Colors.purple;
+    case AISuggestionType.characterDevelopment:
+      return Colors.blue;
+    case AISuggestionType.plotHole:
+      return Colors.red;
+    case AISuggestionType.pacing:
+      return Colors.teal;
+    case AISuggestionType.dialogue:
+      return Colors.green;
+    case AISuggestionType.entityUpdate:
+      return Colors.indigo;
+    case AISuggestionType.general:
+      return Colors.grey;
+  }
+}
+
+IconData _getSuggestionTypeIcon(AISuggestionType type) {
+  switch (type) {
+    case AISuggestionType.consistency:
+      return Icons.warning_amber;
+    case AISuggestionType.foreshadowing:
+      return Icons.lightbulb_outline;
+    case AISuggestionType.characterDevelopment:
+      return Icons.person;
+    case AISuggestionType.plotHole:
+      return Icons.error_outline;
+    case AISuggestionType.pacing:
+      return Icons.speed;
+    case AISuggestionType.dialogue:
+      return Icons.chat_bubble_outline;
+    case AISuggestionType.entityUpdate:
+      return Icons.sync;
+    case AISuggestionType.general:
+      return Icons.auto_awesome;
+  }
+}
+
+Color _getSuggestionPriorityColor(AISuggestionPriority priority) {
+  switch (priority) {
+    case AISuggestionPriority.high:
+      return Colors.red;
+    case AISuggestionPriority.medium:
+      return Colors.orange;
+    case AISuggestionPriority.low:
+      return Colors.green;
+  }
+}
+
+/// Get localized label for suggestion type
+String _getSuggestionTypeLabel(AISuggestionType type, WidgetRef ref) {
+  switch (type) {
+    case AISuggestionType.consistency:
+      return ref.tr('suggestion_type_consistency');
+    case AISuggestionType.foreshadowing:
+      return ref.tr('suggestion_type_foreshadowing');
+    case AISuggestionType.characterDevelopment:
+      return ref.tr('suggestion_type_character');
+    case AISuggestionType.plotHole:
+      return ref.tr('suggestion_type_plot_hole');
+    case AISuggestionType.pacing:
+      return ref.tr('suggestion_type_pacing');
+    case AISuggestionType.dialogue:
+      return ref.tr('suggestion_type_dialogue');
+    case AISuggestionType.entityUpdate:
+      return ref.tr('suggestion_type_entity_update');
+    case AISuggestionType.general:
+      return ref.tr('suggestion_type_general');
+  }
+}
+
+/// Get localized label for suggestion priority
+String _getSuggestionPriorityLabel(AISuggestionPriority priority, WidgetRef ref) {
+  switch (priority) {
+    case AISuggestionPriority.high:
+      return ref.tr('priority_high');
+    case AISuggestionPriority.medium:
+      return ref.tr('priority_medium');
+    case AISuggestionPriority.low:
+      return ref.tr('priority_low');
+  }
+}
+
 class SidebarComments extends ConsumerWidget {
   const SidebarComments({super.key});
 
@@ -78,7 +167,7 @@ class SidebarComments extends ConsumerWidget {
               selectedEntity != null
                   ? ref.tr('entity_details')
                   : selectedSuggestion != null
-                      ? selectedSuggestion.typeLabel
+                      ? _getSuggestionTypeLabel(selectedSuggestion.type, ref)
                       : ref.tr('ai_assistant'),
               style: Theme.of(context).textTheme.titleSmall,
             ),
@@ -127,7 +216,14 @@ class SidebarComments extends ConsumerWidget {
                       ? Theme.of(context).colorScheme.primary
                       : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                onPressed: () => ref.read(aiBackgroundAnalysisProvider.notifier).toggle(),
+                onPressed: () {
+                  final wasDisabled = !aiAnalysisEnabled;
+                  ref.read(aiBackgroundAnalysisProvider.notifier).toggle();
+                  // If turning ON, immediately start analysis
+                  if (wasDisabled) {
+                    ref.read(aiSuggestionProvider.notifier).analyzeNow();
+                  }
+                },
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               ),
@@ -261,22 +357,22 @@ class SidebarComments extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _getTypeColor(suggestion.type).withValues(alpha: 0.2),
+                  color: _getSuggestionTypeColor(suggestion.type).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      _getTypeIcon(suggestion.type),
+                      _getSuggestionTypeIcon(suggestion.type),
                       size: 14,
-                      color: _getTypeColor(suggestion.type),
+                      color: _getSuggestionTypeColor(suggestion.type),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      suggestion.typeLabel,
+                      _getSuggestionTypeLabel(suggestion.type, ref),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: _getTypeColor(suggestion.type),
+                        color: _getSuggestionTypeColor(suggestion.type),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -287,13 +383,13 @@ class SidebarComments extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _getPriorityColor(suggestion.priority).withValues(alpha: 0.2),
+                  color: _getSuggestionPriorityColor(suggestion.priority).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  suggestion.priority.name.toUpperCase(),
+                  _getSuggestionPriorityLabel(suggestion.priority, ref),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: _getPriorityColor(suggestion.priority),
+                    color: _getSuggestionPriorityColor(suggestion.priority),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -556,59 +652,6 @@ class SidebarComments extends ConsumerWidget {
     );
   }
 
-  Color _getTypeColor(AISuggestionType type) {
-    switch (type) {
-      case AISuggestionType.consistency:
-        return Colors.orange;
-      case AISuggestionType.foreshadowing:
-        return Colors.purple;
-      case AISuggestionType.characterDevelopment:
-        return Colors.blue;
-      case AISuggestionType.plotHole:
-        return Colors.red;
-      case AISuggestionType.pacing:
-        return Colors.teal;
-      case AISuggestionType.dialogue:
-        return Colors.green;
-      case AISuggestionType.entityUpdate:
-        return Colors.indigo;
-      case AISuggestionType.general:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getTypeIcon(AISuggestionType type) {
-    switch (type) {
-      case AISuggestionType.consistency:
-        return Icons.warning_amber;
-      case AISuggestionType.foreshadowing:
-        return Icons.lightbulb_outline;
-      case AISuggestionType.characterDevelopment:
-        return Icons.person;
-      case AISuggestionType.plotHole:
-        return Icons.error_outline;
-      case AISuggestionType.pacing:
-        return Icons.speed;
-      case AISuggestionType.dialogue:
-        return Icons.chat_bubble_outline;
-      case AISuggestionType.entityUpdate:
-        return Icons.sync;
-      case AISuggestionType.general:
-        return Icons.auto_awesome;
-    }
-  }
-
-  Color _getPriorityColor(AISuggestionPriority priority) {
-    switch (priority) {
-      case AISuggestionPriority.high:
-        return Colors.red;
-      case AISuggestionPriority.medium:
-        return Colors.orange;
-      case AISuggestionPriority.low:
-        return Colors.green;
-    }
-  }
-
   Color _getEntityTypeColor(String typeName) {
     switch (typeName) {
       case 'character':
@@ -683,13 +726,13 @@ class _SuggestionCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: _getTypeColor(suggestion.type).withValues(alpha: 0.2),
+                        color: _getSuggestionTypeColor(suggestion.type).withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
-                        _getTypeIcon(suggestion.type),
+                        _getSuggestionTypeIcon(suggestion.type),
                         size: 16,
-                        color: _getTypeColor(suggestion.type),
+                        color: _getSuggestionTypeColor(suggestion.type),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -730,48 +773,6 @@ class _SuggestionCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _getTypeColor(AISuggestionType type) {
-    switch (type) {
-      case AISuggestionType.consistency:
-        return Colors.orange;
-      case AISuggestionType.foreshadowing:
-        return Colors.purple;
-      case AISuggestionType.characterDevelopment:
-        return Colors.blue;
-      case AISuggestionType.plotHole:
-        return Colors.red;
-      case AISuggestionType.pacing:
-        return Colors.teal;
-      case AISuggestionType.dialogue:
-        return Colors.green;
-      case AISuggestionType.entityUpdate:
-        return Colors.indigo;
-      case AISuggestionType.general:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getTypeIcon(AISuggestionType type) {
-    switch (type) {
-      case AISuggestionType.consistency:
-        return Icons.warning_amber;
-      case AISuggestionType.foreshadowing:
-        return Icons.lightbulb_outline;
-      case AISuggestionType.characterDevelopment:
-        return Icons.person;
-      case AISuggestionType.plotHole:
-        return Icons.error_outline;
-      case AISuggestionType.pacing:
-        return Icons.speed;
-      case AISuggestionType.dialogue:
-        return Icons.chat_bubble_outline;
-      case AISuggestionType.entityUpdate:
-        return Icons.sync;
-      case AISuggestionType.general:
-        return Icons.auto_awesome;
-    }
   }
 }
 

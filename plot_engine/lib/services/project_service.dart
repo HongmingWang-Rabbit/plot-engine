@@ -67,9 +67,21 @@ class ProjectService implements BaseProjectService {
           return false;
         }
 
-        final chapters = await _storage.loadChapters(projectPath);
-        // Sort chapters by order (descending - newest/highest order at top)
-        chapters.sort((a, b) => b.order.compareTo(a.order));
+        var chapters = await _storage.loadChapters(projectPath);
+        // Sort chapters by order (ascending - chapter 1 at top, latest at bottom)
+        chapters.sort((a, b) => a.order.compareTo(b.order));
+
+        // Normalize order values if they're not sequential (e.g., all zeros)
+        final needsNormalization = chapters.length > 1 &&
+            chapters.every((c) => c.order == chapters.first.order);
+        if (needsNormalization) {
+          chapters = chapters.asMap().entries.map((entry) {
+            return entry.value.copyWith(order: entry.key);
+          }).toList();
+          // Save normalized orders
+          await _storage.saveChapters(projectPath, chapters);
+          AppLogger.info('Normalized chapter orders', '${chapters.length} chapters');
+        }
         final knowledgeItems = await _storage.loadKnowledgeBase(projectPath);
         final entities = await _storage.loadEntities(projectPath);
 
@@ -222,10 +234,10 @@ class ProjectService implements BaseProjectService {
     final chapter = chapters.removeAt(oldIndex);
     chapters.insert(newIndex, chapter);
 
-    // Update order field (descending - top item gets highest order)
+    // Update order field (ascending - top item gets order 0)
     final updatedChapters = <Chapter>[];
     for (int i = 0; i < chapters.length; i++) {
-      updatedChapters.add(chapters[i].copyWith(order: chapters.length - 1 - i));
+      updatedChapters.add(chapters[i].copyWith(order: i));
     }
 
     ref.read(chaptersProvider.notifier).setChapters(updatedChapters);

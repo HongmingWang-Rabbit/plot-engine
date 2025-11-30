@@ -12,6 +12,7 @@ import '../../state/settings_state.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/utils/icon_mapper.dart';
 import '../../core/widgets/chapter_card.dart';
+import '../../services/ai_suggestion_service.dart';
 import '../dialogs/entity_metadata_dialog.dart';
 import '../widgets/entity_card.dart';
 
@@ -241,6 +242,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
     final project = ref.watch(projectProvider);
     final chapters = ref.watch(chaptersProvider);
     final currentChapter = ref.watch(currentChapterProvider);
+    final suggestionState = ref.watch(aiSuggestionProvider);
 
     if (project == null) {
       return _buildEmptyState(ref.tr('open_project_to_see_chapters'), Icons.menu_book);
@@ -248,6 +250,13 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
 
     if (chapters.isEmpty) {
       return _buildEmptyState(ref.tr('no_chapters'), Icons.menu_book);
+    }
+
+    // Count suggestions per chapter
+    final suggestionCounts = <String, int>{};
+    for (final suggestion in suggestionState.activeSuggestions) {
+      final chapterId = suggestion.chapterId;
+      suggestionCounts[chapterId] = (suggestionCounts[chapterId] ?? 0) + 1;
     }
 
     return ReorderableListView.builder(
@@ -283,6 +292,7 @@ class _KnowledgePanelState extends ConsumerState<KnowledgePanel> {
           chapter: chapter,
           isSelected: isSelected,
           index: index,
+          suggestionCount: suggestionCounts[chapter.id] ?? 0,
           onTap: () {
             // Open chapter in preview mode
             ref.read(tabStateProvider.notifier).openPreview(chapter);

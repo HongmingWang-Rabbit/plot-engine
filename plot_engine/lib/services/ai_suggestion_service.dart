@@ -13,7 +13,7 @@ const int _minNewContentLength = 200;
 const Duration _debounceDuration = Duration(seconds: 3);
 
 /// Delay before analyzing a newly opened file
-const Duration _newFileAnalysisDelay = Duration(seconds: 5);
+const Duration _newFileAnalysisDelay = Duration(milliseconds: 500);
 
 /// Service that watches content changes and automatically triggers AI analysis
 class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
@@ -196,7 +196,31 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
       );
       print('[AI Suggestion] ✓ Timeline: ${timelineIssues.length} issues');
 
+      // Get chapters list to map indices to titles
+      final chapters = _ref.read(chaptersProvider);
+
       for (final issue in timelineIssues) {
+        // Convert chapter numbers to titles for better readability
+        // Backend sends 1-based chapter numbers, our order field is 0-based
+        final chapterTitles = issue.chapters.map((chapterNum) {
+          // Convert 1-based chapter number to 0-based order
+          final orderIndex = chapterNum - 1;
+
+          // Find chapter by order field
+          final chapter = chapters.where((c) => c.order == orderIndex).firstOrNull;
+          if (chapter != null) {
+            return chapter.title;
+          }
+
+          // Fallback: try by list position
+          if (orderIndex >= 0 && orderIndex < chapters.length) {
+            return chapters[orderIndex].title;
+          }
+
+          // Last fallback: just show "Chapter X"
+          return '${_tr('chapter')} $chapterNum';
+        }).toList();
+
         newSuggestions.add(AISuggestion(
           id: 'timeline_${DateTime.now().millisecondsSinceEpoch}_${newSuggestions.length}',
           type: AISuggestionType.consistency,
@@ -204,7 +228,7 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
           title: _tr('suggestion_timeline_issue'),
           summary: issue.description,
           suggestion: issue.suggestion,
-          details: '${_tr('suggestion_chapters_involved')}: ${issue.chapters.join(", ")}',
+          details: '${_tr('suggestion_chapters_involved')}: ${chapterTitles.join(", ")}',
           chapterId: chapterId,
           createdAt: DateTime.now(),
         ));
