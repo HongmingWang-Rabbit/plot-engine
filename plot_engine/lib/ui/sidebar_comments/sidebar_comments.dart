@@ -662,6 +662,10 @@ class SidebarComments extends ConsumerWidget {
         return Colors.orange.shade100;
       case 'event':
         return Colors.purple.shade100;
+      case 'setting':
+        return Colors.teal.shade100;
+      case 'timeline':
+        return Colors.amber.shade100;
       default:
         return Colors.grey.shade100;
     }

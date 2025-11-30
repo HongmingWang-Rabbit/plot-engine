@@ -66,6 +66,8 @@ const Map<String, String> zh = {
   'locations': '地点',
   'objects': '物品',
   'events': '事件',
+  'settings_tab': '设定',
+  'timeline': '时间线',
   'add_custom_tab': '添加自定义标签',
   'add_item': '添加项目',
   'add_chapter': '添加章节',

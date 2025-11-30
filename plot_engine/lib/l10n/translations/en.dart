@@ -67,6 +67,8 @@ const Map<String, String> en = {
   'locations': 'Locations',
   'objects': 'Objects',
   'events': 'Events',
+  'settings_tab': 'Settings',
+  'timeline': 'Timeline',
   'add_custom_tab': 'Add custom tab',
   'add_item': 'Add item',
   'add_chapter': 'Add chapter',

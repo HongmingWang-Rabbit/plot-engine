@@ -89,6 +89,18 @@ class KnowledgeTab {
         icon: 'category',
         order: 3,
       ),
+      KnowledgeTab(
+        id: 'settings',
+        name: 'Settings',
+        icon: 'tune',
+        order: 4,
+      ),
+      KnowledgeTab(
+        id: 'timeline',
+        name: 'Timeline',
+        icon: 'schedule',
+        order: 5,
+      ),
     ];
   }
 }

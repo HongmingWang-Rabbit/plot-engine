@@ -3,6 +3,8 @@ enum EntityType {
   location,
   object,
   event,
+  setting,
+  timeline,
   custom,
   unknown;
 
@@ -16,6 +18,10 @@ enum EntityType {
         return 'Object';
       case EntityType.event:
         return 'Event';
+      case EntityType.setting:
+        return 'Setting';
+      case EntityType.timeline:
+        return 'Timeline';
       case EntityType.custom:
         return 'Custom';
       case EntityType.unknown:
@@ -33,6 +39,10 @@ enum EntityType {
         return EntityType.object;
       case 'event':
         return EntityType.event;
+      case 'setting':
+        return EntityType.setting;
+      case 'timeline':
+        return EntityType.timeline;
       case 'custom':
         return EntityType.custom;
       default:

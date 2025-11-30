@@ -100,8 +100,12 @@ class EntityCard extends ConsumerWidget {
         return Colors.orange;
       case EntityType.event:
         return Colors.purple;
-      case EntityType.custom:
+      case EntityType.setting:
         return Colors.teal;
+      case EntityType.timeline:
+        return Colors.amber;
+      case EntityType.custom:
+        return Colors.indigo;
       case EntityType.unknown:
         return Colors.grey;
     }
