@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://plot-engine.com/</loc>
+    <lastmod>2025-11-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://plot-engine.com/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://plot-engine.com/?lang=zh"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://plot-engine.com/?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://plot-engine.com/"/>
+  </url>
+
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://plot-engine.com/privacy</loc>
+    <lastmod>2025-11-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Terms of Service -->
+  <url>
+    <loc>https://plot-engine.com/terms</loc>
+    <lastmod>2025-11-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>

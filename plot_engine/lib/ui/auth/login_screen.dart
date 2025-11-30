@@ -209,94 +209,119 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           ),
 
           // Main content
-          Center(
-            child: SingleChildScrollView(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 420),
-                padding: const EdgeInsets.all(32),
-                child: AnimatedBuilder(
-                  animation: _fadeController,
-                  builder: (context, child) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Animated pen/quill logo
-                        FadeTransition(
-                          opacity: _logoFade,
-                          child: _buildAnimatedLogo(),
-                        ),
+          SingleChildScrollView(
+            child: Center(
+              child: AnimatedBuilder(
+                animation: _fadeController,
+                builder: (context, child) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 60),
 
-                        const SizedBox(height: 32),
-
-                        // Title with shimmer effect
-                        FadeTransition(
-                          opacity: _titleFade,
-                          child: ShaderMask(
-                            shaderCallback: (bounds) {
-                              return LinearGradient(
-                                colors: [
-                                  Colors.indigo.shade700,
-                                  Colors.indigo.shade500,
-                                  Colors.purple.shade400,
-                                ],
-                              ).createShader(bounds);
-                            },
-                            child: Text(
-                              'PlotEngine',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .displaySmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    letterSpacing: 1.2,
-                                  ),
+                      // Hero Section
+                      Container(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(
+                          children: [
+                            // Animated pen/quill logo
+                            FadeTransition(
+                              opacity: _logoFade,
+                              child: _buildAnimatedLogo(),
                             ),
-                          ),
-                        ),
 
-                        const SizedBox(height: 12),
+                            const SizedBox(height: 32),
 
-                        // Typewriter subtitle
-                        FadeTransition(
-                          opacity: _subtitleFade,
-                          child: SizedBox(
-                            height: 24,
-                            child: Text(
-                              '$_displayedSubtitle${_displayedSubtitle.length < _fullSubtitle.length ? '|' : ''}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(
-                                    color: Colors.grey[600],
-                                    fontStyle: FontStyle.italic,
-                                  ),
+                            // Title with shimmer effect
+                            FadeTransition(
+                              opacity: _titleFade,
+                              child: ShaderMask(
+                                shaderCallback: (bounds) {
+                                  return LinearGradient(
+                                    colors: [
+                                      Colors.indigo.shade700,
+                                      Colors.indigo.shade500,
+                                      Colors.purple.shade400,
+                                    ],
+                                  ).createShader(bounds);
+                                },
+                                child: Text(
+                                  'PlotEngine',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .displaySmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        letterSpacing: 1.2,
+                                      ),
+                                ),
+                              ),
                             ),
-                          ),
+
+                            const SizedBox(height: 12),
+
+                            // Typewriter subtitle
+                            FadeTransition(
+                              opacity: _subtitleFade,
+                              child: SizedBox(
+                                height: 24,
+                                child: Text(
+                                  '$_displayedSubtitle${_displayedSubtitle.length < _fullSubtitle.length ? '|' : ''}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.copyWith(
+                                        color: Colors.grey[600],
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 48),
+
+                            // Card with sign-in button
+                            SlideTransition(
+                              position: _buttonSlide,
+                              child: FadeTransition(
+                                opacity: _buttonFade,
+                                child: _buildSignInCard(),
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
 
-                        const SizedBox(height: 48),
+                      const SizedBox(height: 60),
 
-                        // Card with sign-in button
-                        SlideTransition(
-                          position: _buttonSlide,
-                          child: FadeTransition(
-                            opacity: _buttonFade,
-                            child: _buildSignInCard(),
-                          ),
-                        ),
+                      // Features Section
+                      FadeTransition(
+                        opacity: _buttonFade,
+                        child: _buildFeaturesSection(),
+                      ),
 
-                        const SizedBox(height: 24),
+                      const SizedBox(height: 60),
 
-                        // Legal links
-                        FadeTransition(
-                          opacity: _buttonFade,
-                          child: _buildLegalLinks(),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                      // Use Cases Section
+                      FadeTransition(
+                        opacity: _buttonFade,
+                        child: _buildUseCasesSection(),
+                      ),
+
+                      const SizedBox(height: 40),
+
+                      // Legal links
+                      FadeTransition(
+                        opacity: _buttonFade,
+                        child: _buildLegalLinks(),
+                      ),
+
+                      const SizedBox(height: 40),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -529,6 +554,262 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       ),
     );
   }
+
+  Widget _buildFeaturesSection() {
+    final features = [
+      _FeatureItem(
+        icon: Icons.auto_awesome,
+        title: 'AI Entity Recognition',
+        description:
+            'Automatically detect and track characters, locations, objects, and events in your story.',
+      ),
+      _FeatureItem(
+        icon: Icons.library_books,
+        title: 'Knowledge Base',
+        description:
+            'Build a comprehensive database of your story world with detailed profiles.',
+      ),
+      _FeatureItem(
+        icon: Icons.fact_check,
+        title: 'Consistency Checking',
+        description:
+            'AI-powered tools help identify inconsistencies in your narrative.',
+      ),
+      _FeatureItem(
+        icon: Icons.edit_document,
+        title: 'Rich Text Editor',
+        description:
+            'Distraction-free editor with multi-chapter support and auto-save.',
+      ),
+      _FeatureItem(
+        icon: Icons.people,
+        title: 'Character Tracking',
+        description:
+            'Keep detailed profiles including aliases, attributes, and relationships.',
+      ),
+      _FeatureItem(
+        icon: Icons.public,
+        title: 'Worldbuilding Tools',
+        description:
+            'Create and organize locations, objects, and events for your story world.',
+      ),
+    ];
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 900),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          Text(
+            'Powerful Features for Writers',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Everything you need to craft compelling stories',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Colors.grey[600],
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  childAspectRatio: constraints.maxWidth > 600 ? 1.1 : 0.95,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                ),
+                itemCount: features.length,
+                itemBuilder: (context, index) {
+                  final feature = features[index];
+                  return _buildFeatureCard(feature);
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureCard(_FeatureItem feature) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.indigo.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.indigo.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              feature.icon,
+              size: 28,
+              color: Colors.indigo.shade600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            feature.title,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[800],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Flexible(
+            child: Text(
+              feature.description,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUseCasesSection() {
+    final useCases = [
+      _UseCaseItem(
+        icon: Icons.menu_book,
+        title: 'Novelists',
+        description: 'Manage complex multi-character narratives',
+      ),
+      _UseCaseItem(
+        icon: Icons.movie,
+        title: 'Screenwriters',
+        description: 'Track characters and plot points across acts',
+      ),
+      _UseCaseItem(
+        icon: Icons.sports_esports,
+        title: 'Game Writers',
+        description: 'Organize branching narratives and world lore',
+      ),
+      _UseCaseItem(
+        icon: Icons.create,
+        title: 'Content Creators',
+        description: 'Build consistent story universes for series',
+      ),
+    ];
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 800),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          Text(
+            'Perfect For',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            alignment: WrapAlignment.center,
+            children: useCases.map((useCase) {
+              return Container(
+                width: 170,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      useCase.icon,
+                      size: 32,
+                      color: Colors.indigo.shade500,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      useCase.title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      useCase.description,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeatureItem {
+  final IconData icon;
+  final String title;
+  final String description;
+
+  const _FeatureItem({
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
+}
+
+class _UseCaseItem {
+  final IconData icon;
+  final String title;
+  final String description;
+
+  const _UseCaseItem({
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
 }
 
 // Custom painter for floating ink particles

@@ -1,13 +1,18 @@
 {
-    "name": "plot_engine",
-    "short_name": "plot_engine",
+    "name": "PlotEngine - AI-Powered Creative Writing Tool",
+    "short_name": "PlotEngine",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Write better stories with AI-powered entity recognition, knowledge base management, and intelligent story assistance. Perfect for novelists, screenwriters, and storytellers.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "categories": ["productivity", "utilities", "education"],
+    "lang": "en-US",
+    "dir": "ltr",
+    "scope": "/",
+    "id": "plot-engine-app",
     "icons": [
         {
             "src": "icons/Icon-192.png",
