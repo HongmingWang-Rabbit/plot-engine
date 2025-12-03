@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Auto Docs & Lint/Format",
+  "description": "Automatically updates documentation (README or internal docs) and runs lint/formatting checks whenever Dart, Markdown, or YAML files are modified to ensure code quality and up-to-date documentation",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.dart",
+      "*.md",
+      "*.yaml",
+      "*.yml"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A file has been edited: {filePath}\n\nPlease perform the following tasks:\n\n1. **Run Linting & Formatting:**\n   - Execute `dart format {filePath}` to format the file\n   - Run `flutter analyze` to check for any issues\n   - Report any warnings or errors found\n\n2. **Update Documentation:**\n   - If a Dart file was changed, check if README.md or relevant documentation needs updates\n   - If new features were added, suggest documentation additions\n   - If API changes occurred, update relevant docs\n   - For changes to models or services, check if CLAUDE.md or other internal docs need updates\n\n3. **Provide Summary:**\n   - List what was formatted/linted\n   - Suggest any documentation updates needed\n   - Highlight any issues that require manual attention\n\nFocus on maintaining code quality and keeping documentation synchronized with code changes."
+  }
+}

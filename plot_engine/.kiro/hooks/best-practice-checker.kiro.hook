@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Best Practice Checker",
+  "description": "Automatically reviews code changes to ensure they follow best practices, are properly modularized, scalable, and non-redundant. Checks against Flutter guidelines, state management patterns, platform compatibility, and project architecture standards.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "lib/**/*.dart"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the changes in this file and check:\n\n1. **Best Practices**:\n   - Are const constructors used where possible?\n   - Are theme colors used instead of hardcoded colors?\n   - Are translations used instead of hardcoded strings?\n   - Is error handling implemented properly?\n   - Are async operations wrapped with ErrorHandler?\n\n2. **Modularity**:\n   - Is the code properly separated into logical components?\n   - Are widgets extracted when they become complex?\n   - Are services used for business logic instead of UI code?\n   - Is the single responsibility principle followed?\n\n3. **Scalability**:\n   - Will this code work well with large datasets?\n   - Are lists using ListView.builder for performance?\n   - Are expensive operations debounced?\n   - Is state management efficient (no unnecessary rebuilds)?\n\n4. **Non-Redundancy**:\n   - Is there duplicate code that could be extracted?\n   - Are there existing utilities/widgets that could be reused?\n   - Is the code DRY (Don't Repeat Yourself)?\n   - Are there similar patterns elsewhere that should be unified?\n\n5. **Platform Compatibility**:\n   - Does the code work on both web and desktop?\n   - Are platform-specific APIs properly guarded with kIsWeb checks?\n   - Are service abstractions used correctly?\n\n6. **State Management**:\n   - Is ref.watch() used in build methods?\n   - Is ref.read() used only in callbacks?\n   - Are StateNotifiers updating state correctly (not mutating)?\n\nProvide specific suggestions for improvements if any issues are found. If the code looks good, confirm it follows best practices."
+  }
+}
