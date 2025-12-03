@@ -16,6 +16,8 @@ import 'services/save_service.dart';
 import 'state/settings_state.dart'; // includes panel visibility & AI analysis toggle providers
 import 'state/app_state.dart';
 import 'config/env_config.dart';
+import 'config/app_themes.dart';
+import 'widgets/halloween_decorations.dart';
 import 'utils/web_url_helper.dart' if (dart.library.io) 'utils/web_url_helper_stub.dart';
 import 'utils/responsive.dart';
 
@@ -50,7 +52,9 @@ class PlotEngineApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint('PlotEngineApp.build() called');
 
-    final themeMode = ref.watch(themeModeProvider);
+    final appTheme = ref.watch(appThemeProvider);
+    debugPrint('appTheme: $appTheme');
+    
     final authUser = ref.watch(authUserProvider);
     debugPrint('authUser: $authUser');
 
@@ -92,31 +96,9 @@ class PlotEngineApp extends ConsumerWidget {
     return MaterialApp(
       title: 'PlotEngine',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        textSelectionTheme: const TextSelectionThemeData(
-          cursorColor: Color(0xFFFF6B00), // Bright orange
-          selectionColor: Color(0x4DFF6B00), // Orange with 30% opacity
-          selectionHandleColor: Color(0xFFFF6B00),
-        ),
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-        textSelectionTheme: const TextSelectionThemeData(
-          cursorColor: Color(0xFF00D4FF), // Bright cyan
-          selectionColor: Color(0x4D00D4FF), // Cyan with 30% opacity
-          selectionHandleColor: Color(0xFF00D4FF),
-        ),
-      ),
-      themeMode: themeMode,
+      theme: AppThemes.getTheme(appTheme),
+      darkTheme: AppThemes.darkTheme,
+      themeMode: appTheme == AppTheme.light ? ThemeMode.light : ThemeMode.dark,
       home: initialScreen,
     );
   }
@@ -160,13 +142,14 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
   Widget build(BuildContext context) {
     final isProjectLoading = ref.watch(projectLoadingProvider);
     final viewport = Responsive.getViewportSize(context);
+    final appTheme = ref.watch(appThemeProvider);
 
     // Update viewport provider for other widgets to use
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(viewportProvider.notifier).update(viewport);
     });
 
-    return Shortcuts(
+    final scaffoldContent = Shortcuts(
       shortcuts: {
         LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyS):
             const SaveIntent(),
@@ -229,6 +212,11 @@ class _PlotEngineHomeState extends ConsumerState<PlotEngineHome> {
         ),
       ),
     );
+
+    // Wrap with Halloween decorations if Halloween theme is active
+    return appTheme == AppTheme.halloween
+        ? HalloweenDecorations(child: scaffoldContent)
+        : scaffoldContent;
   }
 
   Widget _buildResponsiveContent(BuildContext context, ViewportSize viewport) {

@@ -2,50 +2,82 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/responsive.dart';
+import '../config/app_themes.dart';
 
-// Theme mode state
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  ThemeModeNotifier() : super(ThemeMode.system) {
-    _loadThemeMode();
+// Theme state - now supports custom themes including Halloween
+class AppThemeNotifier extends StateNotifier<AppTheme> {
+  AppThemeNotifier() : super(AppTheme.light) {
+    _loadTheme();
   }
 
-  Future<void> _loadThemeMode() async {
-    final prefs = await SharedPreferences.getInstance();
-    final themeModeString = prefs.getString('theme_mode') ?? 'system';
-    state = _themeModeFromString(themeModeString);
-  }
-
-  Future<void> setThemeMode(ThemeMode mode) async {
-    state = mode;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('theme_mode', _themeModeToString(mode));
-  }
-
-  ThemeMode _themeModeFromString(String value) {
-    switch (value) {
-      case 'light':
-        return ThemeMode.light;
-      case 'dark':
-        return ThemeMode.dark;
-      default:
-        return ThemeMode.system;
+  Future<void> _loadTheme() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Check for new theme setting first
+      final themeString = prefs.getString('app_theme');
+      
+      if (themeString != null) {
+        state = _themeFromString(themeString);
+      } else {
+        // Migrate from old theme_mode setting
+        final oldThemeMode = prefs.getString('theme_mode');
+        if (oldThemeMode == 'dark') {
+          state = AppTheme.dark;
+          await prefs.setString('app_theme', 'dark');
+        } else if (oldThemeMode == 'light') {
+          state = AppTheme.light;
+          await prefs.setString('app_theme', 'light');
+        }
+        // If oldThemeMode is 'system' or null, keep default light theme
+      }
+    } catch (e) {
+      // If anything fails, default to light theme
+      state = AppTheme.light;
+      debugPrint('Error loading theme: $e');
     }
   }
 
-  String _themeModeToString(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.light:
+  Future<void> setTheme(AppTheme theme) async {
+    state = theme;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('app_theme', _themeToString(theme));
+  }
+
+  AppTheme _themeFromString(String value) {
+    switch (value) {
+      case 'light':
+        return AppTheme.light;
+      case 'dark':
+        return AppTheme.dark;
+      case 'halloween':
+        return AppTheme.halloween;
+      default:
+        return AppTheme.light;
+    }
+  }
+
+  String _themeToString(AppTheme theme) {
+    switch (theme) {
+      case AppTheme.light:
         return 'light';
-      case ThemeMode.dark:
+      case AppTheme.dark:
         return 'dark';
-      case ThemeMode.system:
-        return 'system';
+      case AppTheme.halloween:
+        return 'halloween';
     }
   }
 }
 
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  return ThemeModeNotifier();
+final appThemeProvider = StateNotifierProvider<AppThemeNotifier, AppTheme>((ref) {
+  return AppThemeNotifier();
+});
+
+// Legacy theme mode provider for backward compatibility
+final themeModeProvider = Provider<ThemeMode>((ref) {
+  final appTheme = ref.watch(appThemeProvider);
+  // Halloween theme uses dark mode base
+  return appTheme == AppTheme.light ? ThemeMode.light : ThemeMode.dark;
 });
 
 // Panel visibility states

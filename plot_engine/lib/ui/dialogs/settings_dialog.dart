@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/settings_state.dart';
+import '../../config/app_themes.dart';
 import '../../l10n/app_localizations.dart';
 
 class SettingsDialog extends ConsumerStatefulWidget {
@@ -13,7 +14,7 @@ class SettingsDialog extends ConsumerStatefulWidget {
 class _SettingsDialogState extends ConsumerState<SettingsDialog> {
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
+    final appTheme = ref.watch(appThemeProvider);
     final currentLanguage = ref.watch(localeProvider);
 
     return Dialog(
@@ -79,25 +80,27 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                         context,
                         ref.tr('theme'),
                         '',
-                        DropdownButton<ThemeMode>(
-                          value: themeMode,
-                          items: [
-                            DropdownMenuItem(
-                              value: ThemeMode.system,
-                              child: Text(ref.tr('system')),
-                            ),
-                            DropdownMenuItem(
-                              value: ThemeMode.light,
-                              child: Text(ref.tr('light')),
-                            ),
-                            DropdownMenuItem(
-                              value: ThemeMode.dark,
-                              child: Text(ref.tr('dark')),
-                            ),
-                          ],
+                        DropdownButton<AppTheme>(
+                          value: appTheme,
+                          items: AppTheme.values
+                              .map((theme) => DropdownMenuItem(
+                                    value: theme,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          AppThemes.getThemeIcon(theme),
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(AppThemes.getThemeName(theme)),
+                                      ],
+                                    ),
+                                  ))
+                              .toList(),
                           onChanged: (value) {
                             if (value != null) {
-                              ref.read(themeModeProvider.notifier).setThemeMode(value);
+                              ref.read(appThemeProvider.notifier).setTheme(value);
                             }
                           },
                         ),
