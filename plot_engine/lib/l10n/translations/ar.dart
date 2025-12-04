@@ -243,4 +243,89 @@ const Map<String, String> ar = {
   'suggestion_pacing': 'اقتراح للإيقاع',
   'suggestion_dialogue': 'ملاحظة حوار',
   'suggestion_writing': 'اقتراح كتابة',
+
+  // Formatting Toolbar
+  'formatting_toolbar': 'شريط أدوات التنسيق',
+  'formatting_toolbar_hint': 'يحتوي على عناصر تحكم تنسيق النص بما في ذلك الغامق والمائل والألوان والمحاذاة والمزيد',
+  'formatting_toolbar_compact_hint': 'يحتوي على عناصر تحكم تنسيق النص الأساسية. استخدم قائمة المزيد من الخيارات للتنسيق الإضافي.',
+  'more_formatting_options': 'المزيد من خيارات التنسيق',
+  'more_formatting_options_hint': 'فتح القائمة مع عناصر تحكم التنسيق الإضافية',
+  'no_formatting': 'بدون تنسيق',
+
+  // Inline Styles
+  'bold': 'غامق',
+  'italic': 'مائل',
+  'underline': 'تسطير',
+  'strikethrough': 'يتوسطه خط',
+  'bold_hint': 'الغامق مطبق حاليًا',
+  'italic_hint': 'المائل مطبق حاليًا',
+  'underline_hint': 'التسطير مطبق حاليًا',
+  'strikethrough_hint': 'يتوسطه خط مطبق حاليًا',
+  'apply_bold': 'تطبيق الغامق',
+  'apply_italic': 'تطبيق المائل',
+  'apply_underline': 'تطبيق التسطير',
+  'apply_strikethrough': 'تطبيق يتوسطه خط',
+
+  // Block Styles
+  'block_style': 'نمط الكتلة',
+  'block_style_selector': 'محدد نمط الكتلة',
+  'block_style_hint': 'النمط الحالي: {style}. حدد لتغيير تنسيق الفقرة.',
+  'change_paragraph_style': 'تغيير نمط الفقرة ({style})',
+  'normal': 'عادي',
+  'heading_1': 'عنوان 1',
+  'heading_2': 'عنوان 2',
+  'heading_3': 'عنوان 3',
+  'block_quote': 'اقتباس',
+
+  // Lists
+  'lists': 'القوائم',
+  'bullet_list': 'قائمة نقطية',
+  'numbered_list': 'قائمة مرقمة',
+  'bullet_list_hint': 'القائمة النقطية مطبقة حاليًا',
+  'numbered_list_hint': 'القائمة المرقمة مطبقة حاليًا',
+  'apply_bullet_list': 'تطبيق القائمة النقطية',
+  'apply_numbered_list': 'تطبيق القائمة المرقمة',
+
+  // Alignment
+  'alignment': 'المحاذاة',
+  'align_left': 'محاذاة لليسار',
+  'align_center': 'محاذاة للوسط',
+  'align_right': 'محاذاة لليمين',
+  'justify': 'ضبط',
+  'align_left_hint': 'محاذاة لليسار مطبقة حاليًا',
+  'align_center_hint': 'محاذاة للوسط مطبقة حاليًا',
+  'align_right_hint': 'محاذاة لليمين مطبقة حاليًا',
+  'justify_hint': 'الضبط مطبق حاليًا',
+  'apply_align_left': 'تطبيق محاذاة لليسار',
+  'apply_align_center': 'تطبيق محاذاة للوسط',
+  'apply_align_right': 'تطبيق محاذاة لليمين',
+  'apply_justify': 'تطبيق الضبط',
+
+  // Colors
+  'text_color': 'لون النص',
+  'highlight_color': 'لون التمييز',
+  'text_color_hint': 'لون النص الحالي: {color}. انقر للتغيير.',
+  'highlight_color_hint': 'لون التمييز الحالي: {color}. انقر للتغيير.',
+  'no_color': 'بدون لون',
+  'choose_color': 'اختر اللون',
+  'custom_color': 'لون مخصص',
+
+  // Font Size
+  'font_size': 'حجم الخط',
+  'font_size_selector': 'محدد حجم الخط',
+  'font_size_hint': 'الحجم الحالي: {size}pt. حدد لتغيير حجم الخط.',
+  'change_font_size': 'تغيير حجم الخط (الحالي: {size}pt)',
+  'increase_font_size': 'زيادة حجم الخط',
+  'decrease_font_size': 'تقليل حجم الخط',
+  'increase_font_size_hint': 'زيادة حجم الخط بمقدار نقطتين. الحالي: {size}pt',
+  'decrease_font_size_hint': 'تقليل حجم الخط بمقدار نقطتين. الحالي: {size}pt',
+  'custom_font_size': 'حجم خط مخصص',
+  'custom_font_size_hint': 'مخصص...',
+  'apply': 'تطبيق',
+  'font_size_error': 'يجب أن يكون حجم الخط بين 6 و 200 نقطة',
+
+  // Clear Formatting
+  'clear_formatting': 'مسح التنسيق',
+  'clear_formatting_hint': 'إزالة كل التنسيق من النص المحدد مع الحفاظ على الكيانات',
+  'clear_formatting_disabled_hint': 'حدد النص لمسح التنسيق',
 };

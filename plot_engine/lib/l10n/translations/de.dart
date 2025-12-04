@@ -243,4 +243,89 @@ const Map<String, String> de = {
   'suggestion_pacing': 'Tempo-Vorschlag',
   'suggestion_dialogue': 'Dialog-Hinweis',
   'suggestion_writing': 'Schreibvorschlag',
+
+  // Formatting Toolbar
+  'formatting_toolbar': 'Formatierungssymbolleiste',
+  'formatting_toolbar_hint': 'Enthält Textformatierungssteuerelemente einschließlich Fett, Kursiv, Farben, Ausrichtung und mehr',
+  'formatting_toolbar_compact_hint': 'Enthält wesentliche Textformatierungssteuerelemente. Verwenden Sie das Menü für weitere Optionen für zusätzliche Formatierung.',
+  'more_formatting_options': 'Weitere Formatierungsoptionen',
+  'more_formatting_options_hint': 'Menü mit zusätzlichen Formatierungssteuerungen öffnen',
+  'no_formatting': 'Keine Formatierung',
+
+  // Inline Styles
+  'bold': 'Fett',
+  'italic': 'Kursiv',
+  'underline': 'Unterstrichen',
+  'strikethrough': 'Durchgestrichen',
+  'bold_hint': 'Fett ist derzeit angewendet',
+  'italic_hint': 'Kursiv ist derzeit angewendet',
+  'underline_hint': 'Unterstrichen ist derzeit angewendet',
+  'strikethrough_hint': 'Durchgestrichen ist derzeit angewendet',
+  'apply_bold': 'Fett anwenden',
+  'apply_italic': 'Kursiv anwenden',
+  'apply_underline': 'Unterstrichen anwenden',
+  'apply_strikethrough': 'Durchgestrichen anwenden',
+
+  // Block Styles
+  'block_style': 'Blockstil',
+  'block_style_selector': 'Blockstil-Auswahl',
+  'block_style_hint': 'Aktueller Stil: {style}. Auswählen, um Absatzformatierung zu ändern.',
+  'change_paragraph_style': 'Absatzstil ändern ({style})',
+  'normal': 'Normal',
+  'heading_1': 'Überschrift 1',
+  'heading_2': 'Überschrift 2',
+  'heading_3': 'Überschrift 3',
+  'block_quote': 'Blockzitat',
+
+  // Lists
+  'lists': 'Listen',
+  'bullet_list': 'Aufzählungsliste',
+  'numbered_list': 'Nummerierte Liste',
+  'bullet_list_hint': 'Aufzählungsliste ist derzeit angewendet',
+  'numbered_list_hint': 'Nummerierte Liste ist derzeit angewendet',
+  'apply_bullet_list': 'Aufzählungsliste anwenden',
+  'apply_numbered_list': 'Nummerierte Liste anwenden',
+
+  // Alignment
+  'alignment': 'Ausrichtung',
+  'align_left': 'Linksbündig',
+  'align_center': 'Zentriert',
+  'align_right': 'Rechtsbündig',
+  'justify': 'Blocksatz',
+  'align_left_hint': 'Linksbündig ist derzeit angewendet',
+  'align_center_hint': 'Zentriert ist derzeit angewendet',
+  'align_right_hint': 'Rechtsbündig ist derzeit angewendet',
+  'justify_hint': 'Blocksatz ist derzeit angewendet',
+  'apply_align_left': 'Linksbündig anwenden',
+  'apply_align_center': 'Zentriert anwenden',
+  'apply_align_right': 'Rechtsbündig anwenden',
+  'apply_justify': 'Blocksatz anwenden',
+
+  // Colors
+  'text_color': 'Textfarbe',
+  'highlight_color': 'Hervorhebungsfarbe',
+  'text_color_hint': 'Aktuelle Textfarbe: {color}. Klicken zum Ändern.',
+  'highlight_color_hint': 'Aktuelle Hervorhebungsfarbe: {color}. Klicken zum Ändern.',
+  'no_color': 'Keine Farbe',
+  'choose_color': 'Farbe wählen',
+  'custom_color': 'Benutzerdefinierte Farbe',
+
+  // Font Size
+  'font_size': 'Schriftgröße',
+  'font_size_selector': 'Schriftgrößen-Auswahl',
+  'font_size_hint': 'Aktuelle Größe: {size}pt. Auswählen, um Schriftgröße zu ändern.',
+  'change_font_size': 'Schriftgröße ändern (Aktuell: {size}pt)',
+  'increase_font_size': 'Schriftgröße erhöhen',
+  'decrease_font_size': 'Schriftgröße verringern',
+  'increase_font_size_hint': 'Schriftgröße um 2 Punkte erhöhen. Aktuell: {size}pt',
+  'decrease_font_size_hint': 'Schriftgröße um 2 Punkte verringern. Aktuell: {size}pt',
+  'custom_font_size': 'Benutzerdefinierte Schriftgröße',
+  'custom_font_size_hint': 'Benutzerdefiniert...',
+  'apply': 'Anwenden',
+  'font_size_error': 'Schriftgröße muss zwischen 6 und 200 Punkten liegen',
+
+  // Clear Formatting
+  'clear_formatting': 'Formatierung löschen',
+  'clear_formatting_hint': 'Alle Formatierungen aus dem ausgewählten Text entfernen, während Entitäten erhalten bleiben',
+  'clear_formatting_disabled_hint': 'Text auswählen, um Formatierung zu löschen',
 };

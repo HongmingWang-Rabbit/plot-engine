@@ -8,6 +8,8 @@ import '../../state/app_state.dart';
 import '../../services/save_service.dart';
 import '../../services/entity_attribution_service.dart';
 import '../../services/ai_suggestion_service.dart';
+import '../../services/formatted_content_serializer.dart';
+import '../../services/formatting_commands.dart';
 import '../../core/services/chapter_coordinator.dart';
 import '../../widgets/entity_tooltip_overlay.dart';
 import '../../screens/entity_detail_screen.dart';
@@ -15,6 +17,8 @@ import '../../l10n/app_localizations.dart';
 import 'editor_tab_bar.dart';
 import 'editor_config.dart';
 import 'ai_input_bar.dart';
+import 'formatting_toolbar.dart';
+import 'dart:convert';
 
 class EditorPanel extends ConsumerStatefulWidget {
   const EditorPanel({super.key});
@@ -49,6 +53,8 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     _autoSaveTimer?.cancel();
     _attributionTimer?.cancel();
     _attributionService.dispose();
+    _document.removeListener(_onDocumentChangedForPendingStyles);
+    _composer.selectionNotifier.removeListener(_onSelectionChangedForPendingStyles);
     _composer.dispose();
     super.dispose();
   }
@@ -67,10 +73,72 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
           : _parseContentToNodes(content),
     );
     _composer = MutableDocumentComposer();
-    _editor = createDefaultDocumentEditor(document: _document, composer: _composer);
+    _editor = _createEditorWithFormattingSupport();
 
     _attributionService.applyToDocument(_document);
     _setupTimers();
+    _setupPendingStylesHandler();
+  }
+
+  /// Creates an editor with custom formatting request handlers
+  Editor _createEditorWithFormattingSupport() {
+    return Editor(
+      editables: {
+        Editor.documentKey: _document,
+        Editor.composerKey: _composer,
+      },
+      requestHandlers: [
+        // Add our custom formatting handlers first
+        ...formattingRequestHandlers,
+        // Then include all default handlers
+        ...defaultRequestHandlers,
+      ],
+      reactionPipeline: List.from(defaultEditorReactions),
+    );
+  }
+  
+  DocumentSelection? _lastSelectionForPendingStyles;
+  
+  void _setupPendingStylesHandler() {
+    // Listen to document changes to apply pending styles
+    _document.addListener(_onDocumentChangedForPendingStyles);
+    _composer.selectionNotifier.addListener(_onSelectionChangedForPendingStyles);
+  }
+  
+  void _onSelectionChangedForPendingStyles() {
+    _lastSelectionForPendingStyles = _composer.selection;
+  }
+  
+  void _onDocumentChangedForPendingStyles(DocumentChangeLog changeLog) {
+    final pendingStyles = ref.read(pendingStylesProvider);
+    if (pendingStyles.isEmpty) {
+      return;
+    }
+    
+    final currentSelection = _composer.selection;
+    if (currentSelection == null || !currentSelection.isCollapsed) {
+      return;
+    }
+    
+    // Check if text was inserted (selection moved forward)
+    if (_lastSelectionForPendingStyles != null &&
+        _lastSelectionForPendingStyles!.extent.nodeId == currentSelection.extent.nodeId) {
+      final lastOffset = (_lastSelectionForPendingStyles!.extent.nodePosition as TextNodePosition).offset;
+      final currentOffset = (currentSelection.extent.nodePosition as TextNodePosition).offset;
+      
+      if (currentOffset > lastOffset) {
+        // Text was inserted, apply pending styles
+        final node = _document.getNodeById(currentSelection.extent.nodeId);
+        if (node is TextNode) {
+          final range = SpanRange(lastOffset, currentOffset - 1);
+          for (final style in pendingStyles) {
+            node.text.addAttribution(style, range);
+          }
+        }
+      }
+    }
+    
+    _lastSelectionForPendingStyles = currentSelection;
   }
 
   void _setupTimers() {
@@ -79,8 +147,9 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
 
     _attributionTimer?.cancel();
     _attributionTimer = Timer.periodic(EditorConfig.attributionUpdateInterval, (_) {
+      // Apply attributions without calling setState - the document listener
+      // and _onAIEntitiesExtracted will handle UI updates when needed
       _attributionService.applyToDocument(_document);
-      setState(() {});
     });
   }
 
@@ -88,12 +157,69 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
     if (content.isEmpty) {
       return [ParagraphNode(id: Editor.createNodeId(), text: AttributedText(''))];
     }
-    return content.split('\n').map((line) {
-      return ParagraphNode(id: Editor.createNodeId(), text: AttributedText(line));
-    }).toList();
+    
+    // Try to parse as JSON with formatting
+    try {
+      final json = jsonDecode(content) as Map<String, dynamic>;
+      return FormattedContentSerializer.deserializeDocument(json);
+    } catch (e) {
+      // If JSON parsing fails, treat as plain text (legacy format)
+      print('[Editor] Content is not JSON, treating as plain text: $e');
+      return content.split('\n').map((line) {
+        return ParagraphNode(id: Editor.createNodeId(), text: AttributedText(line));
+      }).toList();
+    }
   }
 
   String _getDocumentContent() {
+    // Serialize document with all formatting preserved
+    final json = FormattedContentSerializer.serializeDocument(_document);
+    return jsonEncode(json);
+  }
+
+  void _autoSave() {
+    final activeTab = ref.read(tabStateProvider).activeTab;
+    if (activeTab == null) return;
+
+    if (activeTab.type == TabContentType.chapter && activeTab.chapter != null) {
+      final content = _getDocumentContent();
+      
+      // Check if content has actually changed
+      // We need to compare the actual document structure, not just the JSON strings
+      bool hasChanged = false;
+      try {
+        final currentJson = jsonDecode(content) as Map<String, dynamic>;
+        final savedJson = jsonDecode(activeTab.chapter!.content) as Map<String, dynamic>;
+        hasChanged = jsonEncode(currentJson) != jsonEncode(savedJson);
+      } catch (e) {
+        // If either is not valid JSON, do a simple string comparison
+        hasChanged = content != activeTab.chapter!.content;
+      }
+      
+      if (hasChanged) {
+        print('[Editor] Content changed, auto-saving...');
+        if (activeTab.isPreview) {
+          ref.read(tabStateProvider.notifier).makeTabPermanent(activeTab.chapter!.id);
+        }
+        ref.read(chapterCoordinatorProvider).updateContent(activeTab.chapter!.id, content);
+
+        // Trigger AI suggestion analysis in background
+        // Extract plain text for AI analysis
+        final plainText = _getPlainTextContent();
+        final project = ref.read(projectProvider);
+        if (project != null) {
+          ref.read(aiSuggestionProvider.notifier).onContentChanged(
+            plainText,
+            activeTab.chapter!.id,
+            project.id,
+          );
+        }
+      }
+    }
+  }
+  
+  /// Get plain text content for AI analysis (without formatting)
+  String _getPlainTextContent() {
     final buffer = StringBuffer();
     final nodeCount = _document.nodeCount;
 
@@ -105,32 +231,6 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
       }
     }
     return buffer.toString();
-  }
-
-  void _autoSave() {
-    final activeTab = ref.read(tabStateProvider).activeTab;
-    if (activeTab == null) return;
-
-    if (activeTab.type == TabContentType.chapter && activeTab.chapter != null) {
-      final content = _getDocumentContent();
-      if (content != activeTab.chapter!.content) {
-        print('[Editor] Content changed, auto-saving...');
-        if (activeTab.isPreview) {
-          ref.read(tabStateProvider.notifier).makeTabPermanent(activeTab.chapter!.id);
-        }
-        ref.read(chapterCoordinatorProvider).updateContent(activeTab.chapter!.id, content);
-
-        // Trigger AI suggestion analysis in background
-        final project = ref.read(projectProvider);
-        if (project != null) {
-          ref.read(aiSuggestionProvider.notifier).onContentChanged(
-            content,
-            activeTab.chapter!.id,
-            project.id,
-          );
-        }
-      }
-    }
   }
 
   Future<void> _saveCurrentTab() async {
@@ -214,6 +314,12 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
         children: [
           const EditorTabBar(),
           _EditorToolbar(activeTab: activeTab, onSave: _saveCurrentTab),
+          // Show formatting toolbar only for chapter tabs
+          if (isChapterTab)
+            FormattingToolbar(
+              editor: _editor,
+              composer: _composer,
+            ),
           Expanded(child: _buildContent(context, activeTab)),
           // AI Input bar for user-initiated AI actions
           if (isChapterTab)
@@ -270,7 +376,7 @@ class _EditorPanelState extends ConsumerState<EditorPanel> {
           caretStyle: EditorStylesheetFactory.createCaretStyle(context),
         ),
       ],
-      keyboardActions: defaultKeyboardActions,
+      keyboardActions: EditorStylesheetFactory.createKeyboardActions(),
     );
   }
 }

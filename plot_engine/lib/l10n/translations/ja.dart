@@ -243,4 +243,89 @@ const Map<String, String> ja = {
   'suggestion_pacing': 'ペースの提案',
   'suggestion_dialogue': '対話のメモ',
   'suggestion_writing': '執筆の提案',
+
+  // Formatting Toolbar
+  'formatting_toolbar': '書式設定ツールバー',
+  'formatting_toolbar_hint': '太字、斜体、色、配置などのテキスト書式設定コントロールが含まれています',
+  'formatting_toolbar_compact_hint': '基本的なテキスト書式設定コントロールが含まれています。追加の書式設定にはその他のオプションメニューを使用してください。',
+  'more_formatting_options': 'その他の書式設定オプション',
+  'more_formatting_options_hint': '追加の書式設定コントロールを含むメニューを開く',
+  'no_formatting': '書式設定なし',
+
+  // Inline Styles
+  'bold': '太字',
+  'italic': '斜体',
+  'underline': '下線',
+  'strikethrough': '取り消し線',
+  'bold_hint': '太字が現在適用されています',
+  'italic_hint': '斜体が現在適用されています',
+  'underline_hint': '下線が現在適用されています',
+  'strikethrough_hint': '取り消し線が現在適用されています',
+  'apply_bold': '太字を適用',
+  'apply_italic': '斜体を適用',
+  'apply_underline': '下線を適用',
+  'apply_strikethrough': '取り消し線を適用',
+
+  // Block Styles
+  'block_style': 'ブロックスタイル',
+  'block_style_selector': 'ブロックスタイルセレクター',
+  'block_style_hint': '現在のスタイル：{style}。段落の書式を変更するには選択してください。',
+  'change_paragraph_style': '段落スタイルを変更（{style}）',
+  'normal': '標準',
+  'heading_1': '見出し1',
+  'heading_2': '見出し2',
+  'heading_3': '見出し3',
+  'block_quote': '引用',
+
+  // Lists
+  'lists': 'リスト',
+  'bullet_list': '箇条書きリスト',
+  'numbered_list': '番号付きリスト',
+  'bullet_list_hint': '箇条書きリストが現在適用されています',
+  'numbered_list_hint': '番号付きリストが現在適用されています',
+  'apply_bullet_list': '箇条書きリストを適用',
+  'apply_numbered_list': '番号付きリストを適用',
+
+  // Alignment
+  'alignment': '配置',
+  'align_left': '左揃え',
+  'align_center': '中央揃え',
+  'align_right': '右揃え',
+  'justify': '両端揃え',
+  'align_left_hint': '左揃えが現在適用されています',
+  'align_center_hint': '中央揃えが現在適用されています',
+  'align_right_hint': '右揃えが現在適用されています',
+  'justify_hint': '両端揃えが現在適用されています',
+  'apply_align_left': '左揃えを適用',
+  'apply_align_center': '中央揃えを適用',
+  'apply_align_right': '右揃えを適用',
+  'apply_justify': '両端揃えを適用',
+
+  // Colors
+  'text_color': 'テキストの色',
+  'highlight_color': 'ハイライトの色',
+  'text_color_hint': '現在のテキストの色：{color}。クリックして変更します。',
+  'highlight_color_hint': '現在のハイライトの色：{color}。クリックして変更します。',
+  'no_color': '色なし',
+  'choose_color': '色を選択',
+  'custom_color': 'カスタムカラー',
+
+  // Font Size
+  'font_size': 'フォントサイズ',
+  'font_size_selector': 'フォントサイズセレクター',
+  'font_size_hint': '現在のサイズ：{size}pt。フォントサイズを変更するには選択してください。',
+  'change_font_size': 'フォントサイズを変更（現在：{size}pt）',
+  'increase_font_size': 'フォントサイズを大きくする',
+  'decrease_font_size': 'フォントサイズを小さくする',
+  'increase_font_size_hint': 'フォントサイズを2ポイント大きくします。現在：{size}pt',
+  'decrease_font_size_hint': 'フォントサイズを2ポイント小さくします。現在：{size}pt',
+  'custom_font_size': 'カスタムフォントサイズ',
+  'custom_font_size_hint': 'カスタム...',
+  'apply': '適用',
+  'font_size_error': 'フォントサイズは6から200ポイントの間である必要があります',
+
+  // Clear Formatting
+  'clear_formatting': '書式をクリア',
+  'clear_formatting_hint': 'エンティティを保持しながら、選択したテキストからすべての書式を削除します',
+  'clear_formatting_disabled_hint': '書式をクリアするにはテキストを選択してください',
 };

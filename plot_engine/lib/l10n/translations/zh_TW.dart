@@ -243,4 +243,89 @@ const Map<String, String> zhTW = {
   'suggestion_pacing': '節奏建議',
   'suggestion_dialogue': '對話提示',
   'suggestion_writing': '寫作建議',
+
+  // Formatting Toolbar
+  'formatting_toolbar': '格式工具列',
+  'formatting_toolbar_hint': '包含文字格式控制項，包括粗體、斜體、顏色、對齊等',
+  'formatting_toolbar_compact_hint': '包含基本文字格式控制項。使用更多選項選單取得其他格式。',
+  'more_formatting_options': '更多格式選項',
+  'more_formatting_options_hint': '開啟包含其他格式控制項的選單',
+  'no_formatting': '無格式',
+
+  // Inline Styles
+  'bold': '粗體',
+  'italic': '斜體',
+  'underline': '底線',
+  'strikethrough': '刪除線',
+  'bold_hint': '粗體已套用',
+  'italic_hint': '斜體已套用',
+  'underline_hint': '底線已套用',
+  'strikethrough_hint': '刪除線已套用',
+  'apply_bold': '套用粗體',
+  'apply_italic': '套用斜體',
+  'apply_underline': '套用底線',
+  'apply_strikethrough': '套用刪除線',
+
+  // Block Styles
+  'block_style': '區塊樣式',
+  'block_style_selector': '區塊樣式選擇器',
+  'block_style_hint': '目前樣式：{style}。選擇以變更段落格式。',
+  'change_paragraph_style': '變更段落樣式（{style}）',
+  'normal': '正常',
+  'heading_1': '標題 1',
+  'heading_2': '標題 2',
+  'heading_3': '標題 3',
+  'block_quote': '引用區塊',
+
+  // Lists
+  'lists': '清單',
+  'bullet_list': '項目符號清單',
+  'numbered_list': '編號清單',
+  'bullet_list_hint': '項目符號清單已套用',
+  'numbered_list_hint': '編號清單已套用',
+  'apply_bullet_list': '套用項目符號清單',
+  'apply_numbered_list': '套用編號清單',
+
+  // Alignment
+  'alignment': '對齊',
+  'align_left': '靠左對齊',
+  'align_center': '置中對齊',
+  'align_right': '靠右對齊',
+  'justify': '左右對齊',
+  'align_left_hint': '靠左對齊已套用',
+  'align_center_hint': '置中對齊已套用',
+  'align_right_hint': '靠右對齊已套用',
+  'justify_hint': '左右對齊已套用',
+  'apply_align_left': '套用靠左對齊',
+  'apply_align_center': '套用置中對齊',
+  'apply_align_right': '套用靠右對齊',
+  'apply_justify': '套用左右對齊',
+
+  // Colors
+  'text_color': '文字顏色',
+  'highlight_color': '醒目提示顏色',
+  'text_color_hint': '目前文字顏色：{color}。點擊以變更。',
+  'highlight_color_hint': '目前醒目提示顏色：{color}。點擊以變更。',
+  'no_color': '無顏色',
+  'choose_color': '選擇顏色',
+  'custom_color': '自訂顏色',
+
+  // Font Size
+  'font_size': '字型大小',
+  'font_size_selector': '字型大小選擇器',
+  'font_size_hint': '目前大小：{size}pt。選擇以變更字型大小。',
+  'change_font_size': '變更字型大小（目前：{size}pt）',
+  'increase_font_size': '增大字型',
+  'decrease_font_size': '減小字型',
+  'increase_font_size_hint': '增大字型 2 點。目前：{size}pt',
+  'decrease_font_size_hint': '減小字型 2 點。目前：{size}pt',
+  'custom_font_size': '自訂字型大小',
+  'custom_font_size_hint': '自訂...',
+  'apply': '套用',
+  'font_size_error': '字型大小必須在 6 到 200 點之間',
+
+  // Clear Formatting
+  'clear_formatting': '清除格式',
+  'clear_formatting_hint': '移除所選文字的所有格式，同時保留實體',
+  'clear_formatting_disabled_hint': '選擇文字以清除格式',
 };

@@ -243,4 +243,89 @@ const Map<String, String> it = {
   'suggestion_pacing': 'Suggerimento di Ritmo',
   'suggestion_dialogue': 'Nota di Dialogo',
   'suggestion_writing': 'Suggerimento di Scrittura',
+
+  // Formatting Toolbar
+  'formatting_toolbar': 'Barra degli strumenti di formattazione',
+  'formatting_toolbar_hint': 'Contiene controlli di formattazione del testo inclusi grassetto, corsivo, colori, allineamento e altro',
+  'formatting_toolbar_compact_hint': 'Contiene controlli essenziali di formattazione del testo. Usa il menu opzioni aggiuntive per ulteriore formattazione.',
+  'more_formatting_options': 'Più opzioni di formattazione',
+  'more_formatting_options_hint': 'Apri menu con controlli di formattazione aggiuntivi',
+  'no_formatting': 'Nessuna formattazione',
+
+  // Inline Styles
+  'bold': 'Grassetto',
+  'italic': 'Corsivo',
+  'underline': 'Sottolineato',
+  'strikethrough': 'Barrato',
+  'bold_hint': 'Grassetto è attualmente applicato',
+  'italic_hint': 'Corsivo è attualmente applicato',
+  'underline_hint': 'Sottolineato è attualmente applicato',
+  'strikethrough_hint': 'Barrato è attualmente applicato',
+  'apply_bold': 'Applica Grassetto',
+  'apply_italic': 'Applica Corsivo',
+  'apply_underline': 'Applica Sottolineato',
+  'apply_strikethrough': 'Applica Barrato',
+
+  // Block Styles
+  'block_style': 'Stile di blocco',
+  'block_style_selector': 'Selettore di stile di blocco',
+  'block_style_hint': 'Stile attuale: {style}. Seleziona per cambiare formattazione paragrafo.',
+  'change_paragraph_style': 'Cambia stile paragrafo ({style})',
+  'normal': 'Normale',
+  'heading_1': 'Titolo 1',
+  'heading_2': 'Titolo 2',
+  'heading_3': 'Titolo 3',
+  'block_quote': 'Citazione',
+
+  // Lists
+  'lists': 'Elenchi',
+  'bullet_list': 'Elenco puntato',
+  'numbered_list': 'Elenco numerato',
+  'bullet_list_hint': 'Elenco puntato è attualmente applicato',
+  'numbered_list_hint': 'Elenco numerato è attualmente applicato',
+  'apply_bullet_list': 'Applica Elenco puntato',
+  'apply_numbered_list': 'Applica Elenco numerato',
+
+  // Alignment
+  'alignment': 'Allineamento',
+  'align_left': 'Allinea a sinistra',
+  'align_center': 'Centra',
+  'align_right': 'Allinea a destra',
+  'justify': 'Giustifica',
+  'align_left_hint': 'Allinea a sinistra è attualmente applicato',
+  'align_center_hint': 'Centra è attualmente applicato',
+  'align_right_hint': 'Allinea a destra è attualmente applicato',
+  'justify_hint': 'Giustifica è attualmente applicato',
+  'apply_align_left': 'Applica Allinea a sinistra',
+  'apply_align_center': 'Applica Centra',
+  'apply_align_right': 'Applica Allinea a destra',
+  'apply_justify': 'Applica Giustifica',
+
+  // Colors
+  'text_color': 'Colore testo',
+  'highlight_color': 'Colore evidenziazione',
+  'text_color_hint': 'Colore testo attuale: {color}. Clicca per cambiare.',
+  'highlight_color_hint': 'Colore evidenziazione attuale: {color}. Clicca per cambiare.',
+  'no_color': 'Nessun colore',
+  'choose_color': 'Scegli colore',
+  'custom_color': 'Colore personalizzato',
+
+  // Font Size
+  'font_size': 'Dimensione carattere',
+  'font_size_selector': 'Selettore dimensione carattere',
+  'font_size_hint': 'Dimensione attuale: {size}pt. Seleziona per cambiare dimensione carattere.',
+  'change_font_size': 'Cambia dimensione carattere (Attuale: {size}pt)',
+  'increase_font_size': 'Aumenta dimensione carattere',
+  'decrease_font_size': 'Diminuisci dimensione carattere',
+  'increase_font_size_hint': 'Aumenta dimensione carattere di 2 punti. Attuale: {size}pt',
+  'decrease_font_size_hint': 'Diminuisci dimensione carattere di 2 punti. Attuale: {size}pt',
+  'custom_font_size': 'Dimensione carattere personalizzata',
+  'custom_font_size_hint': 'Personalizzata...',
+  'apply': 'Applica',
+  'font_size_error': 'La dimensione del carattere deve essere tra 6 e 200 punti',
+
+  // Clear Formatting
+  'clear_formatting': 'Cancella formattazione',
+  'clear_formatting_hint': 'Rimuovi tutta la formattazione dal testo selezionato preservando le entità',
+  'clear_formatting_disabled_hint': 'Seleziona testo per cancellare formattazione',
 };

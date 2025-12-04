@@ -246,4 +246,89 @@ const Map<String, String> fr = {
   'suggestion_pacing': 'Suggestion de Rythme',
   'suggestion_dialogue': 'Note de Dialogue',
   'suggestion_writing': 'Suggestion d\'Écriture',
+
+  // Formatting Toolbar
+  'formatting_toolbar': 'Barre d\'outils de formatage',
+  'formatting_toolbar_hint': 'Contient les contrôles de formatage de texte, y compris gras, italique, couleurs, alignement, etc.',
+  'formatting_toolbar_compact_hint': 'Contient les contrôles de formatage de texte essentiels. Utilisez le menu d\'options supplémentaires pour plus de formatage.',
+  'more_formatting_options': 'Plus d\'options de formatage',
+  'more_formatting_options_hint': 'Ouvrir le menu avec des contrôles de formatage supplémentaires',
+  'no_formatting': 'Aucun formatage',
+
+  // Inline Styles
+  'bold': 'Gras',
+  'italic': 'Italique',
+  'underline': 'Souligné',
+  'strikethrough': 'Barré',
+  'bold_hint': 'Gras est actuellement appliqué',
+  'italic_hint': 'Italique est actuellement appliqué',
+  'underline_hint': 'Souligné est actuellement appliqué',
+  'strikethrough_hint': 'Barré est actuellement appliqué',
+  'apply_bold': 'Appliquer Gras',
+  'apply_italic': 'Appliquer Italique',
+  'apply_underline': 'Appliquer Souligné',
+  'apply_strikethrough': 'Appliquer Barré',
+
+  // Block Styles
+  'block_style': 'Style de bloc',
+  'block_style_selector': 'Sélecteur de style de bloc',
+  'block_style_hint': 'Style actuel : {style}. Sélectionner pour changer le formatage du paragraphe.',
+  'change_paragraph_style': 'Changer le style de paragraphe ({style})',
+  'normal': 'Normal',
+  'heading_1': 'Titre 1',
+  'heading_2': 'Titre 2',
+  'heading_3': 'Titre 3',
+  'block_quote': 'Citation',
+
+  // Lists
+  'lists': 'Listes',
+  'bullet_list': 'Liste à puces',
+  'numbered_list': 'Liste numérotée',
+  'bullet_list_hint': 'Liste à puces est actuellement appliquée',
+  'numbered_list_hint': 'Liste numérotée est actuellement appliquée',
+  'apply_bullet_list': 'Appliquer Liste à puces',
+  'apply_numbered_list': 'Appliquer Liste numérotée',
+
+  // Alignment
+  'alignment': 'Alignement',
+  'align_left': 'Aligner à gauche',
+  'align_center': 'Centrer',
+  'align_right': 'Aligner à droite',
+  'justify': 'Justifier',
+  'align_left_hint': 'Aligner à gauche est actuellement appliqué',
+  'align_center_hint': 'Centrer est actuellement appliqué',
+  'align_right_hint': 'Aligner à droite est actuellement appliqué',
+  'justify_hint': 'Justifier est actuellement appliqué',
+  'apply_align_left': 'Appliquer Aligner à gauche',
+  'apply_align_center': 'Appliquer Centrer',
+  'apply_align_right': 'Appliquer Aligner à droite',
+  'apply_justify': 'Appliquer Justifier',
+
+  // Colors
+  'text_color': 'Couleur du texte',
+  'highlight_color': 'Couleur de surbrillance',
+  'text_color_hint': 'Couleur du texte actuelle : {color}. Cliquer pour changer.',
+  'highlight_color_hint': 'Couleur de surbrillance actuelle : {color}. Cliquer pour changer.',
+  'no_color': 'Aucune couleur',
+  'choose_color': 'Choisir une couleur',
+  'custom_color': 'Couleur personnalisée',
+
+  // Font Size
+  'font_size': 'Taille de police',
+  'font_size_selector': 'Sélecteur de taille de police',
+  'font_size_hint': 'Taille actuelle : {size}pt. Sélectionner pour changer la taille de police.',
+  'change_font_size': 'Changer la taille de police (Actuelle : {size}pt)',
+  'increase_font_size': 'Augmenter la taille de police',
+  'decrease_font_size': 'Diminuer la taille de police',
+  'increase_font_size_hint': 'Augmenter la taille de police de 2 points. Actuelle : {size}pt',
+  'decrease_font_size_hint': 'Diminuer la taille de police de 2 points. Actuelle : {size}pt',
+  'custom_font_size': 'Taille de police personnalisée',
+  'custom_font_size_hint': 'Personnalisée...',
+  'apply': 'Appliquer',
+  'font_size_error': 'La taille de police doit être comprise entre 6 et 200 points',
+
+  // Clear Formatting
+  'clear_formatting': 'Effacer le formatage',
+  'clear_formatting_hint': 'Supprimer tout le formatage du texte sélectionné tout en préservant les entités',
+  'clear_formatting_disabled_hint': 'Sélectionner du texte pour effacer le formatage',
 };

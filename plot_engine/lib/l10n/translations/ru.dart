@@ -243,4 +243,89 @@ const Map<String, String> ru = {
   'suggestion_pacing': 'Предложение по темпу',
   'suggestion_dialogue': 'Заметка о диалоге',
   'suggestion_writing': 'Предложение по написанию',
+
+  // Formatting Toolbar
+  'formatting_toolbar': 'Панель форматирования',
+  'formatting_toolbar_hint': 'Содержит элементы управления форматированием текста, включая жирный, курсив, цвета, выравнивание и другое',
+  'formatting_toolbar_compact_hint': 'Содержит основные элементы управления форматированием текста. Используйте меню дополнительных параметров для дополнительного форматирования.',
+  'more_formatting_options': 'Дополнительные параметры форматирования',
+  'more_formatting_options_hint': 'Открыть меню с дополнительными элементами управления форматированием',
+  'no_formatting': 'Без форматирования',
+
+  // Inline Styles
+  'bold': 'Жирный',
+  'italic': 'Курсив',
+  'underline': 'Подчёркнутый',
+  'strikethrough': 'Зачёркнутый',
+  'bold_hint': 'Жирный применён в данный момент',
+  'italic_hint': 'Курсив применён в данный момент',
+  'underline_hint': 'Подчёркнутый применён в данный момент',
+  'strikethrough_hint': 'Зачёркнутый применён в данный момент',
+  'apply_bold': 'Применить Жирный',
+  'apply_italic': 'Применить Курсив',
+  'apply_underline': 'Применить Подчёркнутый',
+  'apply_strikethrough': 'Применить Зачёркнутый',
+
+  // Block Styles
+  'block_style': 'Стиль блока',
+  'block_style_selector': 'Селектор стиля блока',
+  'block_style_hint': 'Текущий стиль: {style}. Выберите для изменения форматирования абзаца.',
+  'change_paragraph_style': 'Изменить стиль абзаца ({style})',
+  'normal': 'Обычный',
+  'heading_1': 'Заголовок 1',
+  'heading_2': 'Заголовок 2',
+  'heading_3': 'Заголовок 3',
+  'block_quote': 'Цитата',
+
+  // Lists
+  'lists': 'Списки',
+  'bullet_list': 'Маркированный список',
+  'numbered_list': 'Нумерованный список',
+  'bullet_list_hint': 'Маркированный список применён в данный момент',
+  'numbered_list_hint': 'Нумерованный список применён в данный момент',
+  'apply_bullet_list': 'Применить Маркированный список',
+  'apply_numbered_list': 'Применить Нумерованный список',
+
+  // Alignment
+  'alignment': 'Выравнивание',
+  'align_left': 'Выровнять по левому краю',
+  'align_center': 'Выровнять по центру',
+  'align_right': 'Выровнять по правому краю',
+  'justify': 'По ширине',
+  'align_left_hint': 'Выровнять по левому краю применено в данный момент',
+  'align_center_hint': 'Выровнять по центру применено в данный момент',
+  'align_right_hint': 'Выровнять по правому краю применено в данный момент',
+  'justify_hint': 'По ширине применено в данный момент',
+  'apply_align_left': 'Применить Выровнять по левому краю',
+  'apply_align_center': 'Применить Выровнять по центру',
+  'apply_align_right': 'Применить Выровнять по правому краю',
+  'apply_justify': 'Применить По ширине',
+
+  // Colors
+  'text_color': 'Цвет текста',
+  'highlight_color': 'Цвет выделения',
+  'text_color_hint': 'Текущий цвет текста: {color}. Нажмите для изменения.',
+  'highlight_color_hint': 'Текущий цвет выделения: {color}. Нажмите для изменения.',
+  'no_color': 'Без цвета',
+  'choose_color': 'Выбрать цвет',
+  'custom_color': 'Пользовательский цвет',
+
+  // Font Size
+  'font_size': 'Размер шрифта',
+  'font_size_selector': 'Селектор размера шрифта',
+  'font_size_hint': 'Текущий размер: {size}pt. Выберите для изменения размера шрифта.',
+  'change_font_size': 'Изменить размер шрифта (Текущий: {size}pt)',
+  'increase_font_size': 'Увеличить размер шрифта',
+  'decrease_font_size': 'Уменьшить размер шрифта',
+  'increase_font_size_hint': 'Увеличить размер шрифта на 2 пункта. Текущий: {size}pt',
+  'decrease_font_size_hint': 'Уменьшить размер шрифта на 2 пункта. Текущий: {size}pt',
+  'custom_font_size': 'Пользовательский размер шрифта',
+  'custom_font_size_hint': 'Пользовательский...',
+  'apply': 'Применить',
+  'font_size_error': 'Размер шрифта должен быть от 6 до 200 пунктов',
+
+  // Clear Formatting
+  'clear_formatting': 'Очистить форматирование',
+  'clear_formatting_hint': 'Удалить всё форматирование из выделенного текста, сохраняя сущности',
+  'clear_formatting_disabled_hint': 'Выделите текст для очистки форматирования',
 };

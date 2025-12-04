@@ -243,4 +243,89 @@ const Map<String, String> ko = {
   'suggestion_pacing': '페이싱 제안',
   'suggestion_dialogue': '대화 노트',
   'suggestion_writing': '글쓰기 제안',
+
+  // Formatting Toolbar
+  'formatting_toolbar': '서식 도구 모음',
+  'formatting_toolbar_hint': '굵게, 기울임꼴, 색상, 정렬 등을 포함한 텍스트 서식 컨트롤이 포함되어 있습니다',
+  'formatting_toolbar_compact_hint': '필수 텍스트 서식 컨트롤이 포함되어 있습니다. 추가 서식을 위해 더 많은 옵션 메뉴를 사용하세요.',
+  'more_formatting_options': '더 많은 서식 옵션',
+  'more_formatting_options_hint': '추가 서식 컨트롤이 있는 메뉴 열기',
+  'no_formatting': '서식 없음',
+
+  // Inline Styles
+  'bold': '굵게',
+  'italic': '기울임꼴',
+  'underline': '밑줄',
+  'strikethrough': '취소선',
+  'bold_hint': '굵게가 현재 적용되어 있습니다',
+  'italic_hint': '기울임꼴이 현재 적용되어 있습니다',
+  'underline_hint': '밑줄이 현재 적용되어 있습니다',
+  'strikethrough_hint': '취소선이 현재 적용되어 있습니다',
+  'apply_bold': '굵게 적용',
+  'apply_italic': '기울임꼴 적용',
+  'apply_underline': '밑줄 적용',
+  'apply_strikethrough': '취소선 적용',
+
+  // Block Styles
+  'block_style': '블록 스타일',
+  'block_style_selector': '블록 스타일 선택기',
+  'block_style_hint': '현재 스타일: {style}. 단락 서식을 변경하려면 선택하세요.',
+  'change_paragraph_style': '단락 스타일 변경 ({style})',
+  'normal': '일반',
+  'heading_1': '제목 1',
+  'heading_2': '제목 2',
+  'heading_3': '제목 3',
+  'block_quote': '인용',
+
+  // Lists
+  'lists': '목록',
+  'bullet_list': '글머리 기호 목록',
+  'numbered_list': '번호 매기기 목록',
+  'bullet_list_hint': '글머리 기호 목록이 현재 적용되어 있습니다',
+  'numbered_list_hint': '번호 매기기 목록이 현재 적용되어 있습니다',
+  'apply_bullet_list': '글머리 기호 목록 적용',
+  'apply_numbered_list': '번호 매기기 목록 적용',
+
+  // Alignment
+  'alignment': '정렬',
+  'align_left': '왼쪽 정렬',
+  'align_center': '가운데 정렬',
+  'align_right': '오른쪽 정렬',
+  'justify': '양쪽 정렬',
+  'align_left_hint': '왼쪽 정렬이 현재 적용되어 있습니다',
+  'align_center_hint': '가운데 정렬이 현재 적용되어 있습니다',
+  'align_right_hint': '오른쪽 정렬이 현재 적용되어 있습니다',
+  'justify_hint': '양쪽 정렬이 현재 적용되어 있습니다',
+  'apply_align_left': '왼쪽 정렬 적용',
+  'apply_align_center': '가운데 정렬 적용',
+  'apply_align_right': '오른쪽 정렬 적용',
+  'apply_justify': '양쪽 정렬 적용',
+
+  // Colors
+  'text_color': '텍스트 색상',
+  'highlight_color': '강조 색상',
+  'text_color_hint': '현재 텍스트 색상: {color}. 클릭하여 변경하세요.',
+  'highlight_color_hint': '현재 강조 색상: {color}. 클릭하여 변경하세요.',
+  'no_color': '색상 없음',
+  'choose_color': '색상 선택',
+  'custom_color': '사용자 지정 색상',
+
+  // Font Size
+  'font_size': '글꼴 크기',
+  'font_size_selector': '글꼴 크기 선택기',
+  'font_size_hint': '현재 크기: {size}pt. 글꼴 크기를 변경하려면 선택하세요.',
+  'change_font_size': '글꼴 크기 변경 (현재: {size}pt)',
+  'increase_font_size': '글꼴 크기 늘리기',
+  'decrease_font_size': '글꼴 크기 줄이기',
+  'increase_font_size_hint': '글꼴 크기를 2포인트 늘립니다. 현재: {size}pt',
+  'decrease_font_size_hint': '글꼴 크기를 2포인트 줄입니다. 현재: {size}pt',
+  'custom_font_size': '사용자 지정 글꼴 크기',
+  'custom_font_size_hint': '사용자 지정...',
+  'apply': '적용',
+  'font_size_error': '글꼴 크기는 6에서 200포인트 사이여야 합니다',
+
+  // Clear Formatting
+  'clear_formatting': '서식 지우기',
+  'clear_formatting_hint': '엔티티를 유지하면서 선택한 텍스트에서 모든 서식 제거',
+  'clear_formatting_disabled_hint': '서식을 지우려면 텍스트를 선택하세요',
 };

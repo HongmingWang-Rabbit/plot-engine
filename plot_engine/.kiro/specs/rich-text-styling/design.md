@@ -360,9 +360,9 @@ After analyzing all acceptance criteria, several properties can be consolidated:
 *For any* paragraph with heading or list formatting, converting to normal should remove all block-level formatting metadata
 **Validates: Requirements 2.4, 12.2, 12.3**
 
-**Property 7: Keyboard shortcut mapping**
-*For any* formatting keyboard shortcut, executing that shortcut should produce the same result as clicking the corresponding toolbar button
-**Validates: Requirements 2.6, 13.1**
+**Property 7: Keyboard shortcut mapping (DEFERRED)**
+*Note: This property is deferred due to API limitations in super_editor 0.3.0-dev.40. The editor command system has changed significantly, requiring commands to implement `EditRequest` instead of `EditorCommand`, and the `MutableDocumentComposer` API has changed. Custom keyboard shortcuts for formatting operations are not feasible without extensive API workarounds. Standard editing shortcuts (undo, redo, copy, paste) continue to work via super_editor's default handlers.*
+**Validates: Requirements 13.1-13.4 (standard editing shortcuts only)**
 
 ### List Properties
 

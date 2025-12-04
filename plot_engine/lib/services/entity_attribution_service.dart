@@ -59,20 +59,42 @@ class EntityAttributionService {
     final text = node.text.toPlainText();
     if (text.isEmpty) return;
 
-    // Collect all entity attributions to remove
-    final attributionsToRemove = <EntityAttribution>{};
+    // Collect all unique entity attributions and their spans
+    final entityAttributionsToRemove = <EntityAttribution, Set<int>>{};
+    
     for (var i = 0; i < text.length; i++) {
       final attributions = node.text.getAllAttributionsAt(i);
       for (final attribution in attributions) {
         if (attribution is EntityAttribution) {
-          attributionsToRemove.add(attribution);
+          entityAttributionsToRemove.putIfAbsent(attribution, () => <int>{}).add(i);
         }
       }
     }
 
-    // Remove each unique entity attribution across its entire span
-    for (final attribution in attributionsToRemove) {
-      node.text.removeAttribution(attribution, SpanRange(0, text.length - 1));
+    // Remove each entity attribution across its collected positions
+    for (final entry in entityAttributionsToRemove.entries) {
+      final attribution = entry.key;
+      final positions = entry.value.toList()..sort();
+      
+      if (positions.isEmpty) continue;
+      
+      // Find contiguous ranges and remove them
+      int rangeStart = positions[0];
+      int rangeEnd = positions[0];
+      
+      for (int i = 1; i < positions.length; i++) {
+        if (positions[i] == rangeEnd + 1) {
+          rangeEnd = positions[i];
+        } else {
+          // Remove the current range
+          node.text.removeAttribution(attribution, SpanRange(rangeStart, rangeEnd));
+          rangeStart = positions[i];
+          rangeEnd = positions[i];
+        }
+      }
+      
+      // Remove the last range
+      node.text.removeAttribution(attribution, SpanRange(rangeStart, rangeEnd));
     }
   }
 

@@ -276,4 +276,89 @@ const Map<String, String> en = {
   'dismiss': 'Dismiss',
   'entity_updated': 'Entity updated',
   'analyzing_chapter': 'Analyzing chapter for entity updates...',
+
+  // Formatting Toolbar
+  'formatting_toolbar': 'Formatting toolbar',
+  'formatting_toolbar_hint': 'Contains text formatting controls including bold, italic, colors, alignment, and more',
+  'formatting_toolbar_compact_hint': 'Contains essential text formatting controls. Use the more options menu for additional formatting.',
+  'more_formatting_options': 'More formatting options',
+  'more_formatting_options_hint': 'Open menu with additional formatting controls',
+  'no_formatting': 'No formatting',
+
+  // Inline Styles
+  'bold': 'Bold',
+  'italic': 'Italic',
+  'underline': 'Underline',
+  'strikethrough': 'Strikethrough',
+  'bold_hint': 'Bold is currently applied',
+  'italic_hint': 'Italic is currently applied',
+  'underline_hint': 'Underline is currently applied',
+  'strikethrough_hint': 'Strikethrough is currently applied',
+  'apply_bold': 'Apply Bold',
+  'apply_italic': 'Apply Italic',
+  'apply_underline': 'Apply Underline',
+  'apply_strikethrough': 'Apply Strikethrough',
+
+  // Block Styles
+  'block_style': 'Block Style',
+  'block_style_selector': 'Block style selector',
+  'block_style_hint': 'Current style: {style}. Select to change paragraph formatting.',
+  'change_paragraph_style': 'Change paragraph style ({style})',
+  'normal': 'Normal',
+  'heading_1': 'Heading 1',
+  'heading_2': 'Heading 2',
+  'heading_3': 'Heading 3',
+  'block_quote': 'Block Quote',
+
+  // Lists
+  'lists': 'Lists',
+  'bullet_list': 'Bullet List',
+  'numbered_list': 'Numbered List',
+  'bullet_list_hint': 'Bullet List is currently applied',
+  'numbered_list_hint': 'Numbered List is currently applied',
+  'apply_bullet_list': 'Apply Bullet List',
+  'apply_numbered_list': 'Apply Numbered List',
+
+  // Alignment
+  'alignment': 'Alignment',
+  'align_left': 'Align Left',
+  'align_center': 'Align Center',
+  'align_right': 'Align Right',
+  'justify': 'Justify',
+  'align_left_hint': 'Align Left is currently applied',
+  'align_center_hint': 'Align Center is currently applied',
+  'align_right_hint': 'Align Right is currently applied',
+  'justify_hint': 'Justify is currently applied',
+  'apply_align_left': 'Apply Align Left',
+  'apply_align_center': 'Apply Align Center',
+  'apply_align_right': 'Apply Align Right',
+  'apply_justify': 'Apply Justify',
+
+  // Colors
+  'text_color': 'Text Color',
+  'highlight_color': 'Highlight Color',
+  'text_color_hint': 'Current text color: {color}. Click to change.',
+  'highlight_color_hint': 'Current highlight color: {color}. Click to change.',
+  'no_color': 'No color',
+  'choose_color': 'Choose Color',
+  'custom_color': 'Custom color',
+
+  // Font Size
+  'font_size': 'Font Size',
+  'font_size_selector': 'Font size selector',
+  'font_size_hint': 'Current size: {size}pt. Select to change font size.',
+  'change_font_size': 'Change font size (Current: {size}pt)',
+  'increase_font_size': 'Increase Font Size',
+  'decrease_font_size': 'Decrease Font Size',
+  'increase_font_size_hint': 'Increase font size by 2 points. Current: {size}pt',
+  'decrease_font_size_hint': 'Decrease font size by 2 points. Current: {size}pt',
+  'custom_font_size': 'Custom Font Size',
+  'custom_font_size_hint': 'Custom...',
+  'apply': 'Apply',
+  'font_size_error': 'Font size must be between 6 and 200 points',
+
+  // Clear Formatting
+  'clear_formatting': 'Clear Formatting',
+  'clear_formatting_hint': 'Remove all formatting from selected text while preserving entities',
+  'clear_formatting_disabled_hint': 'Select text to clear formatting',
 };

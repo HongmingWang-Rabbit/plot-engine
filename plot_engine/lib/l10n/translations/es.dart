@@ -243,4 +243,89 @@ const Map<String, String> es = {
   'suggestion_pacing': 'Sugerencia de Ritmo',
   'suggestion_dialogue': 'Nota de Diálogo',
   'suggestion_writing': 'Sugerencia de Escritura',
+
+  // Formatting Toolbar
+  'formatting_toolbar': 'Barra de herramientas de formato',
+  'formatting_toolbar_hint': 'Contiene controles de formato de texto incluyendo negrita, cursiva, colores, alineación y más',
+  'formatting_toolbar_compact_hint': 'Contiene controles esenciales de formato de texto. Use el menú de más opciones para formato adicional.',
+  'more_formatting_options': 'Más opciones de formato',
+  'more_formatting_options_hint': 'Abrir menú con controles de formato adicionales',
+  'no_formatting': 'Sin formato',
+
+  // Inline Styles
+  'bold': 'Negrita',
+  'italic': 'Cursiva',
+  'underline': 'Subrayado',
+  'strikethrough': 'Tachado',
+  'bold_hint': 'Negrita está aplicada actualmente',
+  'italic_hint': 'Cursiva está aplicada actualmente',
+  'underline_hint': 'Subrayado está aplicado actualmente',
+  'strikethrough_hint': 'Tachado está aplicado actualmente',
+  'apply_bold': 'Aplicar Negrita',
+  'apply_italic': 'Aplicar Cursiva',
+  'apply_underline': 'Aplicar Subrayado',
+  'apply_strikethrough': 'Aplicar Tachado',
+
+  // Block Styles
+  'block_style': 'Estilo de bloque',
+  'block_style_selector': 'Selector de estilo de bloque',
+  'block_style_hint': 'Estilo actual: {style}. Seleccionar para cambiar formato de párrafo.',
+  'change_paragraph_style': 'Cambiar estilo de párrafo ({style})',
+  'normal': 'Normal',
+  'heading_1': 'Encabezado 1',
+  'heading_2': 'Encabezado 2',
+  'heading_3': 'Encabezado 3',
+  'block_quote': 'Cita',
+
+  // Lists
+  'lists': 'Listas',
+  'bullet_list': 'Lista con viñetas',
+  'numbered_list': 'Lista numerada',
+  'bullet_list_hint': 'Lista con viñetas está aplicada actualmente',
+  'numbered_list_hint': 'Lista numerada está aplicada actualmente',
+  'apply_bullet_list': 'Aplicar Lista con viñetas',
+  'apply_numbered_list': 'Aplicar Lista numerada',
+
+  // Alignment
+  'alignment': 'Alineación',
+  'align_left': 'Alinear a la izquierda',
+  'align_center': 'Centrar',
+  'align_right': 'Alinear a la derecha',
+  'justify': 'Justificar',
+  'align_left_hint': 'Alinear a la izquierda está aplicado actualmente',
+  'align_center_hint': 'Centrar está aplicado actualmente',
+  'align_right_hint': 'Alinear a la derecha está aplicado actualmente',
+  'justify_hint': 'Justificar está aplicado actualmente',
+  'apply_align_left': 'Aplicar Alinear a la izquierda',
+  'apply_align_center': 'Aplicar Centrar',
+  'apply_align_right': 'Aplicar Alinear a la derecha',
+  'apply_justify': 'Aplicar Justificar',
+
+  // Colors
+  'text_color': 'Color de texto',
+  'highlight_color': 'Color de resaltado',
+  'text_color_hint': 'Color de texto actual: {color}. Clic para cambiar.',
+  'highlight_color_hint': 'Color de resaltado actual: {color}. Clic para cambiar.',
+  'no_color': 'Sin color',
+  'choose_color': 'Elegir color',
+  'custom_color': 'Color personalizado',
+
+  // Font Size
+  'font_size': 'Tamaño de fuente',
+  'font_size_selector': 'Selector de tamaño de fuente',
+  'font_size_hint': 'Tamaño actual: {size}pt. Seleccionar para cambiar tamaño de fuente.',
+  'change_font_size': 'Cambiar tamaño de fuente (Actual: {size}pt)',
+  'increase_font_size': 'Aumentar tamaño de fuente',
+  'decrease_font_size': 'Disminuir tamaño de fuente',
+  'increase_font_size_hint': 'Aumentar tamaño de fuente en 2 puntos. Actual: {size}pt',
+  'decrease_font_size_hint': 'Disminuir tamaño de fuente en 2 puntos. Actual: {size}pt',
+  'custom_font_size': 'Tamaño de fuente personalizado',
+  'custom_font_size_hint': 'Personalizado...',
+  'apply': 'Aplicar',
+  'font_size_error': 'El tamaño de fuente debe estar entre 6 y 200 puntos',
+
+  // Clear Formatting
+  'clear_formatting': 'Borrar formato',
+  'clear_formatting_hint': 'Eliminar todo el formato del texto seleccionado preservando las entidades',
+  'clear_formatting_disabled_hint': 'Seleccionar texto para borrar formato',
 };

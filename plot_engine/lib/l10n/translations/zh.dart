@@ -261,4 +261,89 @@ const Map<String, String> zh = {
   'dismiss': '忽略',
   'entity_updated': '实体已更新',
   'analyzing_chapter': '正在分析章节以查找实体更新...',
+
+  // Formatting Toolbar
+  'formatting_toolbar': '格式工具栏',
+  'formatting_toolbar_hint': '包含文本格式控件，包括粗体、斜体、颜色、对齐等',
+  'formatting_toolbar_compact_hint': '包含基本文本格式控件。使用更多选项菜单获取其他格式。',
+  'more_formatting_options': '更多格式选项',
+  'more_formatting_options_hint': '打开包含其他格式控件的菜单',
+  'no_formatting': '无格式',
+
+  // Inline Styles
+  'bold': '粗体',
+  'italic': '斜体',
+  'underline': '下划线',
+  'strikethrough': '删除线',
+  'bold_hint': '粗体已应用',
+  'italic_hint': '斜体已应用',
+  'underline_hint': '下划线已应用',
+  'strikethrough_hint': '删除线已应用',
+  'apply_bold': '应用粗体',
+  'apply_italic': '应用斜体',
+  'apply_underline': '应用下划线',
+  'apply_strikethrough': '应用删除线',
+
+  // Block Styles
+  'block_style': '块样式',
+  'block_style_selector': '块样式选择器',
+  'block_style_hint': '当前样式：{style}。选择以更改段落格式。',
+  'change_paragraph_style': '更改段落样式（{style}）',
+  'normal': '正常',
+  'heading_1': '标题 1',
+  'heading_2': '标题 2',
+  'heading_3': '标题 3',
+  'block_quote': '引用块',
+
+  // Lists
+  'lists': '列表',
+  'bullet_list': '项目符号列表',
+  'numbered_list': '编号列表',
+  'bullet_list_hint': '项目符号列表已应用',
+  'numbered_list_hint': '编号列表已应用',
+  'apply_bullet_list': '应用项目符号列表',
+  'apply_numbered_list': '应用编号列表',
+
+  // Alignment
+  'alignment': '对齐',
+  'align_left': '左对齐',
+  'align_center': '居中对齐',
+  'align_right': '右对齐',
+  'justify': '两端对齐',
+  'align_left_hint': '左对齐已应用',
+  'align_center_hint': '居中对齐已应用',
+  'align_right_hint': '右对齐已应用',
+  'justify_hint': '两端对齐已应用',
+  'apply_align_left': '应用左对齐',
+  'apply_align_center': '应用居中对齐',
+  'apply_align_right': '应用右对齐',
+  'apply_justify': '应用两端对齐',
+
+  // Colors
+  'text_color': '文本颜色',
+  'highlight_color': '高亮颜色',
+  'text_color_hint': '当前文本颜色：{color}。点击更改。',
+  'highlight_color_hint': '当前高亮颜色：{color}。点击更改。',
+  'no_color': '无颜色',
+  'choose_color': '选择颜色',
+  'custom_color': '自定义颜色',
+
+  // Font Size
+  'font_size': '字体大小',
+  'font_size_selector': '字体大小选择器',
+  'font_size_hint': '当前大小：{size}pt。选择以更改字体大小。',
+  'change_font_size': '更改字体大小（当前：{size}pt）',
+  'increase_font_size': '增大字体',
+  'decrease_font_size': '减小字体',
+  'increase_font_size_hint': '增大字体 2 点。当前：{size}pt',
+  'decrease_font_size_hint': '减小字体 2 点。当前：{size}pt',
+  'custom_font_size': '自定义字体大小',
+  'custom_font_size_hint': '自定义...',
+  'apply': '应用',
+  'font_size_error': '字体大小必须在 6 到 200 点之间',
+
+  // Clear Formatting
+  'clear_formatting': '清除格式',
+  'clear_formatting_hint': '删除所选文本的所有格式，同时保留实体',
+  'clear_formatting_disabled_hint': '选择文本以清除格式',
 };

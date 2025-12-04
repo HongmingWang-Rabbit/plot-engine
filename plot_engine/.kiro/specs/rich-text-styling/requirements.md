@@ -26,9 +26,9 @@ This document specifies the requirements for enhancing PlotEngine's writing pane
 
 #### Acceptance Criteria
 
-1. WHEN a user selects text and clicks the bold button or presses Cmd+B (Ctrl+B on Windows), THEN the system SHALL apply bold formatting to the selected text
-2. WHEN a user selects text and clicks the italic button or presses Cmd+I (Ctrl+I on Windows), THEN the system SHALL apply italic formatting to the selected text
-3. WHEN a user selects text and clicks the underline button or presses Cmd+U (Ctrl+U on Windows), THEN the system SHALL apply underline formatting to the selected text
+1. WHEN a user selects text and clicks the bold button, THEN the system SHALL apply bold formatting to the selected text
+2. WHEN a user selects text and clicks the italic button, THEN the system SHALL apply italic formatting to the selected text
+3. WHEN a user selects text and clicks the underline button, THEN the system SHALL apply underline formatting to the selected text
 4. WHEN a user selects text and clicks the strikethrough button, THEN the system SHALL apply strikethrough formatting to the selected text
 5. WHEN a user applies multiple inline styles to the same text, THEN the system SHALL render all styles simultaneously (e.g., bold + italic)
 6. WHEN a user clicks a formatting button with no text selected, THEN the system SHALL apply that formatting to subsequently typed text until toggled off
@@ -45,7 +45,6 @@ This document specifies the requirements for enhancing PlotEngine's writing pane
 3. WHEN a user places the cursor in a paragraph and selects "Heading 3" from the format dropdown, THEN the system SHALL convert that paragraph to a Heading 3 with slightly larger font size and bold weight
 4. WHEN a user places the cursor in a paragraph and selects "Normal" from the format dropdown, THEN the system SHALL convert that paragraph to normal body text
 5. WHEN a user presses Enter at the end of a heading, THEN the system SHALL create a new normal paragraph (not another heading)
-6. WHEN a user applies keyboard shortcuts Cmd+Alt+1/2/3 (Ctrl+Alt+1/2/3 on Windows), THEN the system SHALL apply the corresponding heading level
 
 ### Requirement 3
 
@@ -53,8 +52,8 @@ This document specifies the requirements for enhancing PlotEngine's writing pane
 
 #### Acceptance Criteria
 
-1. WHEN a user clicks the bullet list button or presses Cmd+Shift+8 (Ctrl+Shift+8 on Windows), THEN the system SHALL convert the current paragraph to a bulleted list item
-2. WHEN a user clicks the numbered list button or presses Cmd+Shift+7 (Ctrl+Shift+7 on Windows), THEN the system SHALL convert the current paragraph to a numbered list item
+1. WHEN a user clicks the bullet list button, THEN the system SHALL convert the current paragraph to a bulleted list item
+2. WHEN a user clicks the numbered list button, THEN the system SHALL convert the current paragraph to a numbered list item
 3. WHEN a user presses Enter at the end of a list item, THEN the system SHALL create a new list item with the same list type
 4. WHEN a user presses Enter twice on an empty list item, THEN the system SHALL exit the list and create a normal paragraph
 5. WHEN a user presses Tab within a list item, THEN the system SHALL indent the list item to create a nested sub-list
@@ -67,10 +66,10 @@ This document specifies the requirements for enhancing PlotEngine's writing pane
 
 #### Acceptance Criteria
 
-1. WHEN a user selects a paragraph and clicks the left align button or presses Cmd+Shift+L (Ctrl+Shift+L on Windows), THEN the system SHALL align the paragraph to the left margin
-2. WHEN a user selects a paragraph and clicks the center align button or presses Cmd+Shift+E (Ctrl+Shift+E on Windows), THEN the system SHALL center the paragraph horizontally
-3. WHEN a user selects a paragraph and clicks the right align button or presses Cmd+Shift+R (Ctrl+Shift+R on Windows), THEN the system SHALL align the paragraph to the right margin
-4. WHEN a user selects a paragraph and clicks the justify button or presses Cmd+Shift+J (Ctrl+Shift+J on Windows), THEN the system SHALL justify the paragraph with even spacing
+1. WHEN a user selects a paragraph and clicks the left align button, THEN the system SHALL align the paragraph to the left margin
+2. WHEN a user selects a paragraph and clicks the center align button, THEN the system SHALL center the paragraph horizontally
+3. WHEN a user selects a paragraph and clicks the right align button, THEN the system SHALL align the paragraph to the right margin
+4. WHEN a user selects a paragraph and clicks the justify button, THEN the system SHALL justify the paragraph with even spacing
 5. WHEN a user selects multiple paragraphs and applies alignment, THEN the system SHALL apply the alignment to all selected paragraphs
 
 ### Requirement 5
@@ -161,7 +160,7 @@ This document specifies the requirements for enhancing PlotEngine's writing pane
 
 #### Acceptance Criteria
 
-1. WHEN a user selects formatted text and clicks the "Clear Formatting" button or presses Cmd+\\ (Ctrl+\\ on Windows), THEN the system SHALL remove all inline formatting while preserving the text content
+1. WHEN a user selects formatted text and clicks the "Clear Formatting" button, THEN the system SHALL remove all inline formatting while preserving the text content
 2. WHEN a user clears formatting from a heading, THEN the system SHALL convert it to a normal paragraph
 3. WHEN a user clears formatting from a list item, THEN the system SHALL convert it to a normal paragraph
 4. WHEN a user clears formatting from text with entity attributions, THEN the system SHALL preserve the entity attributions
@@ -169,15 +168,16 @@ This document specifies the requirements for enhancing PlotEngine's writing pane
 
 ### Requirement 13
 
-**User Story:** As a writer, I want to use standard keyboard shortcuts for all formatting operations, so that I can format text efficiently without interrupting my writing flow.
+**User Story:** As a writer, I want to use standard editing keyboard shortcuts, so that I can work efficiently without interrupting my writing flow.
 
 #### Acceptance Criteria
 
-1. WHEN a user presses a formatting keyboard shortcut, THEN the system SHALL apply the corresponding formatting immediately
-2. WHEN a user presses Cmd+Z (Ctrl+Z on Windows), THEN the system SHALL undo the last formatting change
-3. WHEN a user presses Cmd+Shift+Z (Ctrl+Shift+Z on Windows), THEN the system SHALL redo the last undone formatting change
-4. WHEN a user presses Cmd+A (Ctrl+A on Windows), THEN the system SHALL select all text in the current chapter
-5. WHEN a user presses Cmd+C/X/V (Ctrl+C/X/V on Windows), THEN the system SHALL copy/cut/paste text with formatting preserved
+1. WHEN a user presses Cmd+Z (Ctrl+Z on Windows), THEN the system SHALL undo the last formatting change
+2. WHEN a user presses Cmd+Shift+Z (Ctrl+Shift+Z on Windows), THEN the system SHALL redo the last undone formatting change
+3. WHEN a user presses Cmd+A (Ctrl+A on Windows), THEN the system SHALL select all text in the current chapter
+4. WHEN a user presses Cmd+C/X/V (Ctrl+C/X/V on Windows), THEN the system SHALL copy/cut/paste text with formatting preserved
+
+**Note:** Custom formatting keyboard shortcuts (Cmd+B for bold, Cmd+I for italic, etc.) are not currently supported due to API limitations in super_editor 0.3.0-dev.40. The underlying editor command system has changed significantly, making it infeasible to implement custom keyboard actions without extensive workarounds. Users can apply formatting via toolbar buttons.
 
 ### Requirement 14
 
