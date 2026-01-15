@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../utils/platform_util.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/project.dart';
 import '../models/chapter.dart';
@@ -13,14 +14,24 @@ import '../services/ai_service.dart';
 import '../services/entity_recognizer.dart';
 import '../services/auth_service.dart';
 import '../services/google_auth_service.dart';
-import '../services/web_auth_service.dart';
+import '../services/desktop_auth_service_stub.dart'
+    if (dart.library.io) '../services/desktop_auth_service.dart';
+import '../services/web_auth_service_stub.dart'
+    if (dart.library.html) '../services/web_auth_service.dart';
 import '../services/api_client.dart';
 import '../services/backend_project_service.dart';
 import '../services/cloud_storage_service.dart';
-import '../services/project_service.dart';
+import '../services/project_service_stub.dart'
+    if (dart.library.io) '../services/project_service.dart';
 import '../services/web_project_service.dart';
 import '../services/base_project_service.dart';
 import '../services/billing_service.dart';
+import '../services/sync_service_stub.dart'
+    if (dart.library.io) '../services/sync_service.dart';
+export '../services/sync_service_stub.dart'
+    if (dart.library.io) '../services/sync_service.dart'
+    show syncServiceProvider, syncStatusProvider, SyncStatusNotifier;
+export '../models/sync_metadata.dart' show SyncStatus;
 
 // Current project provider
 class ProjectNotifier extends StateNotifier<Project?> {
@@ -243,10 +254,15 @@ final hoveredEntityProvider = StateNotifierProvider<HoveredEntityNotifier, Strin
   return HoveredEntityNotifier();
 });
 
-// Auth service provider (Web auth for web, Google Auth for native)
+// Auth service provider (Web auth for web, Desktop auth for Windows/Linux, Google Auth for macOS)
 final authServiceProvider = Provider<AuthService>((ref) {
   if (kIsWeb) {
     return WebAuthService();
+  }
+  // Use browser-based OAuth for Windows/Linux (google_sign_in not supported)
+  // macOS can use GoogleAuthService directly
+  if (PlatformUtil.isWindows || PlatformUtil.isLinux) {
+    return DesktopAuthService();
   }
   return GoogleAuthService();
 });
@@ -311,8 +327,20 @@ final cloudStorageServiceProvider = Provider<CloudStorageService>((ref) {
   return CloudStorageService(apiClient: apiClient);
 });
 
+// Local project service provider (desktop only)
+final localProjectServiceProvider = Provider<ProjectService>((ref) {
+  return ProjectService(ref);
+});
+
+// Cloud project service provider (works on both web and desktop when logged in)
+final cloudProjectServiceProvider = Provider<WebProjectService>((ref) {
+  return WebProjectService(ref);
+});
+
 // Platform-aware project service provider
 // Uses WebProjectService (cloud) for web, ProjectService (local files) for desktop
+// On desktop, this returns the local service by default; use cloudProjectServiceProvider
+// when user explicitly chooses cloud storage
 final projectServiceProvider = Provider<BaseProjectService>((ref) {
   if (kIsWeb) {
     return WebProjectService(ref);

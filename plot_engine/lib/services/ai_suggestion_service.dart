@@ -100,6 +100,13 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
       return;
     }
 
+    // Check if project is cloud-stored - AI features require cloud storage
+    final project = _ref.read(projectProvider);
+    if (project == null || !project.isCloudStored) {
+      print('[AI Suggestion] Skipping analysis - project is not cloud-stored');
+      return;
+    }
+
     print('[AI Suggestion] ▶ Starting analysis for chapter: $chapterId');
     state = state.copyWith(isAnalyzing: true);
 
@@ -288,12 +295,20 @@ class AISuggestionNotifier extends StateNotifier<AISuggestionQueueState> {
   }
 
   /// Manually trigger analysis (for user-initiated checks)
-  Future<void> analyzeNow() async {
+  /// Returns true if analysis was triggered, false if project is not cloud-stored
+  Future<bool> analyzeNow() async {
     final chapter = _ref.read(currentChapterProvider);
     final project = _ref.read(projectProvider);
-    if (chapter == null || project == null) return;
+    if (chapter == null || project == null) return false;
+
+    // AI features require cloud-stored projects
+    if (!project.isCloudStored) {
+      print('[AI Suggestion] Cannot analyze - project is stored locally. AI features require cloud storage.');
+      return false;
+    }
 
     await _runAnalysis(chapter.content, chapter.id, project.id);
+    return true;
   }
 
   /// Mark a suggestion as read

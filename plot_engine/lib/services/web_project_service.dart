@@ -34,6 +34,7 @@ class WebProjectService implements BaseProjectService {
           path: backendProject.id,
           createdAt: backendProject.createdAt,
           updatedAt: backendProject.updatedAt,
+          isCloudStored: true,
         );
 
         ref.read(projectProvider.notifier).setProject(project);
@@ -88,6 +89,7 @@ class WebProjectService implements BaseProjectService {
             updatedAt: projectData['updated_at'] != null
                 ? DateTime.parse(projectData['updated_at'])
                 : DateTime.now(),
+            isCloudStored: true,
           );
 
           final chaptersData = projectData['chapters'] as List? ?? [];
@@ -204,6 +206,7 @@ class WebProjectService implements BaseProjectService {
       path: bp.id,
       createdAt: bp.createdAt,
       updatedAt: bp.updatedAt,
+      isCloudStored: true,
     )).toList();
   }
 
@@ -451,6 +454,7 @@ class WebProjectService implements BaseProjectService {
           path: backendProject.id,
           createdAt: backendProject.createdAt,
           updatedAt: backendProject.updatedAt,
+          isCloudStored: true,
         );
 
         ref.read(projectProvider.notifier).setProject(project);

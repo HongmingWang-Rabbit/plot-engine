@@ -331,4 +331,16 @@ const Map<String, String> fr = {
   'clear_formatting': 'Effacer le formatage',
   'clear_formatting_hint': 'Supprimer tout le formatage du texte sélectionné tout en préservant les entités',
   'clear_formatting_disabled_hint': 'Sélectionner du texte pour effacer le formatage',
+
+  // Cloud Sync
+  'sync_synced': 'Synchronisé',
+  'sync_syncing': 'Synchronisation...',
+  'sync_pending': 'En attente',
+  'sync_failed': 'Échec de sync',
+  'sync_offline': 'Local uniquement',
+  'sync_tooltip_synced': 'Le projet est synchronisé avec le cloud. Les fonctionnalités IA sont disponibles.',
+  'sync_tooltip_syncing': 'Synchronisation du projet avec le cloud...',
+  'sync_tooltip_failed': 'Échec de la synchronisation cloud. Nouvelle tentative automatique.',
+  'sync_tooltip_pending': 'Modifications en attente de synchronisation avec le cloud.',
+  'sync_tooltip_offline': 'Le projet est stocké localement uniquement.',
 };

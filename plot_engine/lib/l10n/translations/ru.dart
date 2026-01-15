@@ -328,4 +328,16 @@ const Map<String, String> ru = {
   'clear_formatting': 'Очистить форматирование',
   'clear_formatting_hint': 'Удалить всё форматирование из выделенного текста, сохраняя сущности',
   'clear_formatting_disabled_hint': 'Выделите текст для очистки форматирования',
+
+  // Cloud Sync
+  'sync_synced': 'Синхронизировано',
+  'sync_syncing': 'Синхронизация...',
+  'sync_pending': 'Ожидание',
+  'sync_failed': 'Ошибка синхронизации',
+  'sync_offline': 'Только локально',
+  'sync_tooltip_synced': 'Проект синхронизирован с облаком. ИИ-функции доступны.',
+  'sync_tooltip_syncing': 'Синхронизация проекта с облаком...',
+  'sync_tooltip_failed': 'Синхронизация с облаком не удалась. Автоматическая повторная попытка.',
+  'sync_tooltip_pending': 'Изменения ожидают синхронизации с облаком.',
+  'sync_tooltip_offline': 'Проект хранится только локально.',
 };

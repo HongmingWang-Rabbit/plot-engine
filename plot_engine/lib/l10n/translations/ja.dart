@@ -328,4 +328,16 @@ const Map<String, String> ja = {
   'clear_formatting': '書式をクリア',
   'clear_formatting_hint': 'エンティティを保持しながら、選択したテキストからすべての書式を削除します',
   'clear_formatting_disabled_hint': '書式をクリアするにはテキストを選択してください',
+
+  // Cloud Sync
+  'sync_synced': '同期済み',
+  'sync_syncing': '同期中...',
+  'sync_pending': '保留中',
+  'sync_failed': '同期失敗',
+  'sync_offline': 'ローカルのみ',
+  'sync_tooltip_synced': 'プロジェクトはクラウドに同期されています。AI機能が利用可能です。',
+  'sync_tooltip_syncing': 'プロジェクトをクラウドに同期中...',
+  'sync_tooltip_failed': 'クラウド同期に失敗しました。自動的に再試行します。',
+  'sync_tooltip_pending': '変更はクラウドへの同期待ちです。',
+  'sync_tooltip_offline': 'プロジェクトはローカルにのみ保存されています。',
 };

@@ -135,6 +135,22 @@ const Map<String, String> en = {
   'language': 'Language',
   'close': 'Close',
 
+  // Storage Settings
+  'storage': 'Storage',
+  'default_save_location': 'Default Save Location',
+  'default_save_location_description': 'Where new projects and templates will be saved',
+  'browse': 'Browse',
+  'reset_to_default': 'Reset to Default',
+  'select_default_save_location': 'Select Default Save Location',
+  'select_save_location': 'Select Save Location',
+  'not_set': 'Not set',
+  'save_location': 'Save location',
+  'folder_creation_failed': 'Folder Creation Failed',
+  'folder_creation_failed_description': 'Could not create project in the selected folder. This often happens with OneDrive-synced folders or folders with restricted permissions.',
+  'current_folder': 'Current folder',
+  'select_different_folder_prompt': 'Would you like to select a different folder?',
+  'select_different_folder': 'Select Different Folder',
+
   // New Project Dialog
   'create_new_project': 'Create New Project',
   'project_name': 'Project Name',
@@ -144,6 +160,16 @@ const Map<String, String> en = {
   'default_location': 'Default location (~/Documents/PlotEngine)',
   'choose_location': 'Choose Location',
   'my_novel': 'My Novel',
+
+  // Storage Type Selection
+  'storage_type': 'Storage Type',
+  'local_storage': 'Local',
+  'cloud_storage': 'Cloud',
+  'cloud_storage_info': 'Your project will be saved to the cloud and synced across devices.',
+  'cloud_projects': 'Cloud Projects',
+  'no_cloud_projects': 'No cloud projects',
+  'create_cloud_project_hint': 'Create a new project with cloud storage to see it here',
+  'refresh': 'Refresh',
 
   // Open Project Dialog
   'open_project_title': 'Open Project',
@@ -193,6 +219,7 @@ const Map<String, String> en = {
   'ai_assistant': 'AI Assistant',
   'entity_details': 'Entity Details',
   'open_project_ai': 'Open a project to use AI features',
+  'ai_requires_cloud': 'AI features require cloud storage.\nSign in and create a cloud project to use AI.',
   'select_chapter_analyze': 'Select a chapter to analyze',
   'analyzing': 'Analyzing...',
   'consistency_issues': 'Consistency Issues',
@@ -361,4 +388,16 @@ const Map<String, String> en = {
   'clear_formatting': 'Clear Formatting',
   'clear_formatting_hint': 'Remove all formatting from selected text while preserving entities',
   'clear_formatting_disabled_hint': 'Select text to clear formatting',
+
+  // Cloud Sync
+  'sync_synced': 'Synced',
+  'sync_syncing': 'Syncing...',
+  'sync_pending': 'Pending',
+  'sync_failed': 'Sync failed',
+  'sync_offline': 'Local only',
+  'sync_tooltip_synced': 'Project is synced to cloud. AI features are available.',
+  'sync_tooltip_syncing': 'Syncing project to cloud...',
+  'sync_tooltip_failed': 'Cloud sync failed. Will retry automatically.',
+  'sync_tooltip_pending': 'Changes pending sync to cloud.',
+  'sync_tooltip_offline': 'Project is stored locally only.',
 };

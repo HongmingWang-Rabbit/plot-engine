@@ -328,4 +328,16 @@ const Map<String, String> it = {
   'clear_formatting': 'Cancella formattazione',
   'clear_formatting_hint': 'Rimuovi tutta la formattazione dal testo selezionato preservando le entità',
   'clear_formatting_disabled_hint': 'Seleziona testo per cancellare formattazione',
+
+  // Cloud Sync
+  'sync_synced': 'Sincronizzato',
+  'sync_syncing': 'Sincronizzazione...',
+  'sync_pending': 'In attesa',
+  'sync_failed': 'Sync fallito',
+  'sync_offline': 'Solo locale',
+  'sync_tooltip_synced': 'Il progetto è sincronizzato con il cloud. Le funzioni IA sono disponibili.',
+  'sync_tooltip_syncing': 'Sincronizzazione del progetto con il cloud...',
+  'sync_tooltip_failed': 'Sincronizzazione cloud fallita. Riproverà automaticamente.',
+  'sync_tooltip_pending': 'Modifiche in attesa di sincronizzazione con il cloud.',
+  'sync_tooltip_offline': 'Il progetto è memorizzato solo localmente.',
 };

@@ -28,8 +28,10 @@ A Flutter-powered creative writing platform with AI entity recognition, multi-ta
 - Visual entity relationships
 
 ### 🔄 Cross-Platform Storage
-- **Desktop (macOS)**: Local file-based storage with folder picker
+- **Desktop (macOS/Windows/Linux)**: Fast local file storage with automatic cloud sync
+- **Hybrid Sync**: Local files for speed + cloud sync for AI features (when logged in)
 - **Web**: Cloud-backed storage with REST API
+- **Auto-sync**: Changes sync to cloud in background with retry on failure
 - Platform-aware service architecture automatically selects the right implementation
 
 ### 🎨 Modern UI
@@ -41,7 +43,10 @@ A Flutter-powered creative writing platform with AI entity recognition, multi-ta
 
 ### 🔐 Authentication
 - Google OAuth integration
-- Platform-specific auth flows (desktop vs web)
+- Platform-specific auth flows:
+  - **macOS**: Native Google Sign-In
+  - **Windows/Linux**: Browser-based OAuth with local callback server
+  - **Web**: Backend OAuth redirect flow
 - Secure token storage
 
 ### 💳 Billing & Credits
@@ -59,7 +64,8 @@ A Flutter-powered creative writing platform with AI entity recognition, multi-ta
 
 ### Prerequisites
 - Flutter SDK 3.10.1 or higher
-- For desktop: macOS development environment
+- For macOS: Xcode and macOS development environment
+- For Windows: Visual Studio with "Desktop development with C++" workload
 - For web: Modern web browser
 
 ### Installation
@@ -86,10 +92,16 @@ cp .env.example .env
 # Desktop (macOS)
 flutter run -d macos
 
+# Desktop (Windows)
+flutter run -d windows
+
+# Desktop (Linux)
+flutter run -d linux
+
 # Web
 flutter run -d chrome
 
-# Or use the convenience script
+# Or use the convenience script (macOS/Linux)
 ./run_web.sh
 ```
 
@@ -131,28 +143,42 @@ Uses **Riverpod** for reactive state management:
 - `tabStateProvider`: Multi-tab editor state
 
 ### Platform-Aware Services
+
+**Project Services:**
 ```dart
 BaseProjectService (interface)
 ├── ProjectService (desktop) - local file storage
-└── WebProjectService (web) - cloud backend API
+└── WebProjectService (web/cloud) - cloud backend API
 ```
 
 The `projectServiceProvider` automatically selects the correct implementation based on `kIsWeb`.
+Desktop users can also access cloud storage via `cloudProjectServiceProvider` when logged in.
+
+**Auth Services:**
+```dart
+AuthService (interface)
+├── GoogleAuthService (macOS) - native Google Sign-In
+├── DesktopAuthService (Windows/Linux) - browser-based OAuth
+└── WebAuthService (web) - backend redirect flow
+```
 
 ### Data Storage
 
 **Desktop (local files)**:
 ```
 {project_path}/
-├── project.json      # Project metadata
-├── chapters.json     # Chapter metadata
+├── project.json          # Project metadata
+├── chapters.json         # Chapter metadata
 ├── chapters/
 │   └── chapter_{id}.txt
 ├── knowledge.json
-└── entities.json
+├── entities.json
+└── sync_metadata.json    # Cloud sync state (ID mappings)
 ```
 
 **Web**: All data stored in cloud backend via REST API.
+
+**Hybrid Sync (Desktop)**: When logged in, projects automatically sync to cloud in the background. Local timestamp IDs are mapped to cloud UUIDs via `sync_metadata.json`. Failed syncs retry with exponential backoff.
 
 ## Development
 
@@ -193,6 +219,15 @@ To add a platform-aware feature:
 - `flutter_secure_storage`: Secure token storage
 - `sqflite`: Local database (desktop)
 - `file_picker`: File system access
+
+## Known Issues
+
+### Windows: OneDrive Folder Restrictions
+On Windows, the Documents folder is often synced to OneDrive with "Files On-Demand" enabled. This can prevent creating new folders programmatically. If you encounter "folder creation failed" errors:
+- Select a folder outside of Documents (e.g., `C:\Users\YourName\PlotEngine`)
+- Or disable OneDrive sync for your Documents folder
+
+The app defaults to `%USERPROFILE%\PlotEngine` on Windows to avoid this issue.
 
 ## Contributing
 

@@ -10,6 +10,8 @@ import 'storage_service.dart';
 import 'recent_projects_service.dart';
 import 'template_project_service.dart';
 import 'base_project_service.dart';
+import 'sync_service_stub.dart'
+    if (dart.library.io) 'sync_service.dart';
 
 class ProjectService implements BaseProjectService {
   final Ref ref;
@@ -49,6 +51,12 @@ class ProjectService implements BaseProjectService {
 
         // Track as recent project
         await _recentProjects.addRecentProject(project.path);
+
+        // Sync to cloud if logged in
+        final authUser = ref.read(authUserProvider);
+        if (authUser != null) {
+          _syncToCloudBackground(project);
+        }
 
         AppLogger.info('Created project', name);
         return project;
@@ -144,6 +152,7 @@ class ProjectService implements BaseProjectService {
     final project = ref.read(projectProvider);
     if (project == null) return;
 
+    // 1. Save locally first (fast)
     await _storage.saveProject(project);
 
     final chapters = ref.read(chaptersProvider);
@@ -155,6 +164,19 @@ class ProjectService implements BaseProjectService {
     // Save entities
     final entities = ref.read(entityStoreProvider).getAll();
     await _storage.saveEntities(project.path, entities);
+
+    // 2. If logged in, sync to cloud in background
+    final authUser = ref.read(authUserProvider);
+    if (authUser != null) {
+      _syncToCloudBackground(project);
+    }
+  }
+
+  /// Sync project to cloud in background (non-blocking)
+  void _syncToCloudBackground(Project project) {
+    // Fire and forget - don't await
+    final syncService = ref.read(syncServiceProvider);
+    syncService.syncProjectBackground(project);
   }
 
   @override
@@ -331,6 +353,12 @@ class ProjectService implements BaseProjectService {
 
         // Track as recent project
         await _recentProjects.addRecentProject(project.path);
+
+        // Sync to cloud if logged in
+        final authUser = ref.read(authUserProvider);
+        if (authUser != null) {
+          _syncToCloudBackground(project);
+        }
 
         AppLogger.info('Created template project', project.name);
         return project;

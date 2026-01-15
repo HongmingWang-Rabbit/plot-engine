@@ -1,10 +1,13 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../state/app_state.dart';
 import '../../state/status_state.dart';
 import '../../state/settings_state.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/base_project_service.dart';
+import '../../core/exceptions/storage_exception.dart';
 import '../../utils/responsive.dart';
 import '../dialogs/new_project_dialog.dart';
 import '../dialogs/open_project_dialog.dart';
@@ -34,6 +37,7 @@ class AppToolbar extends ConsumerWidget {
     final authUser = ref.watch(authUserProvider);
 
     return Container(
+      width: double.infinity,
       height: 50,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
@@ -135,6 +139,7 @@ class AppToolbar extends ConsumerWidget {
     final knowledgeVisible = ref.watch(knowledgePanelVisibleProvider);
 
     return Container(
+      width: double.infinity,
       height: 50,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
@@ -259,6 +264,7 @@ class AppToolbar extends ConsumerWidget {
     final authUser = ref.watch(authUserProvider);
 
     return Container(
+      width: double.infinity,
       height: 50,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
@@ -459,14 +465,23 @@ class AppToolbar extends ConsumerWidget {
     if (result != null && context.mounted) {
       final name = result['name'] as String;
       final customPath = result['path'] as String?;
+      final storageMode = result['storageMode'] as StorageMode? ?? StorageMode.local;
 
       final statusNotifier = ref.read(statusProvider.notifier);
-      statusNotifier.showLoading('Creating project "$name"...');
+      final isCloud = !kIsWeb && storageMode == StorageMode.cloud;
+
+      statusNotifier.showLoading('Creating project "$name"${isCloud ? ' on cloud' : ''}...');
       ref.read(projectLoadingProvider.notifier).setLoading(true);
 
       try {
-        await service.createProject(name, customPath: customPath);
-        statusNotifier.showSuccess('Project "$name" created');
+        // Use cloud service if user selected cloud storage on desktop
+        if (isCloud) {
+          final cloudService = ref.read(cloudProjectServiceProvider);
+          await cloudService.createProject(name);
+        } else {
+          await service.createProject(name, customPath: customPath);
+        }
+        statusNotifier.showSuccess('Project "$name" created${isCloud ? ' on cloud' : ''}');
       } catch (e) {
         statusNotifier.showError('Error creating project: $e');
       } finally {
@@ -484,7 +499,7 @@ class AppToolbar extends ConsumerWidget {
       final projects = await service.getRecentProjects();
       if (!context.mounted) return;
 
-      final selectedPath = await showDialog<String>(
+      final result = await showDialog<dynamic>(
         context: context,
         builder: (context) => OpenProjectDialog(
           projects: projects,
@@ -511,11 +526,33 @@ class AppToolbar extends ConsumerWidget {
         ),
       );
 
-      if (selectedPath != null && context.mounted) {
+      if (result != null && context.mounted) {
         final statusNotifier = ref.read(statusProvider.notifier);
-        statusNotifier.showLoading('Opening project...');
 
-        final success = await service.openProject(selectedPath);
+        // Handle both old format (String) and new format (Map)
+        String selectedPath;
+        bool isCloud = false;
+
+        if (result is String) {
+          selectedPath = result;
+        } else if (result is Map) {
+          selectedPath = result['path'] as String;
+          isCloud = result['isCloud'] as bool? ?? false;
+        } else {
+          return;
+        }
+
+        statusNotifier.showLoading('Opening project${isCloud ? ' from cloud' : ''}...');
+
+        bool success;
+        if (isCloud && !kIsWeb) {
+          // Use cloud service for cloud projects on desktop
+          final cloudService = ref.read(cloudProjectServiceProvider);
+          success = await cloudService.openProject(selectedPath);
+        } else {
+          success = await service.openProject(selectedPath);
+        }
+
         if (success) {
           final project = ref.read(projectProvider);
           statusNotifier.showSuccess('Project "${project?.name ?? 'Project'}" opened');
@@ -533,12 +570,51 @@ class AppToolbar extends ConsumerWidget {
     BaseProjectService service,
     WidgetRef ref,
   ) async {
-    // Show confirmation dialog
+    // Get default save location for desktop
+    String? savePath;
+    if (!kIsWeb) {
+      savePath = ref.read(defaultSaveLocationProvider);
+
+      // If no default save location, prompt user to select one
+      if (savePath == null || savePath.isEmpty) {
+        final selectedDirectory = await FilePicker.platform.getDirectoryPath(
+          dialogTitle: ref.tr('select_save_location'),
+        );
+
+        if (selectedDirectory == null) {
+          // User cancelled folder selection
+          return;
+        }
+        savePath = selectedDirectory;
+
+        // Save this as the default for future use
+        ref.read(defaultSaveLocationProvider.notifier).setLocation(selectedDirectory);
+      }
+    }
+
+    // Show confirmation dialog with save location info on desktop
+    if (!context.mounted) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(ref.tr('create_template_project')),
-        content: Text(ref.tr('template_description')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(ref.tr('template_description')),
+            if (!kIsWeb && savePath != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                '${ref.tr('save_location')}: $savePath',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    ),
+              ),
+            ],
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -558,14 +634,84 @@ class AppToolbar extends ConsumerWidget {
       ref.read(projectLoadingProvider.notifier).setLoading(true);
 
       try {
-        await service.createTemplateProject();
+        await service.createTemplateProject(customPath: savePath);
         statusNotifier.showSuccess('Template project created');
       } catch (e) {
-        statusNotifier.showError('Error creating template project: $e');
+        ref.read(projectLoadingProvider.notifier).setLoading(false);
+
+        // If storage/folder creation failed, offer to select a different folder
+        final isStorageError = e is StorageException;
+        if (context.mounted && isStorageError) {
+          final shouldRetry = await _showStorageErrorDialog(context, ref, savePath ?? '');
+
+          if (shouldRetry && context.mounted) {
+            final newDirectory = await FilePicker.platform.getDirectoryPath(
+              dialogTitle: ref.tr('select_save_location'),
+            );
+
+            if (newDirectory != null) {
+              ref.read(defaultSaveLocationProvider.notifier).setLocation(newDirectory);
+              statusNotifier.showLoading('Creating template project...');
+              ref.read(projectLoadingProvider.notifier).setLoading(true);
+
+              try {
+                await service.createTemplateProject(customPath: newDirectory);
+                statusNotifier.showSuccess('Template project created');
+              } catch (e2) {
+                statusNotifier.showError('Error: $e2');
+              } finally {
+                ref.read(projectLoadingProvider.notifier).setLoading(false);
+              }
+            }
+          } else {
+            statusNotifier.showError('Project creation cancelled');
+          }
+        } else {
+          statusNotifier.showError('Error creating template project: $e');
+        }
       } finally {
         ref.read(projectLoadingProvider.notifier).setLoading(false);
       }
     }
+  }
+
+  /// Show error dialog for storage-related issues and offer to select different folder
+  Future<bool> _showStorageErrorDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String currentPath,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(ref.tr('folder_creation_failed')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(ref.tr('folder_creation_failed_description')),
+            const SizedBox(height: 12),
+            Text(
+              '${ref.tr('current_folder')}: $currentPath',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            Text(ref.tr('select_different_folder_prompt')),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(ref.tr('cancel')),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(ref.tr('select_different_folder')),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   void _handleSettings(BuildContext context) {

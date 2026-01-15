@@ -328,4 +328,16 @@ const Map<String, String> ar = {
   'clear_formatting': 'مسح التنسيق',
   'clear_formatting_hint': 'إزالة كل التنسيق من النص المحدد مع الحفاظ على الكيانات',
   'clear_formatting_disabled_hint': 'حدد النص لمسح التنسيق',
+
+  // Cloud Sync
+  'sync_synced': 'تمت المزامنة',
+  'sync_syncing': 'جارٍ المزامنة...',
+  'sync_pending': 'قيد الانتظار',
+  'sync_failed': 'فشلت المزامنة',
+  'sync_offline': 'محلي فقط',
+  'sync_tooltip_synced': 'تمت مزامنة المشروع مع السحابة. ميزات الذكاء الاصطناعي متاحة.',
+  'sync_tooltip_syncing': 'جارٍ مزامنة المشروع مع السحابة...',
+  'sync_tooltip_failed': 'فشلت المزامنة مع السحابة. ستتم إعادة المحاولة تلقائياً.',
+  'sync_tooltip_pending': 'التغييرات في انتظار المزامنة مع السحابة.',
+  'sync_tooltip_offline': 'المشروع مخزن محلياً فقط.',
 };

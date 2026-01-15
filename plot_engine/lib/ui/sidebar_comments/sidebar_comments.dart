@@ -272,6 +272,15 @@ class SidebarComments extends ConsumerWidget {
       );
     }
 
+    // Show message for local projects that AI features require cloud storage
+    if (project.isCloudStored == false) {
+      return _buildEmptyState(
+        context,
+        L10n.get(ref.read(localeProvider), 'ai_requires_cloud'),
+        Icons.cloud_off,
+      );
+    }
+
     if (currentChapter == null) {
       return _buildEmptyState(
         context,

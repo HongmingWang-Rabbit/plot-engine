@@ -7,6 +7,7 @@ class Project {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<KnowledgeTab> knowledgeTabs;
+  final bool isCloudStored;
 
   Project({
     required this.id,
@@ -15,6 +16,7 @@ class Project {
     required this.createdAt,
     required this.updatedAt,
     List<KnowledgeTab>? knowledgeTabs,
+    this.isCloudStored = false,
   }) : knowledgeTabs = knowledgeTabs ?? KnowledgeTab.defaultTabs();
 
   Project copyWith({
@@ -24,6 +26,7 @@ class Project {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<KnowledgeTab>? knowledgeTabs,
+    bool? isCloudStored,
   }) {
     return Project(
       id: id ?? this.id,
@@ -32,6 +35,7 @@ class Project {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       knowledgeTabs: knowledgeTabs ?? this.knowledgeTabs,
+      isCloudStored: isCloudStored ?? this.isCloudStored,
     );
   }
 
@@ -43,6 +47,7 @@ class Project {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'knowledgeTabs': knowledgeTabs.map((t) => t.toJson()).toList(),
+      'isCloudStored': isCloudStored,
     };
   }
 
@@ -57,6 +62,7 @@ class Project {
               ?.map((t) => KnowledgeTab.fromJson(t as Map<String, dynamic>))
               .toList() ??
           KnowledgeTab.defaultTabs(),
+      isCloudStored: json['isCloudStored'] as bool? ?? false,
     );
   }
 }

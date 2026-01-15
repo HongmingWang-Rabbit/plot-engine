@@ -328,4 +328,16 @@ const Map<String, String> ko = {
   'clear_formatting': '서식 지우기',
   'clear_formatting_hint': '엔티티를 유지하면서 선택한 텍스트에서 모든 서식 제거',
   'clear_formatting_disabled_hint': '서식을 지우려면 텍스트를 선택하세요',
+
+  // Cloud Sync
+  'sync_synced': '동기화됨',
+  'sync_syncing': '동기화 중...',
+  'sync_pending': '대기 중',
+  'sync_failed': '동기화 실패',
+  'sync_offline': '로컬만',
+  'sync_tooltip_synced': '프로젝트가 클라우드와 동기화되었습니다. AI 기능을 사용할 수 있습니다.',
+  'sync_tooltip_syncing': '프로젝트를 클라우드에 동기화하는 중...',
+  'sync_tooltip_failed': '클라우드 동기화 실패. 자동으로 재시도합니다.',
+  'sync_tooltip_pending': '변경 사항이 클라우드 동기화를 기다리고 있습니다.',
+  'sync_tooltip_offline': '프로젝트가 로컬에만 저장되어 있습니다.',
 };

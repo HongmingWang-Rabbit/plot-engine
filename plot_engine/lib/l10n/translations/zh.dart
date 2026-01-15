@@ -133,6 +133,22 @@ const Map<String, String> zh = {
   'language': '语言',
   'close': '关闭',
 
+  // Storage Settings
+  'storage': '存储',
+  'default_save_location': '默认保存位置',
+  'default_save_location_description': '新项目和模板将保存的位置',
+  'browse': '浏览',
+  'reset_to_default': '重置为默认',
+  'select_default_save_location': '选择默认保存位置',
+  'select_save_location': '选择保存位置',
+  'not_set': '未设置',
+  'save_location': '保存位置',
+  'folder_creation_failed': '文件夹创建失败',
+  'folder_creation_failed_description': '无法在所选文件夹中创建项目。这通常发生在OneDrive同步的文件夹或权限受限的文件夹中。',
+  'current_folder': '当前文件夹',
+  'select_different_folder_prompt': '是否选择其他文件夹？',
+  'select_different_folder': '选择其他文件夹',
+
   // New Project Dialog
   'create_new_project': '创建新项目',
   'project_name': '项目名称',
@@ -142,6 +158,16 @@ const Map<String, String> zh = {
   'default_location': '默认位置 (~/Documents/PlotEngine)',
   'choose_location': '选择位置',
   'my_novel': '我的小说',
+
+  // Storage Type Selection
+  'storage_type': '存储类型',
+  'local_storage': '本地',
+  'cloud_storage': '云端',
+  'cloud_storage_info': '您的项目将保存到云端，并在设备间同步。',
+  'cloud_projects': '云端项目',
+  'no_cloud_projects': '没有云端项目',
+  'create_cloud_project_hint': '创建一个云端存储的新项目即可在此查看',
+  'refresh': '刷新',
 
   // Open Project Dialog
   'open_project_title': '打开项目',
@@ -191,6 +217,7 @@ const Map<String, String> zh = {
   'ai_assistant': 'AI 助手',
   'entity_details': '实体详情',
   'open_project_ai': '打开项目以使用AI功能',
+  'ai_requires_cloud': 'AI功能需要云存储。\n请登录并创建云项目以使用AI。',
   'select_chapter_analyze': '选择章节进行分析',
   'analyzing': '分析中...',
   'consistency_issues': '一致性问题',
@@ -346,4 +373,16 @@ const Map<String, String> zh = {
   'clear_formatting': '清除格式',
   'clear_formatting_hint': '删除所选文本的所有格式，同时保留实体',
   'clear_formatting_disabled_hint': '选择文本以清除格式',
+
+  // Cloud Sync
+  'sync_synced': '已同步',
+  'sync_syncing': '同步中...',
+  'sync_pending': '待同步',
+  'sync_failed': '同步失败',
+  'sync_offline': '仅本地',
+  'sync_tooltip_synced': '项目已同步到云端。AI 功能可用。',
+  'sync_tooltip_syncing': '正在同步项目到云端...',
+  'sync_tooltip_failed': '云同步失败。将自动重试。',
+  'sync_tooltip_pending': '更改待同步到云端。',
+  'sync_tooltip_offline': '项目仅存储在本地。',
 };

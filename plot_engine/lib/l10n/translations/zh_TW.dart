@@ -130,6 +130,22 @@ const Map<String, String> zhTW = {
   'language': '語言',
   'close': '關閉',
 
+  // Storage Settings
+  'storage': '儲存',
+  'default_save_location': '預設儲存位置',
+  'default_save_location_description': '新專案和範本將儲存的位置',
+  'browse': '瀏覽',
+  'reset_to_default': '重設為預設',
+  'select_default_save_location': '選擇預設儲存位置',
+  'select_save_location': '選擇儲存位置',
+  'not_set': '未設定',
+  'save_location': '儲存位置',
+  'folder_creation_failed': '資料夾建立失敗',
+  'folder_creation_failed_description': '無法在所選資料夾中建立專案。這通常發生在OneDrive同步的資料夾或權限受限的資料夾中。',
+  'current_folder': '目前資料夾',
+  'select_different_folder_prompt': '是否選擇其他資料夾？',
+  'select_different_folder': '選擇其他資料夾',
+
   // New Project Dialog
   'create_new_project': '建立新專案',
   'project_name': '專案名稱',
@@ -139,6 +155,16 @@ const Map<String, String> zhTW = {
   'default_location': '預設位置 (~/Documents/PlotEngine)',
   'choose_location': '選擇位置',
   'my_novel': '我的小說',
+
+  // Storage Type Selection
+  'storage_type': '儲存類型',
+  'local_storage': '本機',
+  'cloud_storage': '雲端',
+  'cloud_storage_info': '您的專案將儲存至雲端，並在裝置間同步。',
+  'cloud_projects': '雲端專案',
+  'no_cloud_projects': '沒有雲端專案',
+  'create_cloud_project_hint': '建立一個雲端儲存的新專案即可在此查看',
+  'refresh': '重新整理',
 
   // Open Project Dialog
   'open_project_title': '開啟專案',
@@ -188,6 +214,7 @@ const Map<String, String> zhTW = {
   'ai_assistant': 'AI 助手',
   'entity_details': '實體詳情',
   'open_project_ai': '開啟專案以使用 AI 功能',
+  'ai_requires_cloud': 'AI 功能需要雲端儲存。\n請登入並建立雲端專案以使用 AI。',
   'select_chapter_analyze': '選擇要分析的章節',
   'analyzing': '分析中...',
   'consistency_issues': '一致性問題',
@@ -328,4 +355,16 @@ const Map<String, String> zhTW = {
   'clear_formatting': '清除格式',
   'clear_formatting_hint': '移除所選文字的所有格式，同時保留實體',
   'clear_formatting_disabled_hint': '選擇文字以清除格式',
+
+  // Cloud Sync
+  'sync_synced': '已同步',
+  'sync_syncing': '同步中...',
+  'sync_pending': '待同步',
+  'sync_failed': '同步失敗',
+  'sync_offline': '僅本機',
+  'sync_tooltip_synced': '專案已同步至雲端。AI 功能可用。',
+  'sync_tooltip_syncing': '正在同步專案至雲端...',
+  'sync_tooltip_failed': '雲端同步失敗。將自動重試。',
+  'sync_tooltip_pending': '變更待同步至雲端。',
+  'sync_tooltip_offline': '專案僅儲存於本機。',
 };

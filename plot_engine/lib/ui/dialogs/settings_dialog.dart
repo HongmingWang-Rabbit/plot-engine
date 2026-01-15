@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../state/settings_state.dart';
 import '../../config/app_themes.dart';
 import '../../l10n/app_localizations.dart';
@@ -107,6 +109,11 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                       ),
                     ],
                   ),
+                  // Storage section - only show on desktop
+                  if (!kIsWeb) ...[
+                    const SizedBox(height: 24),
+                    _buildStorageSection(context, ref),
+                  ],
                 ],
               ),
             ),
@@ -184,6 +191,87 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
           control,
         ],
       ),
+    );
+  }
+
+  Widget _buildStorageSection(BuildContext context, WidgetRef ref) {
+    final defaultLocation = ref.watch(defaultSaveLocationProvider);
+
+    return _buildSettingsSection(
+      context,
+      ref.tr('storage'),
+      [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                ref.tr('default_save_location'),
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                ref.tr('default_save_location_description'),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.6),
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Text(
+                        defaultLocation ?? ref.tr('not_set'),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.folder_open),
+                    tooltip: ref.tr('browse'),
+                    onPressed: () async {
+                      final result = await FilePicker.platform.getDirectoryPath(
+                        dialogTitle: ref.tr('select_default_save_location'),
+                        initialDirectory: defaultLocation,
+                      );
+                      if (result != null) {
+                        ref.read(defaultSaveLocationProvider.notifier).setLocation(result);
+                      }
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    tooltip: ref.tr('reset_to_default'),
+                    onPressed: () {
+                      ref.read(defaultSaveLocationProvider.notifier).resetToDefault();
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
